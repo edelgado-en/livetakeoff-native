@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
+  StyleSheet,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 
@@ -15,25 +23,24 @@ export default function LoginScreen() {
       await login(email, password);
       router.replace('/jobs');
     } catch (err) {
-        console.log(err)
+      console.log(err);
       Alert.alert('Login Failed', 'Invalid email or password');
     }
   };
 
   return (
-    <View className="flex-1 justify-center items-center px-6 bg-white">
+    <View style={styles.container}>
       <Image
         source={require('../assets/logo_2618936_web.png')}
-        className="w-32 h-32 mb-6"
+        style={styles.logo}
         resizeMode="contain"
       />
-      <Text className="text-3xl font-extrabold text-blue-700 mb-6">Live Takeoff</Text>
 
-      <View className="w-full max-w-md">
+      <View style={styles.form}>
         <TextInput
           placeholder="Email"
           placeholderTextColor="#888"
-          className="border border-gray-300 rounded-xl px-4 py-3 mb-4 bg-gray-50 text-base"
+          style={styles.input}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
@@ -42,18 +49,66 @@ export default function LoginScreen() {
         <TextInput
           placeholder="Password"
           placeholderTextColor="#888"
-          className="border border-gray-300 rounded-xl px-4 py-3 mb-6 bg-gray-50 text-base"
+          style={styles.input}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
-        <TouchableOpacity
-          className="bg-blue-600 py-3 rounded-xl shadow-md"
-          onPress={handleLogin}
-        >
-          <Text className="text-white text-center text-lg font-semibold">Login</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: '#ffffff',
+  },
+  logo: {
+    width: 128,
+    height: 128,
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1d4ed8', // Tailwind's blue-700
+    marginBottom: 24,
+  },
+  form: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db', // Tailwind's gray-300
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    backgroundColor: '#f9fafb', // Tailwind's gray-50
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#ef4444', // Tailwind's red-500
+    paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
+  },
+  buttonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+});

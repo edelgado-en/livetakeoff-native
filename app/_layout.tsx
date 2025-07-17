@@ -5,7 +5,7 @@ import { AuthProvider } from '../providers/AuthProvider';
 export default function Layout() {
   return (
     <AuthProvider>
-      <Stack />
+      <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="auto" />
     </AuthProvider>
   );
