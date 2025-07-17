@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function JobsScreen() {
   const { token } = useAuth();
@@ -29,7 +29,6 @@ export default function JobsScreen() {
           })
         });
         const data = await response.json();
-        console.log(data);
         setJobs(data.results || []);
       } catch (e) {
         console.error(e);
@@ -52,8 +51,7 @@ export default function JobsScreen() {
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
         <View className="p-4 mb-4 border border-gray-200 rounded-lg">
-          <Text className="text-lg font-semibold">{item.tailNumber}</Text>
-          <Text className="text-sm text-gray-600">{item.tailNumber}</Text>
+          <Text className="text-lg font-semibold">{item.tailNumber} hello</Text>
         </View>
       )}
     />
