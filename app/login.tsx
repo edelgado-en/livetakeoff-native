@@ -38,7 +38,7 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <TextInput
-          placeholder="Email"
+          placeholder="username"
           placeholderTextColor="#888"
           style={styles.input}
           autoCapitalize="none"
@@ -53,6 +53,7 @@ export default function LoginScreen() {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+          autoCapitalize="none"
         />
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>

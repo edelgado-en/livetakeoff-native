@@ -58,6 +58,15 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+        <Tabs.Screen
+            name="create"
+            options={{
+                href: null, // hides it from the bottom tab bar
+                headerShown: true, // optional: show back button
+                title: 'Create Job',
+            }}
+        />
     </Tabs>
   );
 }

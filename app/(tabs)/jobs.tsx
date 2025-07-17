@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { useAuth } from '../../hooks/useAuth';
 
 export default function JobsScreen() {
   const { token } = useAuth();
+  const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleCreateJob = () => {
+    router.push('/create');
+  };
 
   const getTagStyle = (color: string) => {
     const colorStyles = {
@@ -68,7 +74,12 @@ export default function JobsScreen() {
   return (
      <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>Jobs</Text>
+        <View style={styles.headerContainer}>
+            <Text style={styles.title}>Open Jobs</Text>
+            <TouchableOpacity style={styles.button} onPress={handleCreateJob}>
+                <Text style={styles.buttonText}>+ New Job</Text>
+            </TouchableOpacity>
+        </View>
         <FlatList
             data={jobs}
             keyExtractor={(job) => job.id.toString()}
@@ -133,10 +144,22 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 16,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+  },
+  newJobButton: {
+    fontSize: 16,
+    color: '#ef4444', // Tailwind's red-500
+    fontWeight: '600',
   },
   card: {
     backgroundColor: '#f9f9f9',
@@ -194,5 +217,22 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '500',
+  },
+   button: {
+    backgroundColor: '#ef4444', // Tailwind's red-500
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
+  },
+  buttonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
