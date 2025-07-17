@@ -10,6 +10,24 @@ export default function JobsScreen() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getTagStyle = (color: string) => {
+    const colorStyles = {
+      red: { borderColor: '#ef4444', color: '#ef4444' },
+      orange: { borderColor: '#f97316', color: '#f97316' },
+      amber: { borderColor: '#f59e0b', color: '#f59e0b' },
+      indigo: { borderColor: '#6366f1', color: '#6366f1' },
+      violet: { borderColor: '#8b5cf6', color: '#8b5cf6' },
+      fuchsia: { borderColor: '#d946ef', color: '#d946ef' },
+      pink: { borderColor: '#ec4899', color: '#ec4899' },
+      slate: { borderColor: '#64748b', color: '#64748b' },
+      lime: { borderColor: '#84cc16', color: '#84cc16' },
+      emerald: { borderColor: '#10b981', color: '#10b981' },
+      cyan: { borderColor: '#06b6d4', color: '#06b6d4' },
+      blue: { borderColor: '#3b82f6', color: '#3b82f6' },
+    };
+    return colorStyles[color] || { borderColor: '#ccc', color: '#fff' };
+  };
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -72,6 +90,31 @@ export default function JobsScreen() {
                         <Text style={styles.name}>{item.customer.name}</Text>
                     </View>
                 </View>
+                <View style={{ marginTop: 2  }}>
+                    <Text >
+                        <Text>{item.airport.initials}</Text>
+                        {'  —  '}
+                        {item.fbo.name} — {item.aircraftType.name}
+                    </Text>
+                </View>
+                <View style={styles.tagContainer}>
+                    {item.tags?.map((tag) => {
+                        const tagStyle = getTagStyle(tag.tag_color);
+                        return (
+                            <View
+                                key={tag.id}
+                                style={[
+                                styles.tag,
+                                { borderColor: tagStyle.borderColor },
+                                ]}
+                            >
+                                <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                {tag.tag_short_name}
+                                </Text>
+                            </View>
+                        );
+                    })}
+                </View>
             </View>
             )}
         />
@@ -132,5 +175,24 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     color: '#1f2937', // Tailwind's gray-800
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: 8,
+    marginVertical: 8,
+  },
+  tag: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
