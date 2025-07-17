@@ -12,6 +12,52 @@ export default function JobsScreen() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getStatusStyle = (status: string) => {
+  switch (status) {
+    case 'A':
+      return { backgroundColor: '#60a5fa' }; // bg-blue-400
+    case 'S':
+      return { backgroundColor: '#f59e0b' }; // bg-yellow-500
+    case 'U':
+      return { backgroundColor: '#6366f1' }; // bg-indigo-500
+    case 'W':
+    case 'C':
+      return { backgroundColor: '#22c55e' }; // bg-green-500
+    case 'T':
+      return { backgroundColor: '#4b5563' }; // bg-gray-600
+    case 'R':
+      return { backgroundColor: '#8b5cf6' }; // bg-purple-500
+    case 'I':
+      return { backgroundColor: '#3b82f6' }; // bg-blue-500
+    default:
+      return { backgroundColor: '#6b7280' }; // default gray
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'A':
+      return 'Confirmed';
+    case 'S':
+      return 'Assigned';
+    case 'U':
+      return 'Submitted';
+    case 'W':
+      return 'In Progress';
+    case 'C':
+      return 'Completed';
+    case 'T':
+      return 'Canceled';
+    case 'R':
+      return 'Review';
+    case 'I':
+      return 'Invoiced';
+    default:
+      return 'Unknown';
+  }
+};
+
+
   const handleCreateJob = () => {
     router.push('/create');
   };
@@ -89,18 +135,26 @@ export default function JobsScreen() {
                     <Text style={styles.cardTitle}>{item.tailNumber}</Text>
                     <Text>{item.purchase_order}</Text>
                 </View>
-                <View style={styles.wrapper}>
-                    <View style={styles.imageContainer}>
-                        <Image
-                        source={{ uri: item.customer.logo }}
-                        style={styles.logo}
-                        resizeMode="cover"
-                        />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={styles.wrapper}>
+                        <View style={styles.imageContainer}>
+                            <Image
+                            source={{ uri: item.customer.logo }}
+                            style={styles.logo}
+                            resizeMode="cover"
+                            />
+                        </View>
+                        <View style={styles.nameContainer}>
+                            <Text style={styles.name}>{item.customer.name}</Text>
+                        </View>
                     </View>
-                    <View style={styles.nameContainer}>
-                        <Text style={styles.name}>{item.customer.name}</Text>
+                    <View>
+                        <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
+                            {getStatusLabel(item.status)}
+                        </Text>
                     </View>
                 </View>
+                
                 <View style={{ marginTop: 2  }}>
                     <Text >
                         <Text>{item.airport.initials}</Text>
@@ -126,6 +180,60 @@ export default function JobsScreen() {
                         );
                     })}
                 </View>
+                {/* Arrival */}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Arrival</Text>
+                    {item.on_site && (
+                    <View style={styles.badge}>
+                        <View style={styles.dotGreen} />
+                        <Text style={styles.badgeText}>On Site</Text>
+                    </View>
+                    )}
+                    {!item.on_site && item.estimatedETA == null && (
+                    <View style={styles.badge}>
+                        <View style={styles.dotRed} />
+                        <Text style={styles.badgeText}>TBD</Text>
+                    </View>
+                    )}
+                    {!item.on_site && item.estimatedETA != null && (
+                    <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
+                    )}
+                </View>
+
+                {/* Departure */}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Departure</Text>
+                    {item.estimatedETD == null ? (
+                    <View style={styles.badge}>
+                        <View style={styles.dotRed} />
+                        <Text style={styles.badgeText}>TBD</Text>
+                    </View>
+                    ) : (
+                    <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                    )}
+                </View>
+
+                {/* Completion */}
+                <View style={styles.section}>
+                    {item.status === 'C' || item.status === 'I' ? (
+                    <Text style={styles.label}>
+                        Completed on <Text style={styles.dateText}>{item.completion_date}</Text>
+                    </Text>
+                    ) : (
+                    <Text style={styles.label}>
+                        Complete before{' '}
+                        {item.completeBy ? (
+                        <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
+                        ) : (
+                        <View style={styles.badge}>
+                            <View style={styles.dotRed} />
+                            <Text style={styles.badgeText}>TBD</Text>
+                        </View>
+                        )}
+                    </Text>
+                    )}
+                </View>
+
             </View>
             )}
         />
@@ -157,9 +265,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   newJobButton: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#ef4444', // Tailwind's red-500
-    fontWeight: '600',
+    fontWeight: '500',
   },
   card: {
     backgroundColor: '#f9f9f9',
@@ -212,7 +320,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginRight: 8,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tagText: {
     fontSize: 12,
@@ -220,8 +328,8 @@ const styles = StyleSheet.create({
   },
    button: {
     backgroundColor: '#ef4444', // Tailwind's red-500
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -232,7 +340,60 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#ffffff',
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  statusPill: {
+    color: '#fff',
+    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
+    position: true,
+    top: 12,
+  },
+    section: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  label: {
+    fontSize: 14,
+    color: '#6b7280', // Tailwind's gray-500
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#d1d5db', // gray-300
+    borderWidth: 1,
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: '#374151', // gray-700
+    marginLeft: 6,
+  },
+  dotGreen: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22c55e', // green-500
+  },
+  dotRed: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#f43f5e', // rose-500
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#374151', // gray-700
+    marginLeft: 6,
   },
 });
