@@ -154,7 +154,6 @@ const getStatusLabel = (status: string) => {
         <View style={{ marginBottom: 10 }}>
             <Text>Total Jobs: {totalJobs}</Text>
         </View>
-
         <FlatList
             data={jobs}
             keyExtractor={(job) => job.id.toString()}
@@ -268,7 +267,12 @@ const getStatusLabel = (status: string) => {
             refreshControl={
                 <RefreshControl refreshing={loading} onRefresh={onRefresh} />
             }
+            ListFooterComponent={
+                <View style={{ paddingVertical: 20 }}>
+                </View>
+            }
         />
+        
         {/* I am using the RefreshControl from the FlatList instead */}
         {/* {loading && (
           <View style={styles.loaderOverlay}>
