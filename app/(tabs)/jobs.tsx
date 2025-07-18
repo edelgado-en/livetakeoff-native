@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
          ActivityIndicator, Image, TouchableOpacity,
          TextInput, RefreshControl } from 'react-native';
@@ -11,8 +11,11 @@ import { useAuth } from '../../hooks/useAuth';
 
 import DotLoader from '../../components/DotLoader';
 
+import { AuthContext } from '../../providers/AuthProvider';
+
 export default function JobsScreen() {
   const { token } = useAuth();
+  const { currentUser } = useContext(AuthContext);
   const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);

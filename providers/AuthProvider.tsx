@@ -16,8 +16,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadToken = async () => {
       const stored = await SecureStore.getItemAsync('accessToken');
-      if (stored) setToken(stored);
-      setLoading(false);
+      if (stored) {
+        setToken(stored);
+        await fetchCurrentUser(stored);
+        }
+        setLoading(false);
     };
     loadToken();
   }, []);
@@ -79,7 +82,7 @@ export const AuthProvider = ({ children }) => {
  };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, currentUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
