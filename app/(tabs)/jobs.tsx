@@ -13,6 +13,8 @@ import DotLoader from '../../components/DotLoader';
 
 import { AuthContext } from '../../providers/AuthProvider';
 
+import httpService from '../../services/httpService';
+
 export default function JobsScreen() {
   const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
@@ -102,13 +104,7 @@ const getStatusLabel = (status: string) => {
   const fetchJobs = async () => {
     setLoading(true);
       try {
-        const response = await fetch('https://api-livetakeoff.herokuapp.com/api/jobs?page=1&size=50', {
-          method: 'POST',
-          headers: {
-            Authorization: `JWT ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        const response = await httpService.post('/jobs?page=1&size=50', {
             searchText: searchText,
             status: "All",
             sortField: "requestDate",
@@ -117,12 +113,12 @@ const getStatusLabel = (status: string) => {
             vendor: "All",
             project_manager: "All",
             tags: [],
-            airport_type: "All"
-          })
+            airport_type: "All",
         });
-        const data = await response.json();
-        setJobs(data.results || []);
-        setTotalJobs(data.count || 0);
+        
+        setJobs(response.results || []);
+        
+        setTotalJobs(response.count || 0);
       } catch (e) {
         console.error(e);
       } finally {

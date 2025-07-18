@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await fetch('https://api-livetakeoff.herokuapp.com/api/users/me', {
                 headers: {
-                Authorization: `JWT ${accessToken}`,
+                    Authorization: `JWT ${accessToken}`,
                 },
             }); 
             
