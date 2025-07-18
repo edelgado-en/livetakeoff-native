@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList,
+         ActivityIndicator, Image, TouchableOpacity, TextInput } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../../hooks/useAuth';
 
@@ -11,6 +13,8 @@ export default function JobsScreen() {
   const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [totalJobs, setTotalJobs] = useState(0);
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -81,7 +85,15 @@ const getStatusLabel = (status: string) => {
   };
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const timeoutID = setTimeout(() => {
+      fetchJobs();
+    }, 500);
+
+    return () => clearTimeout(timeoutID);
+    
+  }, [token, searchText]);
+
+  const fetchJobs = async () => {
       try {
         const response = await fetch('https://api-livetakeoff.herokuapp.com/api/jobs?page=1&size=50', {
           method: 'POST',
@@ -90,7 +102,7 @@ const getStatusLabel = (status: string) => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            searchText: "",
+            searchText: searchText,
             status: "All",
             sortField: "requestDate",
             customer: "All",
@@ -103,6 +115,7 @@ const getStatusLabel = (status: string) => {
         });
         const data = await response.json();
         setJobs(data.results || []);
+        setTotalJobs(data.count || 0);
       } catch (e) {
         console.error(e);
       } finally {
@@ -110,21 +123,29 @@ const getStatusLabel = (status: string) => {
       }
     };
 
-    fetchJobs();
-  }, [token]);
 
   if (loading) {
     return <ActivityIndicator className="flex-1 justify-center items-center" />;
   }
 
   return (
-     <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.headerContainer}>
             <Text style={styles.title}>Open Jobs</Text>
             <TouchableOpacity style={styles.button} onPress={handleCreateJob}>
                 <Text style={styles.buttonText}>+ New Job</Text>
             </TouchableOpacity>
+        </View>
+        <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#6b7280" style={styles.icon} />
+            <TextInput
+                style={styles.input}
+                placeholder="Search jobs..."
+                placeholderTextColor="#9ca3af"
+                value={searchText}
+                onChangeText={setSearchText}
+            />
         </View>
         <FlatList
             data={jobs}
@@ -239,7 +260,7 @@ const getStatusLabel = (status: string) => {
         />
 
       </View>
-      </SafeAreaView>
+    </SafeAreaView>
   );
 }
 
@@ -250,14 +271,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    padding: 10,
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    marginTop: 10,
     marginBottom: 16,
   },
   title: {
@@ -395,5 +415,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151', // gray-700
     marginLeft: 6,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6', // Tailwind gray-100
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827', // Tailwind gray-900
   },
 });
