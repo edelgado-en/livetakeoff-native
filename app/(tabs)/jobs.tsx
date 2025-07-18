@@ -151,6 +151,10 @@ const getStatusLabel = (status: string) => {
             />
         </View>
 
+        <View style={{ marginBottom: 10 }}>
+            <Text>Total Jobs: {totalJobs}</Text>
+        </View>
+
         <FlatList
             data={jobs}
             keyExtractor={(job) => job.id.toString()}

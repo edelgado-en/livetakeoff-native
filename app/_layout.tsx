@@ -1,9 +1,31 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../providers/AuthProvider';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Text, View } from 'react-native';
 
 export default function Layout() {
-  return (
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_700Bold,
+  });
+
+  // Set Inter as the default font globally for all <Text />
+  if (fontsLoaded) {
+    Text.defaultProps = Text.defaultProps || {};
+    Text.defaultProps.style = { fontFamily: 'Inter_400Regular' };
+  }
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading fonts...</Text>
+      </View>
+    );
+  }
+
+    return (
     <AuthProvider>
       <Stack screenOptions={{ headerShown: false }} />
       <StatusBar style="auto" />
