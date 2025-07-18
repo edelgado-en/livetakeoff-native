@@ -23,7 +23,6 @@ export default function LoginScreen() {
       await login(email, password);
       router.replace('/jobs');
     } catch (err) {
-      console.log(err);
       Alert.alert('Login Failed', 'Invalid email or password');
     }
   };

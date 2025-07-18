@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList,
-         ActivityIndicator, Image, TouchableOpacity, TextInput } from 'react-native';
+         ActivityIndicator, Image, TouchableOpacity,
+         TextInput, RefreshControl } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -126,6 +127,10 @@ const getStatusLabel = (status: string) => {
       }
     };
 
+    const onRefresh = useCallback(async () => {
+        await fetchJobs();
+    }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -150,119 +155,122 @@ const getStatusLabel = (status: string) => {
             data={jobs}
             keyExtractor={(job) => job.id.toString()}
             renderItem={({ item }) => (
-            <View style={styles.card}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.cardTitle}>{item.tailNumber}</Text>
-                    <Text>{item.purchase_order}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <View style={styles.wrapper}>
-                        <View style={styles.imageContainer}>
-                            <Image
-                            source={{ uri: item.customer.logo }}
-                            style={styles.logo}
-                            resizeMode="cover"
-                            />
+                <View style={styles.card}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={styles.cardTitle}>{item.tailNumber}</Text>
+                        <Text>{item.purchase_order}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={styles.wrapper}>
+                            <View style={styles.imageContainer}>
+                                <Image
+                                source={{ uri: item.customer.logo }}
+                                style={styles.logo}
+                                resizeMode="cover"
+                                />
+                            </View>
+                            <View style={styles.nameContainer}>
+                                <Text style={styles.name}>{item.customer.name}</Text>
+                            </View>
                         </View>
-                        <View style={styles.nameContainer}>
-                            <Text style={styles.name}>{item.customer.name}</Text>
+                        <View>
+                            <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
+                                {getStatusLabel(item.status)}
+                            </Text>
                         </View>
                     </View>
-                    <View>
-                        <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
-                            {getStatusLabel(item.status)}
+                    
+                    <View style={{ marginTop: 2  }}>
+                        <Text >
+                            <Text>{item.airport.initials}</Text>
+                            {'  —  '}
+                            {item.fbo.name} — {item.aircraftType.name}
                         </Text>
                     </View>
-                </View>
-                
-                <View style={{ marginTop: 2  }}>
-                    <Text >
-                        <Text>{item.airport.initials}</Text>
-                        {'  —  '}
-                        {item.fbo.name} — {item.aircraftType.name}
-                    </Text>
-                </View>
-                <View style={styles.tagContainer}>
-                    {item.tags?.map((tag) => {
-                        const tagStyle = getTagStyle(tag.tag_color);
-                        return (
-                            <View
-                                key={tag.id}
-                                style={[
-                                styles.tag,
-                                { borderColor: tagStyle.borderColor },
-                                ]}
-                            >
-                                <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                                {tag.tag_short_name}
-                                </Text>
-                            </View>
-                        );
-                    })}
-                </View>
-                {/* Arrival */}
-                <View style={styles.section}>
-                    <Text style={styles.label}>Arrival</Text>
-                    {item.on_site && (
-                    <View style={styles.badge}>
-                        <View style={styles.dotGreen} />
-                        <Text style={styles.badgeText}>On Site</Text>
+                    <View style={styles.tagContainer}>
+                        {item.tags?.map((tag) => {
+                            const tagStyle = getTagStyle(tag.tag_color);
+                            return (
+                                <View
+                                    key={tag.id}
+                                    style={[
+                                    styles.tag,
+                                    { borderColor: tagStyle.borderColor },
+                                    ]}
+                                >
+                                    <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                    {tag.tag_short_name}
+                                    </Text>
+                                </View>
+                            );
+                        })}
                     </View>
-                    )}
-                    {!item.on_site && item.estimatedETA == null && (
-                    <View style={styles.badge}>
-                        <View style={styles.dotRed} />
-                        <Text style={styles.badgeText}>TBD</Text>
-                    </View>
-                    )}
-                    {!item.on_site && item.estimatedETA != null && (
-                    <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
-                    )}
-                </View>
-
-                {/* Departure */}
-                <View style={styles.section}>
-                    <Text style={styles.label}>Departure</Text>
-                    {item.estimatedETD == null ? (
-                    <View style={styles.badge}>
-                        <View style={styles.dotRed} />
-                        <Text style={styles.badgeText}>TBD</Text>
-                    </View>
-                    ) : (
-                    <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
-                    )}
-                </View>
-
-                {/* Completion */}
-                <View style={styles.section}>
-                    {item.status === 'C' || item.status === 'I' ? (
-                    <Text style={styles.label}>
-                        Completed on <Text style={styles.dateText}>{item.completion_date}</Text>
-                    </Text>
-                    ) : (
-                    <Text style={styles.label}>
-                        Complete before{' '}
-                        {item.completeBy ? (
-                        <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
-                        ) : (
+                    {/* Arrival */}
+                    <View style={styles.section}>
+                        <Text style={styles.label}>Arrival</Text>
+                        {item.on_site && (
+                        <View style={styles.badge}>
+                            <View style={styles.dotGreen} />
+                            <Text style={styles.badgeText}>On Site</Text>
+                        </View>
+                        )}
+                        {!item.on_site && item.estimatedETA == null && (
                         <View style={styles.badge}>
                             <View style={styles.dotRed} />
                             <Text style={styles.badgeText}>TBD</Text>
                         </View>
                         )}
-                    </Text>
-                    )}
+                        {!item.on_site && item.estimatedETA != null && (
+                        <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
+                        )}
+                    </View>
+
+                    {/* Departure */}
+                    <View style={styles.section}>
+                        <Text style={styles.label}>Departure</Text>
+                        {item.estimatedETD == null ? (
+                        <View style={styles.badge}>
+                            <View style={styles.dotRed} />
+                            <Text style={styles.badgeText}>TBD</Text>
+                        </View>
+                        ) : (
+                        <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                        )}
+                    </View>
+
+                    {/* Completion */}
+                    <View style={styles.section}>
+                        {item.status === 'C' || item.status === 'I' ? (
+                        <Text style={styles.label}>
+                            Completed on <Text style={styles.dateText}>{item.completion_date}</Text>
+                        </Text>
+                        ) : (
+                        <Text style={styles.label}>
+                            Complete before{' '}
+                            {item.completeBy ? (
+                            <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
+                            ) : (
+                            <View style={styles.badge}>
+                                <View style={styles.dotRed} />
+                                <Text style={styles.badgeText}>TBD</Text>
+                            </View>
+                            )}
+                        </Text>
+                        )}
+                    </View>
+
                 </View>
-
-            </View>
             )}
+            refreshControl={
+                <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+            }
         />
-
-        {loading && (
+        {/* I am using the RefreshControl from the FlatList instead */}
+        {/* {loading && (
           <View style={styles.loaderOverlay}>
             <DotLoader />
           </View>
-        )}
+        )} */}
       </View>
     </SafeAreaView>
   );
