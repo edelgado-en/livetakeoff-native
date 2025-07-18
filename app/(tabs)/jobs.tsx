@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../../hooks/useAuth';
 
+import DotLoader from '../../components/DotLoader';
+
 export default function JobsScreen() {
   const { token } = useAuth();
   const router = useRouter();
@@ -94,6 +96,7 @@ const getStatusLabel = (status: string) => {
   }, [token, searchText]);
 
   const fetchJobs = async () => {
+    setLoading(true);
       try {
         const response = await fetch('https://api-livetakeoff.herokuapp.com/api/jobs?page=1&size=50', {
           method: 'POST',
@@ -123,11 +126,6 @@ const getStatusLabel = (status: string) => {
       }
     };
 
-
-  if (loading) {
-    return <ActivityIndicator className="flex-1 justify-center items-center" />;
-  }
-
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
@@ -147,6 +145,7 @@ const getStatusLabel = (status: string) => {
                 onChangeText={setSearchText}
             />
         </View>
+
         <FlatList
             data={jobs}
             keyExtractor={(job) => job.id.toString()}
@@ -259,6 +258,11 @@ const getStatusLabel = (status: string) => {
             )}
         />
 
+        {loading && (
+          <View style={styles.loaderOverlay}>
+            <DotLoader />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -433,4 +437,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827', // Tailwind gray-900
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff', // optional
+},
+loaderOverlay: {
+  ...StyleSheet.absoluteFillObject,
+  backgroundColor: 'rgba(255,255,255,0.7)', // optional translucent backdrop
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+},
 });
