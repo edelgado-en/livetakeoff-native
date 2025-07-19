@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, ScrollView,
           KeyboardAvoidingView, Platform } from 'react-native';
@@ -11,6 +11,9 @@ import httpService from '../../services/httpService';
 import { AuthContext } from '../../providers/AuthProvider';
 
 import DatePicker from '../../components/DatePicker';
+import AirportFeesAlert from '../../components/AirportFeesAlert';
+import FboFeesAlert from '../../components/FboFeesAlert';
+import HoursOfOperationAlert from '../../components/HoursOfOperationAlert';
 
 const requestPriorities = [
   {
@@ -88,6 +91,9 @@ export default function CreateJobScreen() {
     const [otherRetainerServices, setOtherRetainerServices] = useState([]);
 
     const [airportFees, setAirportFees] = useState([]);
+    const [fboFees, setFboFees] = useState([]);
+
+    const suppressSearchRef = useRef(false);
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -138,6 +144,11 @@ export default function CreateJobScreen() {
   }, [aircraftSearchTerm])
 
     useEffect(() => {
+        if (suppressSearchRef.current) {
+            suppressSearchRef.current = false;
+            return; // Skip search
+        }
+        
         //Basic throttling
         let timeoutID = setTimeout(() => {
         searchAirports();
@@ -183,11 +194,23 @@ export default function CreateJobScreen() {
     try {
       const response = await httpService.post('/airports', { name: airportSearchTerm });
 
-      setAirports(response.results);
+      //setAirports(response.results);
+
+      setAirports(ensureSelectedIsIncluded(response.results));
     } catch (err) {
         console.error("Error fetching airports:", err);
     }
   }
+
+  const ensureSelectedIsIncluded = (list) => {
+    if (
+        airportSelected &&
+        !list.some((a) => a.id === airportSelected.id)
+    ) {
+        return [...list, airportSelected]; // ✅ keep it
+    }
+    return list;
+    };
 
   const searchFbos = async () => {
     try {
@@ -198,6 +221,39 @@ export default function CreateJobScreen() {
         console.error("Error fetching FBOs:", err);
     }
   }
+
+  const searchFbosWithBody = async (request) => {
+    try {
+      const response = await httpService.post('/fbo-search', request);
+      
+      if (response.results.length > 0) {
+        setFbos(response.results);
+      } else {
+        setFbos(allFbos);
+      }
+
+    } catch (err) {
+        console.error("Error fetching FBOs:", err);
+    }
+  }
+
+  const searchAirportCustomerFees = async (request) => {
+      try {
+        const response = await httpService.post('/airports/customer-fees', request);
+        setAirportFees(response);
+      } catch (err) {
+        //ignore
+      }
+  }
+
+    const searchFboCustomerFees = async (request) => {
+        try {
+            const response = await httpService.post('/fbos/customer-fees', request);
+            setFboFees(response);
+        } catch (err) {
+            //ignore
+        }
+    }
 
     const getServicesAndRetainers = async (customerId: Number) => {
         try {
@@ -248,30 +304,50 @@ export default function CreateJobScreen() {
   const handleCustomerSelectedChange = (item: any) => {
      setCustomerSelected(item);
      getServicesAndRetainers(item.id);
+
+    if (currentUser.showAirportFees && airportSelected) {
+        const request = {
+            airport_id: airportSelected.id,
+            customer_id: item.id,
+        };
+
+        searchAirportCustomerFees(request);
+    }
+
+    if (currentUser.showAirportFees && fboSelected) {
+      const request = {
+        fbo_id: fboSelected.id,
+        customer_id: item.id,
+      };
+
+      searchFboCustomerFees(request);
+    }
   };
 
   const handleAircraftTypeSelectedChange = (item: any) => {
     setAircraftTypeSelected(item);
   }
   
-  const handleAirportSelectedChange = async (item: any) => {
+  const handleAirportSelectedChange = (item: any) => {
     setAirportSelected(item);
-    
-    const request = {
-      airport_id: item.id,
-    };
+    setAirportSearchTerm('');
+    searchFbosWithBody({ airport_id: item.id })
 
-    try {
-      const response = await httpService.post('/fbo-search', request);
+    let customer_id = null;
 
-      if (response.results.length > 0) {
-        setFbos(response.results);
-      } else {
-        setFbos(allFbos);
-      }
-    } catch (err) {
-        console.error("Error fetching FBOs:", err);
+    if (currentUser.customerId) {
+      customer_id = currentUser.customerId;
+    } else if (customerSelected) {
+      customer_id = customerSelected.id;
     }
+
+    if (currentUser.showAirportFees && customer_id) {
+      searchAirportCustomerFees({ airport_id: item.id, customer_id: customer_id});
+    } 
+  }
+
+  const handleFboSelectedChange = (item: any) => {
+    setFboSelected(item);
 
     let customer_id = null;
 
@@ -283,24 +359,12 @@ export default function CreateJobScreen() {
 
     if (currentUser.showAirportFees && customer_id) {
       const request = {
-        airport_id: airport.id,
+        fbo_id: item.id,
         customer_id: customer_id,
       };
 
-      try {
-        const response = await httpService.post('/airports/customer-fees', request);
-        console.log('airport fees response:', response);
-
-        setAirportFees(response);
-      } catch (err) {
-        //ignore
-      }
+      searchFboCustomerFees(request);
     }
-
-  }
-
-  const handleFboSelectedChange = (item: any) => {
-    setFboSelected(item);
   }
 
   const getTailLookups = async () => {
@@ -574,6 +638,11 @@ export default function CreateJobScreen() {
                                 onChangeText={(text) => setAirportSearchTerm(text)}
                             />
                         </View>
+
+                        {airportFees.length > 0 && (
+                            <AirportFeesAlert airportFees={airportFees} />
+                        )}
+
                         <View style={{ marginTop: 30 }}>
                             <Text style={[styles.dropdownLabel]}>
                                 FBO
@@ -595,6 +664,14 @@ export default function CreateJobScreen() {
                                 onChangeText={(text) => setFboSearchTerm(text)}
                             />
                         </View>
+
+                        {fboFees.length > 0 && (
+                            <FboFeesAlert fboFees={fboFees} />
+                        )}
+
+                        {fboSelected && fboSelected.hours_of_operation && (
+                            <HoursOfOperationAlert hours_of_operation={fboSelected.hours_of_operation} />
+                        )}
 
                         <DatePicker
                             label="Estimated Arrival"
@@ -754,6 +831,7 @@ const styles = StyleSheet.create({
     height: 40,
     fontSize: 16,
     borderRadius: 8,
+    borderColor: '#9CA3AF',
   },
   labelTextStyle: {
     position: 'absolute',
