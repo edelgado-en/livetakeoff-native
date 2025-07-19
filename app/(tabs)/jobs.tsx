@@ -134,7 +134,7 @@ const getStatusLabel = (status: string) => {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.headerContainer}>
-            <Text style={styles.title}>Open Jobs</Text>
+            <Text style={styles.title}>Livetakeoff</Text>
             <TouchableOpacity style={styles.button} onPress={handleCreateJob}>
                 <Text style={styles.buttonText}>+ New Job</Text>
             </TouchableOpacity>
@@ -151,7 +151,7 @@ const getStatusLabel = (status: string) => {
         </View>
 
         <View style={{ marginBottom: 10 }}>
-            <Text>Total Jobs: {totalJobs}</Text>
+            <Text>Open Jobs: {totalJobs}</Text>
         </View>
         <FlatList
             data={jobs}
@@ -301,7 +301,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '900', // extra-bold, if available on device
+    color: '#DC2626', // Tailwind's red-600
   },
   newJobButton: {
     fontSize: 14,
