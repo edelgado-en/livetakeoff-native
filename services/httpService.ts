@@ -9,14 +9,17 @@ const getToken = async () => {
 const request = async (endpoint, options = {}) => {
   const token = await getToken();
 
+  const method = (options.method || 'GET').toUpperCase();
+
   const headers = {
-    'Content-Type': 'application/json',
+    ...(method !== 'GET' && { 'Content-Type': 'application/json' }),
     ...(token && { Authorization: `JWT ${token}` }),
     ...options.headers,
   };
 
   const config = {
     ...options,
+    method,
     headers,
   };
 

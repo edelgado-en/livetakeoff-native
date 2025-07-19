@@ -110,7 +110,12 @@ const DatePicker: React.FC<Props> = ({
         {showOnSiteToggle && (
           <View style={styles.toggleInline}>
             <Text style={styles.toggleLabel}>On site</Text>
-            <Switch value={onSiteValue} onValueChange={handleToggleOnSite} />
+            <Switch 
+                value={onSiteValue}
+                onValueChange={handleToggleOnSite}
+                thumbColor={onSiteValue ? '#EF4444' : '#f4f3f4'} // red-500 when ON
+                trackColor={{ false: '#D1D5DB', true: '#FCA5A5' }} // gray-300 / red-300    
+            />
           </View>
         )}
       </View>

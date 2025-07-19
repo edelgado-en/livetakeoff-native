@@ -73,6 +73,16 @@ export default function CreateJobScreen() {
 
     const [onSite, setOnSite] = useState(false);
 
+    const [requestedBy, setRequestedBy] = useState("");
+
+    const [interiorServices, setInteriorServices] = useState([]);
+    const [exteriorServices, setExteriorServices] = useState([]);
+    const [otherServices, setOtherServices] = useState([]);
+
+    const [interiorRetainerServices, setInteriorRetainerServices] = useState([]);
+    const [exteriorRetainerServices, setExteriorRetainerServices] = useState([]);
+    const [otherRetainerServices, setOtherRetainerServices] = useState([]);
+
  useEffect(() => {
     const newSteps = [...steps];
 
@@ -172,8 +182,55 @@ export default function CreateJobScreen() {
     }
   }
 
+    const getServicesAndRetainers = async (customerId: Number) => {
+        try {
+            const response = await httpService.get(`/customers/retainers-services/${customerId}/`);
+
+            const interior: any[] = [];
+            const exterior: any[] = [];
+            const other: any[] = [];
+
+            response.services.forEach((service: any) => {
+                if (service.category === "I") {
+                interior.push(service);
+                } else if (service.category === "E") {
+                exterior.push(service);
+                } else {
+                other.push(service);
+                }
+            });
+
+            setInteriorServices(interior);
+            setExteriorServices(exterior);
+            setOtherServices(other);
+
+            const interiorRetainer: any[] = [];
+            const exteriorRetainer: any[] = [];
+            const otherRetainer: any[] = [];
+
+            response.retainer_services.forEach((retainerService: any) => {
+                if (retainerService.category === "I") {
+                interiorRetainer.push(retainerService);
+                } else if (retainerService.category === "E") {
+                exteriorRetainer.push(retainerService);
+                } else {
+                otherRetainer.push(retainerService);
+                }
+            });
+
+            setInteriorRetainerServices(interiorRetainer);
+            setExteriorRetainerServices(exteriorRetainer);
+            setOtherRetainerServices(otherRetainer);
+        
+            
+        } catch (err) {
+            console.error("Error fetching services and retainers:", err);
+        }
+    };
+
   const handleCustomerSelectedChange = (item: any) => {
-    setCustomerSelected(item);
+     setCustomerSelected(item);
+     getServicesAndRetainers(item.id);
   };
 
   const handleAircraftTypeSelectedChange = (item: any) => {
@@ -187,6 +244,59 @@ export default function CreateJobScreen() {
   const handleFboSelectedChange = (item: any) => {
     setFboSelected(item);
   }
+
+  const handleGoToNextStep = (currentStep) => {
+    let selectedCustomer = customerSelected;
+    if (currentUser.customerId) {
+      selectedCustomer = {
+        id: currentUser.customerId,
+      };
+    }
+
+    if (currentStep.id === 1) {
+
+    } else if (currentStep.id === 2) {
+
+    }
+
+    const newSteps = [...steps];
+
+    newSteps[0].selected = false;
+    newSteps[1].selected = false;
+    newSteps[2].selected = false;
+
+    if (currentStep.id === 1) {
+      newSteps[1].selected = true;
+      newSteps[1].status = "current";
+      newSteps[0].status = "complete";
+    } else if (currentStep.id === 2) {
+      newSteps[2].selected = true;
+      newSteps[2].status = "current";
+      newSteps[1].status = "complete";
+    }
+
+    setSteps(newSteps);
+  }
+
+  const handleGotoPreviousStep = (currentStep) => {
+    const newSteps = [...steps];
+
+    newSteps[0].selected = false;
+    newSteps[1].selected = false;
+    newSteps[2].selected = false;
+
+    if (currentStep.id === 2) {
+      newSteps[0].selected = true;
+      newSteps[0].status = "current";
+      newSteps[1].status = "upcoming";
+    } else if (currentStep.id === 3) {
+      newSteps[1].selected = true;
+      newSteps[1].status = "current";
+      newSteps[2].status = "upcoming";
+    }
+
+    setSteps(newSteps);
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -214,7 +324,7 @@ export default function CreateJobScreen() {
                                     <Text
                                         style={[
                                         styles.circleText,
-                                        step.status === "complete" && styles.completeText,
+                                        step.status === "complete" && styles.completeCheck,
                                         step.status === "current" && styles.currentText,
                                         step.status === "upcoming" && styles.upcomingText,
                                         ]}
@@ -342,7 +452,7 @@ export default function CreateJobScreen() {
                                 maxHeight={300}
                                 labelField="name"
                                 valueField="id"
-                                placeholder="Select airport"
+                                placeholder="Select FBO"
                                 searchPlaceholder="Search..."
                                 value={fboSelected?.id}
                                 onChange={handleFboSelectedChange}
@@ -370,8 +480,38 @@ export default function CreateJobScreen() {
                             value={completeByDate}
                             onChange={setCompleteByDate}
                         />
+
+                        <TouchableOpacity style={[styles.button, { marginTop: 40 }]}
+                                 onPress={() => handleGoToNextStep(steps[0])}>
+                            <Text style={styles.buttonText}>Next</Text>
+                        </TouchableOpacity>
+
                     </>   
                     )}
+
+                    {isStepTwoSelected && (
+                        <>
+                        <Text>Step 2</Text>
+                        <View style={styles.buttonRow}>
+                            {/* Back Button */}
+                            <TouchableOpacity
+                                style={[styles.rowButton, styles.cancelButton]}
+                                onPress={() => handleGotoPreviousStep(steps[1])}
+                            >
+                                <Text style={[styles.rowButtonText, styles.cancelButtonText]}>Back</Text>
+                            </TouchableOpacity>
+
+                            {/* Next Button */}
+                            <TouchableOpacity
+                                style={[styles.rowButton, styles.nextButton]}
+                                onPress={() => handleGoToNextStep(steps[1])}
+                            >
+                                <Text style={styles.rowButtonText}>Next</Text>
+                            </TouchableOpacity>
+                        </View>
+                        </>
+                    )}
+
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -421,6 +561,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   completeText: {
+    color: "#6B7280",
+  },
+  completeCheck: {
     color: "#FFFFFF",
   },
   currentText: {
@@ -486,4 +629,60 @@ const styles = StyleSheet.create({
     color: '#6B7280', // Tailwind gray-500, similar to Paper's default
     zIndex: 1,
     },
+    button: {
+    backgroundColor: '#ef4444', // Tailwind's red-500
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
+  },
+  buttonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 12, // requires React Native 0.71+
+  marginTop: 40,
+},
+rowButton: {
+  flex: 1,
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 12,
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 4,
+  elevation: 3,
+  alignItems: 'center',
+},
+
+nextButton: {
+  backgroundColor: '#ef4444', // red-500
+},
+
+cancelButton: {
+  backgroundColor: '#ffffff',
+  borderWidth: 1,
+  borderColor: '#D1D5DB', // gray-300
+},
+
+rowButtonText: {
+  color: '#ffffff',
+  textAlign: 'center',
+  fontSize: 16,
+  fontWeight: '500',
+},
+
+cancelButtonText: {
+  color: '#374151', // gray-700
+},
 });
