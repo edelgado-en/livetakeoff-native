@@ -356,6 +356,18 @@ export default function CreateJobScreen() {
                             value={estimatedArrivalDate}
                             onChange={setEstimatedArrivalDate}
                         /> 
+
+                        <DatePicker
+                            label="Estimated Departure"
+                            value={estimatedDepartureDate}
+                            onChange={setEstimatedDepartureDate}
+                        />
+
+                        <DatePicker
+                            label="Complete By"
+                            value={completeByDate}
+                            onChange={setCompleteByDate}
+                        />
                     </>   
                     )}
                 </View>
@@ -372,6 +384,7 @@ const styles = StyleSheet.create({
   },
  container: {
     marginTop: 24,
+    marginBottom: 60,
     paddingHorizontal: 16,
   },
   stepRow: {

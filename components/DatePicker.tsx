@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
-import { View, Button, Platform, Text, Pressable, StyleSheet } from 'react-native';
+import {
+  View,
+  Platform,
+  Text,
+  Pressable,
+  StyleSheet,
+  I18nManager,
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { MaterialIcons } from '@expo/vector-icons';
 
 type Props = {
   label: string;
   value: Date | null;
-  onChange: (date: Date) => void;
+  onChange: (date: Date | null) => void;
 };
 
-const DatePicker: React.FC<Props> = ({ label, value, onChange }) => {
+const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
   const [mode, setMode] = useState<'date' | 'time'>('date');
   const [show, setShow] = useState(false);
+
+  const openPicker = () => {
+    setMode('date');
+    setShow(true);
+  };
 
   const handleChange = (event: any, selectedDate?: Date) => {
     if (event.type === 'dismissed') {
@@ -20,14 +33,11 @@ const DatePicker: React.FC<Props> = ({ label, value, onChange }) => {
 
     if (selectedDate) {
       if (mode === 'date') {
-        // Show time picker next
         onChange(selectedDate);
         setMode('time');
         setShow(true);
       } else {
-        const fullDate = new Date(
-          value || new Date()
-        );
+        const fullDate = new Date(value || new Date());
         fullDate.setHours(selectedDate.getHours());
         fullDate.setMinutes(selectedDate.getMinutes());
         onChange(fullDate);
@@ -37,22 +47,33 @@ const DatePicker: React.FC<Props> = ({ label, value, onChange }) => {
     }
   };
 
-  const openPicker = () => {
-    setMode('date');
-    setShow(true);
-  };
-
   const formatDateTime = (date?: Date | null) => {
-    if (!date) return 'Select date & time';
-    return date.toLocaleString(); // You can format this further
+    if (!date) return '';
+    return date.toLocaleString();
   };
 
   return (
     <View style={styles.container}>
+      {/* Floating Label */}
       <Text style={styles.label}>{label}</Text>
-      <Pressable onPress={openPicker} style={styles.input}>
-        <Text style={styles.inputText}>{formatDateTime(value)}</Text>
-      </Pressable>
+
+      {/* Input field */}
+      <View style={styles.inputContainer}>
+        <Pressable onPress={openPicker} style={styles.input}>
+          <Text style={value ? styles.inputText : styles.placeholder}>
+            {value ? formatDateTime(value) : 'Select date & time'}
+          </Text>
+        </Pressable>
+
+        {/* Clear (X) icon */}
+        {value && (
+          <Pressable onPress={() => onChange(null)} style={styles.clearIcon}>
+            <MaterialIcons name="close" size={20} color="#9CA3AF" />
+          </Pressable>
+        )}
+      </View>
+
+      {/* Native Date/Time Picker */}
       {show && (
         <DateTimePicker
           value={value || new Date()}
@@ -60,6 +81,9 @@ const DatePicker: React.FC<Props> = ({ label, value, onChange }) => {
           is24Hour={false}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
+          themeVariant="light"
+          accentColor="#EF4444" // red-500 (iOS only)
+          textColor={Platform.OS === 'ios' ? '#EF4444' : undefined}
         />
       )}
     </View>
@@ -68,16 +92,24 @@ const DatePicker: React.FC<Props> = ({ label, value, onChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 10,
+    marginTop: 30
   },
   label: {
-    marginBottom: 4,
-    color: '#6B7280',
+    position: 'absolute',
+    top: -10,
+    left: 12,
+    backgroundColor: 'white',
+    paddingHorizontal: 4,
     fontSize: 14,
+    color: '#6B7280',
+    zIndex: 1,
+  },
+  inputContainer: {
+    position: 'relative',
   },
   input: {
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: '#9CA3AF',
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 12,
@@ -88,6 +120,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
   },
+  placeholder: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  clearIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 14,
+  },
 });
 
-export default DatePicker;
+export default DateTimePickerField;
