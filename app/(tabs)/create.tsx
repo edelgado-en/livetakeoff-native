@@ -264,6 +264,30 @@ export default function CreateJobScreen() {
             return;
         }
 
+        if (!selectedCustomer) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Customer is required.");
+            return;
+        }
+
+        if (!aircraftTypeSelected) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Aircraft type is required.");
+            return;
+        }
+
+        if (!airportSelected) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Airport is required.");
+            return;
+        }
+
+        if (!fboSelected) {
+            setShowSnackbar(true);
+            setSnackbarMessage("FBO is required.");
+            return;
+        }
+
 
     } else if (currentStep.id === 2) {
 
