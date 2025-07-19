@@ -9,6 +9,8 @@ import { TextInput } from 'react-native-paper';
 import httpService from '../../services/httpService';
 import { AuthContext } from '../../providers/AuthProvider';
 
+import DatePicker from '../../components/DatePicker';
+
 const requestPriorities = [
   {
     id: "N",
@@ -68,6 +70,9 @@ export default function CreateJobScreen() {
     const [fboSearchTerm, setFboSearchTerm] = useState("");
 
     const [selectedPriority, setSelectedPriority] = useState(requestPriorities[0]);
+
+    const [mode, setMode] = useState<'date' | 'time'>('date');
+    const [show, setShow] = useState(false);
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -345,6 +350,12 @@ export default function CreateJobScreen() {
                                 onChangeText={(text) => setFboSearchTerm(text)}
                             />
                         </View>
+
+                        <DatePicker
+                            label="Estimated Arrival"
+                            value={estimatedArrivalDate}
+                            onChange={setEstimatedArrivalDate}
+                        /> 
                     </>   
                     )}
                 </View>
@@ -422,7 +433,7 @@ const styles = StyleSheet.create({
       //top: -10,
       position: 'absolute',
     top: -10,
-    left: 24,
+    left: 10,
     backgroundColor: 'white',
     paddingHorizontal: 4,
     fontSize: 14,
