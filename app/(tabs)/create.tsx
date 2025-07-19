@@ -71,8 +71,7 @@ export default function CreateJobScreen() {
 
     const [selectedPriority, setSelectedPriority] = useState(requestPriorities[0]);
 
-    const [mode, setMode] = useState<'date' | 'time'>('date');
-    const [show, setShow] = useState(false);
+    const [onSite, setOnSite] = useState(false);
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -355,6 +354,9 @@ export default function CreateJobScreen() {
                             label="Estimated Arrival"
                             value={estimatedArrivalDate}
                             onChange={setEstimatedArrivalDate}
+                            showOnSiteToggle
+                            onSiteValue={onSite}
+                            onToggleOnSite={setOnSite}
                         /> 
 
                         <DatePicker

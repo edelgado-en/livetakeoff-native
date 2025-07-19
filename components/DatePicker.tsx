@@ -5,7 +5,7 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  I18nManager,
+  Switch,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,15 +14,27 @@ type Props = {
   label: string;
   value: Date | null;
   onChange: (date: Date | null) => void;
+  showOnSiteToggle?: boolean;
+  onSiteValue?: boolean;
+  onToggleOnSite?: (val: boolean) => void;
 };
 
-const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
+const DatePicker: React.FC<Props> = ({
+  label,
+  value,
+  onChange,
+  showOnSiteToggle = false,
+  onSiteValue = false,
+  onToggleOnSite = () => {},
+}) => {
   const [mode, setMode] = useState<'date' | 'time'>('date');
   const [show, setShow] = useState(false);
 
   const openPicker = () => {
-    setMode('date');
-    setShow(true);
+    if (!onSiteValue) {
+      setMode('date');
+      setShow(true);
+    }
   };
 
   const handleChange = (event: any, selectedDate?: Date) => {
@@ -48,50 +60,69 @@ const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
   };
 
   const formatDateTime = (date?: Date | null) => {
-  if (!date) return '';
+    if (!date) return '';
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  };
 
-  return date.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false, // ✅ Use 24-hour format
-  });
-};
+  const handleToggleOnSite = (val: boolean) => {
+    onToggleOnSite?.(val);
+    if (val) {
+      onChange(null); // Clear value when toggled ON
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Floating Label */}
       <Text style={styles.label}>{label}</Text>
 
-      {/* Input field */}
-      <View style={styles.inputContainer}>
-        <Pressable onPress={openPicker} style={styles.input}>
-          <Text style={value ? styles.inputText : styles.placeholder}>
-            {value ? formatDateTime(value) : 'Select date & time'}
-          </Text>
-        </Pressable>
-
-        {/* Clear (X) icon */}
-        {value && (
-          <Pressable onPress={() => onChange(null)} style={styles.clearIcon}>
-            <MaterialIcons name="close" size={20} color="#9CA3AF" />
+      <View style={styles.row}>
+        {/* Date input with X icon inside */}
+        <View style={styles.inputWrapper}>
+          <Pressable
+            onPress={openPicker}
+            style={[
+              styles.input,
+              onSiteValue && { backgroundColor: '#F3F4F6' },
+            ]}
+          >
+            <Text style={value ? styles.inputText : styles.placeholder}>
+              {onSiteValue
+                ? 'On site — no time required'
+                : formatDateTime(value)}
+            </Text>
           </Pressable>
+
+          {value && (
+            <Pressable onPress={() => onChange(null)} style={styles.clearIcon}>
+              <MaterialIcons name="close" size={20} color="#9CA3AF" />
+            </Pressable>
+          )}
+        </View>
+
+        {/* On Site Toggle to the right */}
+        {showOnSiteToggle && (
+          <View style={styles.toggleInline}>
+            <Text style={styles.toggleLabel}>On site</Text>
+            <Switch value={onSiteValue} onValueChange={handleToggleOnSite} />
+          </View>
         )}
       </View>
 
-      {/* Native Date/Time Picker */}
-      {show && (
+      {show && !onSiteValue && (
         <DateTimePicker
           value={value || new Date()}
           mode={mode}
           is24Hour={true}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
-          themeVariant="light"
-          accentColor="#EF4444" // red-500 (iOS only)
-          textColor={Platform.OS === 'ios' ? '#EF4444' : undefined}
+          accentColor={Platform.OS === 'ios' ? '#EF4444' : undefined}
         />
       )}
     </View>
@@ -100,7 +131,7 @@ const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30
+    marginTop: 30,
   },
   label: {
     position: 'absolute',
@@ -112,15 +143,21 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     zIndex: 1,
   },
-  inputContainer: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    flex: 1,
     position: 'relative',
   },
   input: {
     height: 50,
-    borderColor: '#9CA3AF',
+    borderColor: '#D1D5DB',
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 12,
+    paddingLeft: 12,
+    paddingRight: 36, // leave space for the ❌ icon
     justifyContent: 'center',
     backgroundColor: 'white',
   },
@@ -136,7 +173,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 14,
+    zIndex: 2,
+  },
+  toggleInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  toggleLabel: {
+    marginRight: 6,
+    fontSize: 14,
+    color: '#374151',
   },
 });
 
-export default DateTimePickerField;
+export default DatePicker;
