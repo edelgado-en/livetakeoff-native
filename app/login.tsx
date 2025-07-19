@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Image,
   Alert,
@@ -11,12 +10,15 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 
+import { TextInput } from 'react-native-paper';
+
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [secure, setSecure] = useState(true);
 
   const handleLogin = async () => {
     try {
@@ -37,22 +39,31 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <TextInput
-          placeholder="username"
-          placeholderTextColor="#888"
-          style={styles.input}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
+            label="Username"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            activeOutlineColor="#3B82F6" // Tailwind blue-500
+            outlineColor="#D1D5DB"        // Tailwind gray-300
+            autoCapitalize="none"
+            style={{ marginVertical: 5 }}
         />
         <TextInput
-          placeholder="Password"
-          placeholderTextColor="#888"
-          style={styles.input}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            secureTextEntry={secure}
+            mode="outlined"
+            activeOutlineColor="#3B82F6" // Tailwind blue-500
+            outlineColor="#D1D5DB"        // Tailwind gray-300
+            style={{ marginVertical: 5, marginBottom: 20 }}
+            right={
+            <TextInput.Icon
+                icon={secure ? 'eye-off' : 'eye'}
+                onPress={() => setSecure(!secure)}
+            />
+            }
         />
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
