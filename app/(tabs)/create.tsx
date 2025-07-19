@@ -115,6 +115,17 @@ export default function CreateJobScreen() {
   useEffect(() => {
     //Basic throttling
     let timeoutID = setTimeout(() => {
+      getTailLookups();
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutID);
+    };
+  }, [tailNumber]);
+
+  useEffect(() => {
+    //Basic throttling
+    let timeoutID = setTimeout(() => {
       searchAircraftTypes();
     }, 500);
 
@@ -248,6 +259,35 @@ export default function CreateJobScreen() {
   const handleFboSelectedChange = (item: any) => {
     setFboSelected(item);
   }
+
+  const getTailLookups = async () => {
+    if (tailNumber?.length > 2) {
+      const response = await httpService.get(`/tail-aircraft-lookup/${tailNumber}/`)
+
+      if (response) {
+        setAircraftTypeSelected({
+          id: response.aircraft_id,
+          name: response.aircraft_name,
+        });
+        setAircraftSearchTerm(response.aircraft_name);
+
+        if (
+          currentUser.isAdmin ||
+          currentUser.isSuperUser ||
+          currentUser.isAccountManager ||
+          currentUser.isInternalCoordinator
+        ) {
+          getServicesAndRetainers(response.customer_id);
+
+          setCustomerSelected({
+            id: response.customer_id,
+            name: response.customer_name,
+          });
+          setCustomerSearchTerm(response.customer_name);
+        }
+      }
+    }
+  };
 
   const handleGoToNextStep = (currentStep) => {
     let selectedCustomer = customerSelected;
