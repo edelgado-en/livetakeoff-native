@@ -3,9 +3,27 @@ import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
+import { TextInput } from 'react-native-paper';
 
 import httpService from '../../services/httpService';
 import { AuthContext } from '../../providers/AuthProvider';
+
+const requestPriorities = [
+  {
+    id: "N",
+    title: "NORMAL",
+    description:
+      "Regular cleaning requests aimed at improving the general appearance of the aircraft.",
+    selected: true,
+  },
+  {
+    id: "H",
+    title: "HIGH",
+    description:
+      "Urgent cleaning requests that must be completed at the specified location within the specified time frame.",
+    selected: false,
+  },
+];
 
 const availableSteps = [
   { id: 1, name: "Job Details", status: "current", selected: true },
@@ -19,15 +37,36 @@ const availableSteps = [
 ];
 
 export default function CreateJobScreen() {
-    const { currentUser } = useContext(AuthContext);
-  const [steps, setSteps] = useState(availableSteps);
-  const isStepOneSelected = steps[0].selected;
-  const isStepTwoSelected = steps[1].selected;
-  const isStepThreeSelected = steps[2].selected;
+   const { currentUser } = useContext(AuthContext);
+   const [steps, setSteps] = useState(availableSteps);
+   const isStepOneSelected = steps[0].selected;
+   const isStepTwoSelected = steps[1].selected;
+   const isStepThreeSelected = steps[2].selected;
+
+   const [tailNumber, setTailNumber] = useState("");
 
    const [customers, setCustomers] = useState([]);
+  
+   const [aircraftTypes, setAircraftTypes] = useState([]);
+   const [airports, setAirports] = useState([]);
+   const [fbos, setFbos] = useState([]);
+   const [allFbos, setAllFbos] = useState([]);
+   
    const [customerSelected, setCustomerSelected] = useState(null);
-   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
+   const [aircraftTypeSelected, setAircraftTypeSelected] = useState(null);
+   const [airportSelected, setAirportSelected] = useState(null);
+   const [fboSelected, setFboSelected] = useState(null);
+
+    const [estimatedArrivalDate, setEstimatedArrivalDate] = useState(null);
+    const [estimatedDepartureDate, setEstimatedDepartureDate] = useState(null);
+    const [completeByDate, setCompleteByDate] = useState(null);
+
+    const [customerSearchTerm, setCustomerSearchTerm] = useState("");
+    const [aircraftSearchTerm, setAircraftSearchTerm] = useState("");
+    const [airportSearchTerm, setAirportSearchTerm] = useState("");
+    const [fboSearchTerm, setFboSearchTerm] = useState("");
+
+    const [selectedPriority, setSelectedPriority] = useState(requestPriorities[0]);
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -54,6 +93,40 @@ export default function CreateJobScreen() {
     };
   }, [customerSearchTerm]);
 
+  useEffect(() => {
+    //Basic throttling
+    let timeoutID = setTimeout(() => {
+      searchAircraftTypes();
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutID);
+    };
+
+  }, [aircraftSearchTerm])
+
+    useEffect(() => {
+        //Basic throttling
+        let timeoutID = setTimeout(() => {
+        searchAirports();
+        }, 500);
+    
+        return () => {
+        clearTimeout(timeoutID);
+        };
+    }, [airportSearchTerm]);
+
+    useEffect(() => {
+        //Basic throttling
+        let timeoutID = setTimeout(() => {
+        searchFbos();
+        }, 500);
+    
+        return () => {
+        clearTimeout(timeoutID);
+        };
+    }, [fboSearchTerm]);
+
   const searchCustomers = async () => {
     try {
       const response = await httpService.post('/customers',{ name: customerSearchTerm });
@@ -64,9 +137,51 @@ export default function CreateJobScreen() {
     }
   };
 
+  const searchAircraftTypes = async () => {
+    try {
+      const response = await httpService.post('/aircraft-types', { name: aircraftSearchTerm });
+
+      setAircraftTypes(response.results);
+    } catch (err) {
+        console.error("Error fetching aircraft types:", err);
+    }
+  }
+
+  const searchAirports = async () => {
+    try {
+      const response = await httpService.post('/airports', { name: airportSearchTerm });
+
+      setAirports(response.results);
+    } catch (err) {
+        console.error("Error fetching airports:", err);
+    }
+  }
+
+  const searchFbos = async () => {
+    try {
+      const response = await httpService.post('/fbo-search', { name: fboSearchTerm });
+        setFbos(response.results);
+        setAllFbos(response.results);
+    } catch (err) {
+        console.error("Error fetching FBOs:", err);
+    }
+  }
+
   const handleCustomerSelectedChange = (item: any) => {
     setCustomerSelected(item);
   };
+
+  const handleAircraftTypeSelectedChange = (item: any) => {
+    setAircraftTypeSelected(item);
+  }
+  
+  const handleAirportSelectedChange = (item: any) => {
+    setAirportSelected(item);
+  }
+
+  const handleFboSelectedChange = (item: any) => {
+    setFboSelected(item);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -127,6 +242,16 @@ export default function CreateJobScreen() {
 
             {isStepOneSelected && (
              <>
+                <TextInput
+                    label="Tail Number"
+                    value={tailNumber}
+                    onChangeText={(text) => setTailNumber(text.toUpperCase())}
+                    mode="outlined"
+                    activeOutlineColor="#3B82F6" // Tailwind blue-500
+                    outlineColor="#D1D5DB"        // Tailwind gray-300
+                    autoCapitalize="none"
+                    style={{ marginVertical: 5, marginBottom: 30 }}
+                />
                 <View>
                     <Text style={[styles.dropdownLabel]}>
                         Customer
@@ -146,6 +271,69 @@ export default function CreateJobScreen() {
                         value={customerSelected?.id}
                         onChange={handleCustomerSelectedChange}
                         onChangeText={(text) => setCustomerSearchTerm(text)}
+                    />
+                </View>
+                <View style={{ marginTop: 30 }}>
+                    <Text style={[styles.dropdownLabel]}>
+                        Aircraft Type
+                    </Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        data={aircraftTypes}
+                        search
+                        maxHeight={300}
+                        labelField="name"
+                        valueField="id"
+                        placeholder="Select aircraft type"
+                        searchPlaceholder="Search..."
+                        value={aircraftTypeSelected?.id}
+                        onChange={handleAircraftTypeSelectedChange}
+                        onChangeText={(text) => setAircraftSearchTerm(text)}
+                    />
+                </View>
+                <View style={{ marginTop: 30 }}>
+                    <Text style={[styles.dropdownLabel]}>
+                        Airport
+                    </Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        data={airports}
+                        search
+                        maxHeight={300}
+                        labelField="name"
+                        valueField="id"
+                        placeholder="Select airport"
+                        searchPlaceholder="Search..."
+                        value={airportSelected?.id}
+                        onChange={handleAirportSelectedChange}
+                        onChangeText={(text) => setAirportSearchTerm(text)}
+                    />
+                </View>
+                <View style={{ marginTop: 30 }}>
+                    <Text style={[styles.dropdownLabel]}>
+                        FBO
+                    </Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        data={fbos}
+                        search
+                        maxHeight={300}
+                        labelField="name"
+                        valueField="id"
+                        placeholder="Select airport"
+                        searchPlaceholder="Search..."
+                        value={fboSelected?.id}
+                        onChange={handleFboSelectedChange}
+                        onChangeText={(text) => setFboSearchTerm(text)}
                     />
                 </View>
              </>   
