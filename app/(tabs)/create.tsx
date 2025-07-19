@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity,
-         StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+         StyleSheet, SafeAreaView, ScrollView,
+          KeyboardAvoidingView, Platform } from 'react-native';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
 import { TextInput } from 'react-native-paper';
@@ -185,160 +186,170 @@ export default function CreateJobScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-            {steps.map((step, index) => (
-                <View key={step.name} style={styles.stepRow}>
-                    <View style={styles.iconAndLine}>
-                        {/* Circle */}
-                        <View
-                        style={[
-                            styles.circle,
-                            step.status === "complete" && styles.completeCircle,
-                            step.status === "current" && styles.currentCircle,
-                            step.status === "upcoming" && styles.upcomingCircle,
-                        ]}
-                        >
-                        <Text
-                            style={[
-                            styles.circleText,
-                            step.status === "complete" && styles.completeText,
-                            step.status === "current" && styles.currentText,
-                            step.status === "upcoming" && styles.upcomingText,
-                            ]}
-                        >
-                            {step.status === "complete" ? "✓" : step.id}
-                        </Text>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+        >
+            <ScrollView
+                contentContainerStyle={{ paddingBottom: 100 }}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View style={styles.container}>
+                    {steps.map((step, index) => (
+                        <View key={step.name} style={styles.stepRow}>
+                            <View style={styles.iconAndLine}>
+                                {/* Circle */}
+                                <View
+                                    style={[
+                                        styles.circle,
+                                        step.status === "complete" && styles.completeCircle,
+                                        step.status === "current" && styles.currentCircle,
+                                        step.status === "upcoming" && styles.upcomingCircle,
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                        styles.circleText,
+                                        step.status === "complete" && styles.completeText,
+                                        step.status === "current" && styles.currentText,
+                                        step.status === "upcoming" && styles.upcomingText,
+                                        ]}
+                                    >
+                                        {step.status === "complete" ? "✓" : step.id}
+                                    </Text>
+                                </View>
+
+                                {/* Connector line */}
+                                {index !== steps.length - 1 && (
+                                    <View style={styles.lineContainer}>
+                                        <Svg height="20" width="2" viewBox="0 0 2 20">
+                                            <Path
+                                                d="M1 0 V20"
+                                                stroke="#D1D5DB"
+                                                strokeWidth="2"
+                                            />
+                                        </Svg>
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Step Label */}
+                            <TouchableOpacity style={styles.stepLabelContainer}>
+                                <Text
+                                style={[
+                                    styles.stepLabel,
+                                    step.status === "complete" && styles.completeText,
+                                    step.status === "current" && styles.currentText,
+                                    step.status === "upcoming" && styles.upcomingText,
+                                ]}
+                                >
+                                {step.name}
+                                </Text>
+                            </TouchableOpacity>
                         </View>
+                    ))}
 
-                        {/* Connector line */}
-                        {index !== steps.length - 1 && (
-                        <View style={styles.lineContainer}>
-                            <Svg height="20" width="2" viewBox="0 0 2 20">
-                                <Path
-                                    d="M1 0 V20"
-                                    stroke="#D1D5DB"
-                                    strokeWidth="2"
-                                />
-                            </Svg>
+                    {isStepOneSelected && (
+                    <>
+                        <TextInput
+                            label="Tail Number"
+                            value={tailNumber}
+                            onChangeText={(text) => setTailNumber(text.toUpperCase())}
+                            mode="outlined"
+                            activeOutlineColor="#3B82F6" // Tailwind blue-500
+                            outlineColor="#D1D5DB"        // Tailwind gray-300
+                            autoCapitalize="none"
+                            style={{ marginBottom: 30 }}
+                        />
+                        <View>
+                            <Text style={[styles.dropdownLabel]}>
+                                Customer
+                            </Text>
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                inputSearchStyle={styles.inputSearchStyle}
+                                data={customers}
+                                search
+                                maxHeight={300}
+                                labelField="name"
+                                valueField="id"
+                                placeholder="Select customer"
+                                searchPlaceholder="Search..."
+                                value={customerSelected?.id}
+                                onChange={handleCustomerSelectedChange}
+                                onChangeText={(text) => setCustomerSearchTerm(text)}
+                            />
                         </View>
-                        )}
-                    </View>
-
-                    {/* Step Label */}
-                    <TouchableOpacity style={styles.stepLabelContainer}>
-                        <Text
-                        style={[
-                            styles.stepLabel,
-                            step.status === "complete" && styles.completeText,
-                            step.status === "current" && styles.currentText,
-                            step.status === "upcoming" && styles.upcomingText,
-                        ]}
-                        >
-                        {step.name}
-                        </Text>
-                    </TouchableOpacity>
+                        <View style={{ marginTop: 30 }}>
+                            <Text style={[styles.dropdownLabel]}>
+                                Aircraft Type
+                            </Text>
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                inputSearchStyle={styles.inputSearchStyle}
+                                data={aircraftTypes}
+                                search
+                                maxHeight={300}
+                                labelField="name"
+                                valueField="id"
+                                placeholder="Select aircraft type"
+                                searchPlaceholder="Search..."
+                                value={aircraftTypeSelected?.id}
+                                onChange={handleAircraftTypeSelectedChange}
+                                onChangeText={(text) => setAircraftSearchTerm(text)}
+                            />
+                        </View>
+                        <View style={{ marginTop: 30 }}>
+                            <Text style={[styles.dropdownLabel]}>
+                                Airport
+                            </Text>
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                inputSearchStyle={styles.inputSearchStyle}
+                                data={airports}
+                                search
+                                maxHeight={300}
+                                labelField="name"
+                                valueField="id"
+                                placeholder="Select airport"
+                                searchPlaceholder="Search..."
+                                value={airportSelected?.id}
+                                onChange={handleAirportSelectedChange}
+                                onChangeText={(text) => setAirportSearchTerm(text)}
+                            />
+                        </View>
+                        <View style={{ marginTop: 30 }}>
+                            <Text style={[styles.dropdownLabel]}>
+                                FBO
+                            </Text>
+                            <Dropdown
+                                style={styles.dropdown}
+                                placeholderStyle={styles.placeholderStyle}
+                                selectedTextStyle={styles.selectedTextStyle}
+                                inputSearchStyle={styles.inputSearchStyle}
+                                data={fbos}
+                                search
+                                maxHeight={300}
+                                labelField="name"
+                                valueField="id"
+                                placeholder="Select airport"
+                                searchPlaceholder="Search..."
+                                value={fboSelected?.id}
+                                onChange={handleFboSelectedChange}
+                                onChangeText={(text) => setFboSearchTerm(text)}
+                            />
+                        </View>
+                    </>   
+                    )}
                 </View>
-            ))}
-
-            {isStepOneSelected && (
-             <>
-                <TextInput
-                    label="Tail Number"
-                    value={tailNumber}
-                    onChangeText={(text) => setTailNumber(text.toUpperCase())}
-                    mode="outlined"
-                    activeOutlineColor="#3B82F6" // Tailwind blue-500
-                    outlineColor="#D1D5DB"        // Tailwind gray-300
-                    autoCapitalize="none"
-                    style={{ marginVertical: 5, marginBottom: 30 }}
-                />
-                <View>
-                    <Text style={[styles.dropdownLabel]}>
-                        Customer
-                    </Text>
-                    <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        data={customers}
-                        search
-                        maxHeight={300}
-                        labelField="name"
-                        valueField="id"
-                        placeholder="Select customer"
-                        searchPlaceholder="Search..."
-                        value={customerSelected?.id}
-                        onChange={handleCustomerSelectedChange}
-                        onChangeText={(text) => setCustomerSearchTerm(text)}
-                    />
-                </View>
-                <View style={{ marginTop: 30 }}>
-                    <Text style={[styles.dropdownLabel]}>
-                        Aircraft Type
-                    </Text>
-                    <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        data={aircraftTypes}
-                        search
-                        maxHeight={300}
-                        labelField="name"
-                        valueField="id"
-                        placeholder="Select aircraft type"
-                        searchPlaceholder="Search..."
-                        value={aircraftTypeSelected?.id}
-                        onChange={handleAircraftTypeSelectedChange}
-                        onChangeText={(text) => setAircraftSearchTerm(text)}
-                    />
-                </View>
-                <View style={{ marginTop: 30 }}>
-                    <Text style={[styles.dropdownLabel]}>
-                        Airport
-                    </Text>
-                    <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        data={airports}
-                        search
-                        maxHeight={300}
-                        labelField="name"
-                        valueField="id"
-                        placeholder="Select airport"
-                        searchPlaceholder="Search..."
-                        value={airportSelected?.id}
-                        onChange={handleAirportSelectedChange}
-                        onChangeText={(text) => setAirportSearchTerm(text)}
-                    />
-                </View>
-                <View style={{ marginTop: 30 }}>
-                    <Text style={[styles.dropdownLabel]}>
-                        FBO
-                    </Text>
-                    <Dropdown
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                        inputSearchStyle={styles.inputSearchStyle}
-                        data={fbos}
-                        search
-                        maxHeight={300}
-                        labelField="name"
-                        valueField="id"
-                        placeholder="Select airport"
-                        searchPlaceholder="Search..."
-                        value={fboSelected?.id}
-                        onChange={handleFboSelectedChange}
-                        onChangeText={(text) => setFboSearchTerm(text)}
-                    />
-                </View>
-             </>   
-            )}
-        </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -355,7 +366,7 @@ const styles = StyleSheet.create({
   stepRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   iconAndLine: {
     alignItems: "center",
