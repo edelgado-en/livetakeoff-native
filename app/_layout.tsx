@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../providers/AuthProvider';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Text, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
@@ -26,9 +28,13 @@ export default function Layout() {
   }
 
     return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-      <StatusBar style="auto" />
-    </AuthProvider>
+        <SafeAreaProvider>
+            <PaperProvider>
+                <AuthProvider>
+                    <Stack screenOptions={{ headerShown: false }} />
+                    <StatusBar style="auto" />
+                </AuthProvider>
+            </PaperProvider>
+        </SafeAreaProvider>
   );
 }

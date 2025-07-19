@@ -4,7 +4,8 @@ import { View, Text, TouchableOpacity,
           KeyboardAvoidingView, Platform } from 'react-native';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
-import { TextInput } from 'react-native-paper';
+import { TextInput, Snackbar, Portal } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import httpService from '../../services/httpService';
 import { AuthContext } from '../../providers/AuthProvider';
@@ -40,11 +41,14 @@ const availableSteps = [
 ];
 
 export default function CreateJobScreen() {
+   const insets = useSafeAreaInsets();
    const { currentUser } = useContext(AuthContext);
    const [steps, setSteps] = useState(availableSteps);
    const isStepOneSelected = steps[0].selected;
    const isStepTwoSelected = steps[1].selected;
    const isStepThreeSelected = steps[2].selected;
+   const [showSnackbar, setShowSnackbar] = useState(false);
+   const [snackbarMessage, setSnackbarMessage] = useState("");
 
    const [tailNumber, setTailNumber] = useState("");
 
@@ -254,6 +258,12 @@ export default function CreateJobScreen() {
     }
 
     if (currentStep.id === 1) {
+        if (!tailNumber) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Please enter a tail number.");
+            return;
+        }
+
 
     } else if (currentStep.id === 2) {
 
@@ -300,12 +310,31 @@ export default function CreateJobScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+        <Portal>
+            <Snackbar
+                visible={showSnackbar}
+                onDismiss={() => setShowSnackbar(false)}
+                /* style={{ marginBottom: insets.bottom + 16, marginHorizontal: 16 }} */
+                style={{
+                    marginBottom: insets.bottom + 14, marginHorizontal: 14,
+                    backgroundColor: '#ef4444', // Tailwind red-500
+                    borderRadius: 12,
+                }}
+                action={{
+                    label: '',
+                    icon: 'close',
+                    onPress: () => setShowSnackbar(false),
+                }}
+            >
+                {snackbarMessage}
+            </Snackbar>
+        </Portal>
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
         >
             <ScrollView
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={styles.container}>
