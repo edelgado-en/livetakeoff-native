@@ -87,6 +87,8 @@ export default function CreateJobScreen() {
     const [exteriorRetainerServices, setExteriorRetainerServices] = useState([]);
     const [otherRetainerServices, setOtherRetainerServices] = useState([]);
 
+    const [airportFees, setAirportFees] = useState([]);
+
  useEffect(() => {
     const newSteps = [...steps];
 
@@ -252,8 +254,49 @@ export default function CreateJobScreen() {
     setAircraftTypeSelected(item);
   }
   
-  const handleAirportSelectedChange = (item: any) => {
+  const handleAirportSelectedChange = async (item: any) => {
     setAirportSelected(item);
+    
+    const request = {
+      airport_id: item.id,
+    };
+
+    try {
+      const response = await httpService.post('/fbo-search', request);
+
+      if (response.results.length > 0) {
+        setFbos(response.results);
+      } else {
+        setFbos(allFbos);
+      }
+    } catch (err) {
+        console.error("Error fetching FBOs:", err);
+    }
+
+    let customer_id = null;
+
+    if (currentUser.customerId) {
+      customer_id = currentUser.customerId;
+    } else if (customerSelected) {
+      customer_id = customerSelected.id;
+    }
+
+    if (currentUser.showAirportFees && customer_id) {
+      const request = {
+        airport_id: airport.id,
+        customer_id: customer_id,
+      };
+
+      try {
+        const response = await httpService.post('/airports/customer-fees', request);
+        console.log('airport fees response:', response);
+
+        setAirportFees(response);
+      } catch (err) {
+        //ignore
+      }
+    }
+
   }
 
   const handleFboSelectedChange = (item: any) => {
