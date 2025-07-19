@@ -48,9 +48,17 @@ const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
   };
 
   const formatDateTime = (date?: Date | null) => {
-    if (!date) return '';
-    return date.toLocaleString();
-  };
+  if (!date) return '';
+
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false, // ✅ Use 24-hour format
+  });
+};
 
   return (
     <View style={styles.container}>
@@ -78,7 +86,7 @@ const DateTimePickerField: React.FC<Props> = ({ label, value, onChange }) => {
         <DateTimePicker
           value={value || new Date()}
           mode={mode}
-          is24Hour={false}
+          is24Hour={true}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleChange}
           themeVariant="light"
