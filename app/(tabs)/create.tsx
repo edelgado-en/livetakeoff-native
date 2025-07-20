@@ -95,6 +95,9 @@ export default function CreateJobScreen() {
     const [airportFees, setAirportFees] = useState([]);
     const [fboFees, setFboFees] = useState([]);
 
+    const [comment, setComment] = useState("");
+    const [commentHeight, setCommentHeight] = useState(100);
+
     const suppressSearchRef = useRef(false);
 
  useEffect(() => {
@@ -439,7 +442,27 @@ export default function CreateJobScreen() {
 
 
     } else if (currentStep.id === 2) {
+        let selectedServices = [];
+        
+        selectedServices = selectedServices.concat(
+            interiorServices.filter((service) => service.selected === true)
+        );
+        
+        selectedServices = selectedServices.concat(
+            exteriorServices.filter((service) => service.selected === true)
+        );
+        
+        selectedServices = selectedServices.concat(
+            otherServices.filter((service) => service.selected === true)
+        );
 
+        if (
+        selectedServices.length === 0
+        ) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Select at least one service.");
+            return;
+        }
     }
 
     const newSteps = [...steps];
@@ -480,6 +503,10 @@ export default function CreateJobScreen() {
 
     setSteps(newSteps);
   };
+
+  const handleCreateJob = () => {
+
+    }
 
     const handleServiceChange = (service) => {
         if (service.category === "I") {
@@ -705,6 +732,56 @@ export default function CreateJobScreen() {
                                 onPress={() => handleGoToNextStep(steps[1])}
                             >
                                 <Text style={styles.rowButtonText}>Next</Text>
+                            </TouchableOpacity>
+                        </View>
+                        </>
+                    )}
+
+                    {isStepThreeSelected && (
+                        <>
+                        <TextInput
+                            label="Add Notes"
+                            placeholder="Specify any special instructions..."
+                            multiline
+                            mode="outlined"
+                            value={comment}
+                            onChangeText={setComment}
+                            onContentSizeChange={(e) => {
+                                const newHeight = e.nativeEvent.contentSize.height;
+                                setCommentHeight(Math.max(100, newHeight)); // min height
+                            }}
+                            style={{
+                                backgroundColor: '#fff',
+                                fontSize: 16,
+                                marginTop: 8,
+                                borderRadius: 12,
+                                height: commentHeight,
+                                paddingHorizontal: 12,       
+                            }}
+                            theme={{
+                                colors: {
+                                primary: '#ef4444',
+                                outline: '#D1D5DB',
+                                onSurfaceVariant: '#374151',
+                                },
+                                roundness: 12,
+                            }}
+                            textColor="#374151"
+                        />
+                        <View style={styles.buttonRow}>
+                            {/* Back Button */}
+                            <TouchableOpacity
+                                style={[styles.rowButton, styles.cancelButton]}
+                                onPress={() => handleGotoPreviousStep(steps[2])}
+                            >
+                                <Text style={[styles.rowButtonText, styles.cancelButtonText]}>Back</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.rowButton, styles.nextButton]}
+                                onPress={handleCreateJob}
+                            >
+                                <Text style={styles.rowButtonText}>Create Job</Text>
                             </TouchableOpacity>
                         </View>
                         </>

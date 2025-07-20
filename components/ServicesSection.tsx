@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Animated
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -34,11 +35,23 @@ const ServicesSection: React.FC<Props> = ({
   onToggleService,
 }) => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const rotationMap = useRef<Record<string, Animated.Value>>({
+        interior: new Animated.Value(0),
+        exterior: new Animated.Value(0),
+        addons: new Animated.Value(0),
+    }).current;
 
   const toggleSection = (section: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedSection(expandedSection === section ? null : section);
-  };
+    const isExpanding = expandedSection !== section;
+    setExpandedSection(isExpanding ? section : null);
+
+    Animated.timing(rotationMap[section], {
+        toValue: isExpanding ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+    }).start();
+    };
 
   const renderServiceCard = (item: ServiceItem, section: string) => (
     <TouchableOpacity
@@ -69,6 +82,17 @@ const ServicesSection: React.FC<Props> = ({
     </Text>
   );
 
+  const getChevronRotation = (section: string) => ({
+    transform: [
+        {
+        rotate: rotationMap[section].interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '180deg'],
+        }),
+        },
+    ],
+    });
+
   return (
     <View style={{ marginTop: 10 }}>
       <Text style={styles.title}>Services</Text>
@@ -76,11 +100,13 @@ const ServicesSection: React.FC<Props> = ({
       {/* Interior */}
       <TouchableOpacity onPress={() => toggleSection('interior')} style={styles.sectionHeader}>
         {renderSectionTitle('Interior', countSelected(interiorServices))}
-        <MaterialIcons
-          name={expandedSection === 'interior' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-          size={24}
-          color="#9CA3AF"
-        />
+        <Animated.View style={getChevronRotation('interior')}>
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={24}
+            color="#9CA3AF"
+          />
+        </Animated.View>
       </TouchableOpacity>
       {expandedSection === 'interior' && (
         <View style={styles.cardContainer}>
@@ -91,11 +117,13 @@ const ServicesSection: React.FC<Props> = ({
       {/* Exterior */}
       <TouchableOpacity onPress={() => toggleSection('exterior')} style={styles.sectionHeader}>
         {renderSectionTitle('Exterior', countSelected(exteriorServices))}
-        <MaterialIcons
-          name={expandedSection === 'exterior' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-          size={24}
-          color="#9CA3AF"
-        />
+        <Animated.View style={getChevronRotation('exterior')}>
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={24}
+            color="#9CA3AF"
+          />
+        </Animated.View>
       </TouchableOpacity>
       {expandedSection === 'exterior' && (
         <View style={styles.cardContainer}>
@@ -106,11 +134,13 @@ const ServicesSection: React.FC<Props> = ({
       {/* Add-ons */}
       <TouchableOpacity onPress={() => toggleSection('addons')} style={styles.sectionHeader}>
         {renderSectionTitle('Add-ons', countSelected(otherServices))}
-        <MaterialIcons
-          name={expandedSection === 'addons' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-          size={24}
-          color="#9CA3AF"
-        />
+        <Animated.View style={getChevronRotation('addons')}>
+          <MaterialIcons
+            name="keyboard-arrow-down"
+            size={24}
+            color="#9CA3AF"
+          />
+        </Animated.View>
       </TouchableOpacity>
       {expandedSection === 'addons' && (
         <View style={styles.cardContainer}>
