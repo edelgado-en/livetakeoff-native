@@ -55,16 +55,27 @@ const ServicesSection: React.FC<Props> = ({
 
   const countSelected = (list: ServiceItem[]) => list.filter(s => s.selected).length;
 
+  const renderSectionTitle = (title: string, count: number) => (
+    <Text style={styles.sectionTitle}>
+      {title}
+      {count > 0 && (
+        <Text style={styles.selectedCount}> {count} selected</Text>
+      )}
+    </Text>
+  );
+
   return (
     <View style={{ marginTop: 10 }}>
       <Text style={styles.title}>Services</Text>
 
       {/* Interior */}
       <TouchableOpacity onPress={() => toggleSection('interior')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          Interior{countSelected(interiorServices) > 0 ? ` (${countSelected(interiorServices)} selected)` : ''}
-        </Text>
-        <Text style={styles.chevron}>{expandedSection === 'interior' ? '▲' : '▼'}</Text>
+        {renderSectionTitle('Interior', countSelected(interiorServices))}
+        <MaterialIcons
+          name={expandedSection === 'interior' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+          size={24}
+          color="#9CA3AF"
+        />
       </TouchableOpacity>
       {expandedSection === 'interior' && (
         <View style={styles.cardContainer}>
@@ -74,10 +85,12 @@ const ServicesSection: React.FC<Props> = ({
 
       {/* Exterior */}
       <TouchableOpacity onPress={() => toggleSection('exterior')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          Exterior{countSelected(exteriorServices) > 0 ? ` (${countSelected(exteriorServices)} selected)` : ''}
-        </Text>
-        <Text style={styles.chevron}>{expandedSection === 'exterior' ? '▲' : '▼'}</Text>
+        {renderSectionTitle('Exterior', countSelected(exteriorServices))}
+        <MaterialIcons
+          name={expandedSection === 'exterior' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+          size={24}
+          color="#9CA3AF"
+        />
       </TouchableOpacity>
       {expandedSection === 'exterior' && (
         <View style={styles.cardContainer}>
@@ -87,10 +100,12 @@ const ServicesSection: React.FC<Props> = ({
 
       {/* Add-ons */}
       <TouchableOpacity onPress={() => toggleSection('addons')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          Add-ons{countSelected(otherServices) > 0 ? ` (${countSelected(otherServices)} selected)` : ''}
-        </Text>
-        <Text style={styles.chevron}>{expandedSection === 'addons' ? '▲' : '▼'}</Text>
+        {renderSectionTitle('Add-ons', countSelected(otherServices))}
+        <MaterialIcons
+          name={expandedSection === 'addons' ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+          size={24}
+          color="#9CA3AF"
+        />
       </TouchableOpacity>
       {expandedSection === 'addons' && (
         <View style={styles.cardContainer}>
@@ -112,13 +127,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomColor: '#E5E7EB',
-    borderBottomWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 2,
   },
   sectionTitle: {
     fontSize: 18,
     color: '#374151',
+    marginLeft: 8,
+  },
+  selectedCount: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginLeft: 8,
   },
   chevron: {
     fontSize: 16,
@@ -138,6 +162,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: '#ffffff',
+    width: '100%',
   },
   cardSelected: {
     borderColor: '#10B981', // green-500
@@ -146,6 +171,8 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 16,
     color: '#374151',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   cardTextSelected: {
     color: '#10B981',
@@ -154,6 +181,8 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12
   },
   checkIcon: {
     marginLeft: 8,
