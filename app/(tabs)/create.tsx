@@ -49,6 +49,8 @@ const availableSteps = [
 export default function CreateJobScreen() {
    const insets = useSafeAreaInsets();
    const { currentUser } = useContext(AuthContext);
+   const [loading, setLoading] = useState(false);
+   const [createJobMessage, setCreateJobMessage] = useState("");
    const [steps, setSteps] = useState(availableSteps);
    const isStepOneSelected = steps[0].selected;
    const isStepTwoSelected = steps[1].selected;
@@ -244,6 +246,99 @@ export default function CreateJobScreen() {
         console.error("Error fetching FBOs:", err);
     }
   }
+
+  const createJob = async () => {
+    let selectedServices = [];
+    selectedServices = selectedServices.concat(
+        interiorServices.filter((service) => service.selected === true)
+    );
+    selectedServices = selectedServices.concat(
+        exteriorServices.filter((service) => service.selected === true)
+    );
+    selectedServices = selectedServices.concat(
+        otherServices.filter((service) => service.selected === true)
+    );
+
+    let selectedCustomer = customerSelected;
+
+    if (currentUser.customerId) {
+        selectedCustomer = {
+        id: currentUser.customerId,
+        };
+    }
+
+    const selectedServiceIds = selectedServices.map((service) => service.id);
+
+    const formData = new FormData();
+
+    formData.append("tail_number", tailNumber);
+    formData.append("customer_id", selectedCustomer.id);
+    formData.append("aircraft_type_id", aircraftTypeSelected.id);
+    formData.append("airport_id", airportSelected.id);
+    formData.append("fbo_id", fboSelected.id);
+
+    if (estimatedArrivalDate instanceof Date) {
+        formData.append("estimated_arrival_date", estimatedArrivalDate.toString());
+    } else {
+        formData.append("estimated_arrival_date", 'null');
+    }
+
+    if (estimatedDepartureDate instanceof Date) {
+        formData.append("estimated_departure_date", estimatedDepartureDate.toString());
+    } else {
+        formData.append("estimated_departure_date", 'null');
+    }
+
+    if (completeByDate instanceof Date) {
+        formData.append("complete_by_date", completeByDate.toString());
+    } else {
+        formData.append("complete_by_date", 'null');
+    }
+
+    formData.append("services", selectedServiceIds);
+    formData.append("retainer_services", []);
+    formData.append("tags", []);
+    formData.append("comment", comment);
+    formData.append("on_site", onSite);
+    formData.append("requested_by", "");
+    formData.append("customer_purchase_order", "");
+    formData.append("priority", selectedPriority.id);
+    formData.append("follower_emails", "");
+    formData.append("ident", "");
+    //formData.append("enable_flightaware_tracking", false);
+
+    // Convert each image URI into a blob and append
+    for (const uri of images) {
+        const filename = uri.split('/').pop() || 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : `image`;
+
+        formData.append('image', {
+        uri,
+        name: filename,
+        type,
+        } as any); // React Native's FormData needs this cast
+    }
+
+    setLoading(true);
+    setCreateJobMessage("Creating job. Please wait...");
+
+    console.log("Form Data:", formData);
+
+    try {
+        const response = await httpService.post('/jobs/create',formData);
+
+        setLoading(false);
+        setCreateJobMessage(
+        `A new job with purchase order ${response.purchase_order} has been added to the queue.`
+        );
+        
+    } catch (error) {
+        console.log("Error creating job:", error);
+        setLoading(false);
+        setCreateJobMessage("Unable to create job. Please try again later.");
+    } 
+};
 
   const searchAirportCustomerFees = async (request) => {
       try {
@@ -506,10 +601,6 @@ export default function CreateJobScreen() {
 
     setSteps(newSteps);
   };
-
-  const handleCreateJob = () => {
-
-    }
 
     const handleServiceChange = (service) => {
         if (service.category === "I") {
@@ -786,7 +877,7 @@ export default function CreateJobScreen() {
 
                             <TouchableOpacity
                                 style={[styles.rowButton, styles.nextButton]}
-                                onPress={handleCreateJob}
+                                onPress={createJob}
                             >
                                 <Text style={styles.rowButtonText}>Create Job</Text>
                             </TouchableOpacity>

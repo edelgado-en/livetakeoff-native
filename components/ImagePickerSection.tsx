@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   button: {
     marginTop: 12,

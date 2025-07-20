@@ -8,11 +8,12 @@ const getToken = async () => {
 
 const request = async (endpoint, options = {}) => {
   const token = await getToken();
-
   const method = (options.method || 'GET').toUpperCase();
 
+  const isFormData = options.body instanceof FormData;
+
   const headers = {
-    ...(method !== 'GET' && { 'Content-Type': 'application/json' }),
+    ...(method !== 'GET' && !isFormData && { 'Content-Type': 'application/json' }),
     ...(token && { Authorization: `JWT ${token}` }),
     ...options.headers,
   };
@@ -42,7 +43,7 @@ const httpService = {
     request(url, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
     }),
 
   put: (url, data, options = {}) =>
