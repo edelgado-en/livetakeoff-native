@@ -46,7 +46,7 @@ const ModalDropdown: React.FC<Props> = ({
   };
 
   return (
-    <View style={{ marginBottom: 30 }}>
+    <View style={{ marginTop: 30 }}>
       <Text style={styles.floatingLabel}>{label}</Text>
       <TouchableOpacity style={styles.dropdown} onPress={() => setModalVisible(true)}>
         <Text style={selectedItem ? styles.selectedText : styles.placeholderText}>

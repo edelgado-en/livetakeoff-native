@@ -574,7 +574,6 @@ export default function CreateJobScreen() {
                             activeOutlineColor="#3B82F6" // Tailwind blue-500
                             outlineColor="#D1D5DB"        // Tailwind gray-300
                             autoCapitalize="none"
-                            style={{ marginBottom: 30 }}
                         />
                         <ModalDropdown
                             label="Customer"
@@ -584,74 +583,35 @@ export default function CreateJobScreen() {
                             searchTerm={customerSearchTerm}
                             onSearchTermChange={setCustomerSearchTerm}
                         />
-                        <View style={{ marginTop: 30 }}>
-                            <Text style={[styles.dropdownLabel]}>
-                                Aircraft Type
-                            </Text>
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                inputSearchStyle={styles.inputSearchStyle}
-                                data={aircraftTypes}
-                                search
-                                maxHeight={300}
-                                labelField="name"
-                                valueField="id"
-                                placeholder="Select aircraft type"
-                                searchPlaceholder="Search..."
-                                value={aircraftTypeSelected?.id}
-                                onChange={handleAircraftTypeSelectedChange}
-                                onChangeText={(text) => setAircraftSearchTerm(text)}
-                            />
-                        </View>
-                        <View style={{ marginTop: 30 }}>
-                            <Text style={[styles.dropdownLabel]}>
-                                Airport
-                            </Text>
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                inputSearchStyle={styles.inputSearchStyle}
-                                data={airports}
-                                search
-                                maxHeight={300}
-                                labelField="name"
-                                valueField="id"
-                                placeholder="Select airport"
-                                searchPlaceholder="Search..."
-                                value={airportSelected?.id}
-                                onChange={handleAirportSelectedChange}
-                                onChangeText={(text) => setAirportSearchTerm(text)}
-                            />
-                        </View>
-
+                        <ModalDropdown
+                            label="Aircraft Type"
+                            data={aircraftTypes}
+                            value={aircraftTypeSelected?.id}
+                            onChange={handleAircraftTypeSelectedChange}
+                            searchTerm={aircraftSearchTerm}
+                            onSearchTermChange={setAircraftSearchTerm}
+                        />
+                        <ModalDropdown
+                            label="Airport"
+                            data={airports}
+                            value={airportSelected?.id}
+                            onChange={handleAirportSelectedChange}
+                            searchTerm={airportSearchTerm}
+                            onSearchTermChange={setAirportSearchTerm}
+                        />
+                        
                         {airportFees.length > 0 && (
                             <AirportFeesAlert airportFees={airportFees} />
                         )}
 
-                        <View style={{ marginTop: 30 }}>
-                            <Text style={[styles.dropdownLabel]}>
-                                FBO
-                            </Text>
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                inputSearchStyle={styles.inputSearchStyle}
-                                data={fbos}
-                                search
-                                maxHeight={300}
-                                labelField="name"
-                                valueField="id"
-                                placeholder="Select FBO"
-                                searchPlaceholder="Search..."
-                                value={fboSelected?.id}
-                                onChange={handleFboSelectedChange}
-                                onChangeText={(text) => setFboSearchTerm(text)}
-                            />
-                        </View>
+                        <ModalDropdown
+                            label="FBO"
+                            data={fbos}
+                            value={fboSelected?.id}
+                            onChange={handleFboSelectedChange}
+                            searchTerm={fboSearchTerm}
+                            onSearchTermChange={setFboSearchTerm}
+                        />
 
                         {fboFees.length > 0 && (
                             <FboFeesAlert fboFees={fboFees} />

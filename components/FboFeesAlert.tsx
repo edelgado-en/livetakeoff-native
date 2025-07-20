@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef2f2', // Tailwind red-50
     padding: 16,
     borderRadius: 8,
-    marginTop: 8,
+    marginTop: 8
   },
   row: {
     flexDirection: 'row',
