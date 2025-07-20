@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, ScrollView,
           KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
 import { TextInput, Snackbar, Portal } from 'react-native-paper';
@@ -104,6 +105,55 @@ export default function CreateJobScreen() {
     const [images, setImages] = useState<string[]>([]);
 
     const suppressSearchRef = useRef(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+            // Reset local state here manually
+            setTailNumber("");
+            setCustomers([]);
+            setAircraftTypes([]);
+            setAirports([]);
+            setFbos([]);
+            setCustomerSelected(null);
+            setAircraftTypeSelected(null);
+            setAirportSelected(null);
+            setFboSelected(null);
+            setEstimatedArrivalDate(null);
+            setEstimatedDepartureDate(null);
+            setCompleteByDate(null);
+            setCustomerSearchTerm("");
+            setAircraftSearchTerm("");
+            setAirportSearchTerm("");
+            setFboSearchTerm("");
+            setSelectedPriority(requestPriorities[0]);
+            setOnSite(false);
+            setRequestedBy("");
+            setInteriorServices([]);
+            setExteriorServices([]);
+            setOtherServices([]);
+            setInteriorRetainerServices([]);
+            setExteriorRetainerServices([]);
+            setOtherRetainerServices([]);
+            setAirportFees([]);
+            setFboFees([]);
+            setComment("");
+            setImages([]);
+            setSteps(availableSteps.map(step => ({
+                ...step,
+                status: step.id === 1 ? "current" : "upcoming",
+                selected: step.id === 1
+            })));
+            setCreateJobMessage("");
+            setShowSnackbar(false);
+            setSnackbarMessage("");
+            suppressSearchRef.current = false;
+            setLoading(false);
+            setCommentHeight(100);
+            
+            };
+        }, [])
+    );
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -322,8 +372,6 @@ export default function CreateJobScreen() {
 
     setLoading(true);
     setCreateJobMessage("Creating job. Please wait...");
-
-    console.log("Form Data:", formData);
 
     try {
         const response = await httpService.post('/jobs/create',formData);
