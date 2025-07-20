@@ -14,8 +14,8 @@ import DatePicker from '../../components/DatePicker';
 import AirportFeesAlert from '../../components/AirportFeesAlert';
 import FboFeesAlert from '../../components/FboFeesAlert';
 import HoursOfOperationAlert from '../../components/HoursOfOperationAlert';
-
 import ModalDropdown from '../../components/ModalDropdown';
+import ServicesSection from '../../components/ServicesSection';
 
 const requestPriorities = [
   {
@@ -481,6 +481,37 @@ export default function CreateJobScreen() {
     setSteps(newSteps);
   };
 
+    const handleServiceChange = (service) => {
+        if (service.category === "I") {
+        const interiorServicesUpdated = interiorServices.map((el) => {
+            if (el.id === service.id) {
+            el.selected = !el.selected;
+            }
+            return el;
+        });
+
+        setInteriorServices(interiorServicesUpdated);
+        } else if (service.category === "E") {
+            const exteriorServicesUpdated = exteriorServices.map((el) => {
+                if (el.id === service.id) {
+                el.selected = !el.selected;
+                }
+                return el;
+            });
+
+            setExteriorServices(exteriorServicesUpdated);
+        } else {
+            const otherServicesUpdated = otherServices.map((el) => {
+                if (el.id === service.id) {
+                el.selected = !el.selected;
+                }
+                return el;
+            });
+
+            setOtherServices(otherServicesUpdated);
+        }
+    };
+
   return (
     <SafeAreaView style={styles.safe}>
         <Portal>
@@ -652,7 +683,13 @@ export default function CreateJobScreen() {
 
                     {isStepTwoSelected && (
                         <>
-                        <Text>Step 2</Text>
+                        <ServicesSection 
+                            interiorServices={interiorServices}
+                            exteriorServices={exteriorServices}
+                            otherServices={otherServices}
+                            onToggleService={handleServiceChange}
+                        />
+
                         <View style={styles.buttonRow}>
                             {/* Back Button */}
                             <TouchableOpacity
