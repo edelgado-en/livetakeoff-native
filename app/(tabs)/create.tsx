@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, ScrollView,
           KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
 import { TextInput, Snackbar, Portal } from 'react-native-paper';
@@ -380,6 +381,10 @@ export default function CreateJobScreen() {
         setCreateJobMessage(
         `A new job with purchase order ${response.purchase_order} has been added to the queue.`
         );
+
+        const router = useRouter();
+
+        router.replace('/job-success');
         
     } catch (error) {
         console.log("Error creating job:", error);
