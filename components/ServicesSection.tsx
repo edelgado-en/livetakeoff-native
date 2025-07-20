@@ -48,7 +48,12 @@ const ServicesSection: React.FC<Props> = ({
     >
       <View style={styles.cardContent}>
         <Text style={[styles.cardText, item.selected && styles.cardTextSelected]}>{item.name}</Text>
-        {item.selected && <MaterialIcons name="check" size={18} color="#10B981" style={styles.checkIcon} />}
+        {/* {item.selected && <MaterialIcons name="check" size={18} color="#10B981" style={styles.checkIcon} />} */}
+        {item.selected && (
+            <View style={styles.checkCircle}>
+                <MaterialIcons name="check" size={14} color="white" />
+            </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -187,6 +192,13 @@ const styles = StyleSheet.create({
   checkIcon: {
     marginLeft: 8,
   },
+  checkCircle: {
+  backgroundColor: '#10B981',
+  borderRadius: 9999,
+  padding: 4,
+  justifyContent: 'center',
+  alignItems: 'center',
+}
 });
 
 export default ServicesSection;
