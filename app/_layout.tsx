@@ -5,6 +5,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@exp
 import { Text, View } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
@@ -28,13 +29,15 @@ export default function Layout() {
   }
 
     return (
-        <SafeAreaProvider>
-            <PaperProvider>
-                <AuthProvider>
-                    <Stack screenOptions={{ headerShown: false }} />
-                    <StatusBar style="auto" />
-                </AuthProvider>
-            </PaperProvider>
-        </SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaProvider>
+                <PaperProvider>
+                    <AuthProvider>
+                        <Stack screenOptions={{ headerShown: false }} />
+                        <StatusBar style="auto" />
+                    </AuthProvider>
+                </PaperProvider>
+            </SafeAreaProvider>
+        </GestureHandlerRootView>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, ScrollView,
-          KeyboardAvoidingView, Platform } from 'react-native';
+          KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
 import { TextInput, Snackbar, Portal } from 'react-native-paper';
@@ -14,6 +14,8 @@ import DatePicker from '../../components/DatePicker';
 import AirportFeesAlert from '../../components/AirportFeesAlert';
 import FboFeesAlert from '../../components/FboFeesAlert';
 import HoursOfOperationAlert from '../../components/HoursOfOperationAlert';
+
+import ModalDropdown from '../../components/ModalDropdown';
 
 const requestPriorities = [
   {
@@ -504,10 +506,9 @@ export default function CreateJobScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
         >
-            <ScrollView
+            <FlatList
                 contentContainerStyle={{ paddingBottom: 120 }}
-                keyboardShouldPersistTaps="handled"
-            >
+                ListHeaderComponent={
                 <View style={styles.container}>
                     {steps.map((step, index) => (
                         <View key={step.name} style={styles.stepRow}>
@@ -575,27 +576,14 @@ export default function CreateJobScreen() {
                             autoCapitalize="none"
                             style={{ marginBottom: 30 }}
                         />
-                        <View>
-                            <Text style={[styles.dropdownLabel]}>
-                                Customer
-                            </Text>
-                            <Dropdown
-                                style={styles.dropdown}
-                                placeholderStyle={styles.placeholderStyle}
-                                selectedTextStyle={styles.selectedTextStyle}
-                                inputSearchStyle={styles.inputSearchStyle}
-                                data={customers}
-                                search
-                                maxHeight={300}
-                                labelField="name"
-                                valueField="id"
-                                placeholder="Select customer"
-                                searchPlaceholder="Search..."
-                                value={customerSelected?.id}
-                                onChange={handleCustomerSelectedChange}
-                                onChangeText={(text) => setCustomerSearchTerm(text)}
-                            />
-                        </View>
+                        <ModalDropdown
+                            label="Customer"
+                            data={customers}
+                            value={customerSelected?.id}
+                            onChange={handleCustomerSelectedChange}
+                            searchTerm={customerSearchTerm}
+                            onSearchTermChange={setCustomerSearchTerm}
+                        />
                         <View style={{ marginTop: 30 }}>
                             <Text style={[styles.dropdownLabel]}>
                                 Aircraft Type
@@ -724,9 +712,12 @@ export default function CreateJobScreen() {
                         </View>
                         </>
                     )}
-
                 </View>
-            </ScrollView>
+                }
+                data={[]}
+                renderItem={null}
+                keyboardShouldPersistTaps="handled"
+            />
         </KeyboardAvoidingView>
     </SafeAreaView>
   );
