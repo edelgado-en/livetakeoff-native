@@ -8,6 +8,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface ServiceItem {
   id: number;
@@ -42,15 +43,17 @@ const ServicesSection: React.FC<Props> = ({
   const renderServiceCard = (item: ServiceItem, section: string) => (
     <TouchableOpacity
       key={item.id}
-      style={[
-        styles.card,
-        item.selected && styles.cardSelected,
-      ]}
+      style={[styles.card, item.selected && styles.cardSelected]}
       onPress={() => onToggleService(item)}
     >
-      <Text style={[styles.cardText, item.selected && styles.cardTextSelected]}>{item.name}</Text>
+      <View style={styles.cardContent}>
+        <Text style={[styles.cardText, item.selected && styles.cardTextSelected]}>{item.name}</Text>
+        {item.selected && <MaterialIcons name="check" size={18} color="#10B981" style={styles.checkIcon} />}
+      </View>
     </TouchableOpacity>
   );
+
+  const countSelected = (list: ServiceItem[]) => list.filter(s => s.selected).length;
 
   return (
     <View style={{ marginTop: 10 }}>
@@ -58,7 +61,9 @@ const ServicesSection: React.FC<Props> = ({
 
       {/* Interior */}
       <TouchableOpacity onPress={() => toggleSection('interior')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Interior</Text>
+        <Text style={styles.sectionTitle}>
+          Interior{countSelected(interiorServices) > 0 ? ` (${countSelected(interiorServices)} selected)` : ''}
+        </Text>
         <Text style={styles.chevron}>{expandedSection === 'interior' ? '▲' : '▼'}</Text>
       </TouchableOpacity>
       {expandedSection === 'interior' && (
@@ -69,7 +74,9 @@ const ServicesSection: React.FC<Props> = ({
 
       {/* Exterior */}
       <TouchableOpacity onPress={() => toggleSection('exterior')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Exterior</Text>
+        <Text style={styles.sectionTitle}>
+          Exterior{countSelected(exteriorServices) > 0 ? ` (${countSelected(exteriorServices)} selected)` : ''}
+        </Text>
         <Text style={styles.chevron}>{expandedSection === 'exterior' ? '▲' : '▼'}</Text>
       </TouchableOpacity>
       {expandedSection === 'exterior' && (
@@ -80,7 +87,9 @@ const ServicesSection: React.FC<Props> = ({
 
       {/* Add-ons */}
       <TouchableOpacity onPress={() => toggleSection('addons')} style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Add-ons</Text>
+        <Text style={styles.sectionTitle}>
+          Add-ons{countSelected(otherServices) > 0 ? ` (${countSelected(otherServices)} selected)` : ''}
+        </Text>
         <Text style={styles.chevron}>{expandedSection === 'addons' ? '▲' : '▼'}</Text>
       </TouchableOpacity>
       {expandedSection === 'addons' && (
@@ -97,7 +106,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -126,19 +135,28 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
     borderWidth: 1,
     borderRadius: 12,
-    paddingVertical: 20,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: '#ffffff',
   },
   cardSelected: {
-    backgroundColor: '#ef4444',
+    borderColor: '#10B981', // green-500
+    borderWidth: 2,
   },
   cardText: {
     fontSize: 16,
     color: '#374151',
   },
   cardTextSelected: {
-    color: '#ffffff',
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkIcon: {
+    marginLeft: 8,
   },
 });
 
