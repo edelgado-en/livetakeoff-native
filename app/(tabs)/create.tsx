@@ -16,6 +16,7 @@ import FboFeesAlert from '../../components/FboFeesAlert';
 import HoursOfOperationAlert from '../../components/HoursOfOperationAlert';
 import ModalDropdown from '../../components/ModalDropdown';
 import ServicesSection from '../../components/ServicesSection';
+import ImagePickerSection from '../../components/ImagePickerSection';
 
 const requestPriorities = [
   {
@@ -97,6 +98,8 @@ export default function CreateJobScreen() {
 
     const [comment, setComment] = useState("");
     const [commentHeight, setCommentHeight] = useState(100);
+
+    const [images, setImages] = useState<string[]>([]);
 
     const suppressSearchRef = useRef(false);
 
@@ -768,6 +771,10 @@ export default function CreateJobScreen() {
                             }}
                             textColor="#374151"
                         />
+
+
+                        <ImagePickerSection images={images} setImages={setImages}/>
+
                         <View style={styles.buttonRow}>
                             {/* Back Button */}
                             <TouchableOpacity
