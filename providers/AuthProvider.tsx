@@ -53,6 +53,9 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.setItemAsync('accessToken', data.access);
     await SecureStore.setItemAsync('refreshToken', data.refresh);
     setToken(data.access);
+
+    fetchCurrentUser(data.access);
+
   };
 
   const logout = async () => {

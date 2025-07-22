@@ -31,7 +31,17 @@ const request = async (endpoint, options = {}) => {
     throw new Error(`HTTP error: ${response.status} ${errorText}`);
   }
 
-  return response.json();
+    const text = await response.text();
+
+    if (!text) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        throw new Error(`Failed to parse JSON: ${e.message}`);
+    }
 };
 
 // Shortcut helpers

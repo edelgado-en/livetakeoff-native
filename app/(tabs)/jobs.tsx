@@ -207,6 +207,7 @@ const getStatusLabel = (status: string) => {
                             );
                         })}
                     </View>
+
                     {/* Arrival */}
                     <View style={styles.section}>
                         <Text style={styles.label}>Arrival</Text>
@@ -467,5 +468,11 @@ loaderOverlay: {
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 10,
+},
+row: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  gap: 12,
 },
 });

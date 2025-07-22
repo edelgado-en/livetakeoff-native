@@ -85,7 +85,13 @@ export default function CreateJobScreen() {
 
     const [selectedPriority, setSelectedPriority] = useState(requestPriorities[0]);
 
+    const [customerPurchaseOrder, setCustomerPurchaseOrder] = useState("");
+
     const [onSite, setOnSite] = useState(false);
+
+    const [tags, setTags] = useState([]);
+    const [isRequestPriorityEnabled, setIsRequestPriorityEnabled] =
+    useState(false);
 
     const [requestedBy, setRequestedBy] = useState("");
 
@@ -151,10 +157,16 @@ export default function CreateJobScreen() {
             suppressSearchRef.current = false;
             setLoading(false);
             setCommentHeight(100);
+            setIsRequestPriorityEnabled(false);
+            setTags([]);
             
             };
         }, [])
     );
+
+  useEffect(() => {
+    getJobInfo();
+  }, []);
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -351,8 +363,8 @@ export default function CreateJobScreen() {
     formData.append("tags", []);
     formData.append("comment", comment);
     formData.append("on_site", onSite);
-    formData.append("requested_by", "");
-    formData.append("customer_purchase_order", "");
+    formData.append("requested_by", requestedBy);
+    formData.append("customer_purchase_order", customerPurchaseOrder);
     formData.append("priority", selectedPriority.id);
     formData.append("follower_emails", "");
     formData.append("ident", "");
@@ -523,32 +535,58 @@ export default function CreateJobScreen() {
     }
   }
 
+    const getJobInfo = async () => {
+        try {
+            const response = await httpService.get('/jobs/form-info');
+            setTags(response.tags);
+
+            if (response.customer_id) {
+                getServicesAndRetainers(response.customer_id);
+                setIsRequestPriorityEnabled(response.is_enable_request_priority);
+            }
+
+        } catch (error) {
+            console.error("Error fetching job info:", error);
+        }
+  };
+
   const getTailLookups = async () => {
     if (tailNumber?.length > 2) {
-      const response = await httpService.get(`/tail-aircraft-lookup/${tailNumber}/`)
+        try {
+            const response = await httpService.get(`/tail-aircraft-lookup/${tailNumber}/`)
 
-      if (response) {
-        setAircraftTypeSelected({
-          id: response.aircraft_id,
-          name: response.aircraft_name,
-        });
-        setAircraftSearchTerm(response.aircraft_name);
+            if (response) {
+                setAircraftTypeSelected({
+                    id: response.aircraft_id,
+                    name: response.aircraft_name,
+                });
+                setAircraftSearchTerm(response.aircraft_name);
 
-        if (
-          currentUser.isAdmin ||
-          currentUser.isSuperUser ||
-          currentUser.isAccountManager ||
-          currentUser.isInternalCoordinator
-        ) {
-          getServicesAndRetainers(response.customer_id);
+                if (
+                    currentUser.isAdmin ||
+                    currentUser.isSuperUser ||
+                    currentUser.isAccountManager ||
+                    currentUser.isInternalCoordinator
+                ) {
+                    getServicesAndRetainers(response.customer_id);
 
-          setCustomerSelected({
-            id: response.customer_id,
-            name: response.customer_name,
-          });
-          setCustomerSearchTerm(response.customer_name);
+                    setCustomerSelected({
+                        id: response.customer_id,
+                        name: response.customer_name,
+                    });
+
+                    setCustomerSearchTerm(response.customer_name);
+
+                    /* const response1 = await httpService.get(`/customers/${response.customer_id}`);
+
+                    setIsRequestPriorityEnabled(
+                        response1.settings.enable_request_priority
+                    ); */
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching tail lookups:", error);
         }
-      }
     }
   };
 
@@ -588,6 +626,12 @@ export default function CreateJobScreen() {
         if (!fboSelected) {
             setShowSnackbar(true);
             setSnackbarMessage("FBO is required.");
+            return;
+        }
+
+        if (currentUser.promptRequestedBy && requestedBy.length === 0) {
+            setShowSnackbar(true);
+            setSnackbarMessage("Enter your name and email in requested by.");
             return;
         }
 
@@ -780,14 +824,17 @@ export default function CreateJobScreen() {
                             outlineColor="#D1D5DB"        // Tailwind gray-300
                             autoCapitalize="none"
                         />
-                        <ModalDropdown
-                            label="Customer"
-                            data={customers}
-                            value={customerSelected?.id}
-                            onChange={handleCustomerSelectedChange}
-                            searchTerm={customerSearchTerm}
-                            onSearchTermChange={setCustomerSearchTerm}
-                        />
+
+                        {!currentUser.isCustomer && (
+                            <ModalDropdown
+                                label="Customer"
+                                data={customers}
+                                value={customerSelected?.id}
+                                onChange={handleCustomerSelectedChange}
+                                searchTerm={customerSearchTerm}
+                                onSearchTermChange={setCustomerSearchTerm}
+                            />
+                        )}
                         <ModalDropdown
                             label="Aircraft Type"
                             data={aircraftTypes}
@@ -847,7 +894,33 @@ export default function CreateJobScreen() {
                             onChange={setCompleteByDate}
                         />
 
-                        <TouchableOpacity style={[styles.button, { marginTop: 40 }]}
+                        {!currentUser.isCustomer && (
+                            <TextInput
+                                label="Customer Purchase Order"
+                                value={customerPurchaseOrder}
+                                onChangeText={(text) => setCustomerPurchaseOrder(text)}
+                                style={{ marginTop: 20 }}
+                                mode="outlined"
+                                activeOutlineColor="#3B82F6" // Tailwind blue-500
+                                outlineColor="#D1D5DB"        // Tailwind gray-300
+                            />
+                        )}
+
+                        {(!currentUser.isCustomer ||
+                            currentUser.promptRequestedBy) && (
+                            <TextInput
+                                label="Requested By"
+                                value={requestedBy}
+                                placeholder='Enter your name and email address'
+                                onChangeText={(text) => setRequestedBy(text)}
+                                style={{ marginTop: 20 }}
+                                mode="outlined"
+                                activeOutlineColor="#3B82F6" // Tailwind blue-500
+                                outlineColor="#D1D5DB"        // Tailwind gray-300
+                            />
+                    )}
+
+                        <TouchableOpacity style={[styles.button, { marginTop: 50 }]}
                                  onPress={() => handleGoToNextStep(steps[0])}>
                             <Text style={styles.buttonText}>Next</Text>
                         </TouchableOpacity>
