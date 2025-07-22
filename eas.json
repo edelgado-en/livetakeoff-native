@@ -1,13 +1,16 @@
 {
   "cli": {
-    "version": ">= 16.17.0",
-    "appVersionSource": "remote"
+    "version": ">= 6.0.0"
   },
   "build": {
-    "release": {
+    "production": {
       "ios": {
         "workflow": "managed"
-      }
+      },
+      "android": {
+        "workflow": "managed"
+      },
+      "autoIncrement": true
     },
     "development": {
       "developmentClient": true,
@@ -15,12 +18,6 @@
     },
     "preview": {
       "distribution": "internal"
-    },
-    "production": {
-      "ios": {
-        "workflow": "managed",
-        "autoIncrement": true
-      }
     }
   },
   "submit": {
