@@ -32,7 +32,7 @@ export default function JobsScreen() {
       return { backgroundColor: '#6366f1' }; // bg-indigo-500
     case 'W':
     case 'C':
-      return { backgroundColor: '#22c55e' }; // bg-green-500
+      return { backgroundColor: '#10B981' }; // bg-green-500
     case 'T':
       return { backgroundColor: '#4b5563' }; // bg-gray-600
     case 'R':
@@ -213,57 +213,50 @@ const getStatusLabel = (status: string) => {
                         })}
                     </View>
 
-                    {/* Arrival */}
                     <View style={styles.section}>
-                        <Text style={styles.label}>Arrival</Text>
-                        {item.on_site && (
-                        <View style={styles.badge}>
-                            <View style={styles.dotGreen} />
-                            <Text style={styles.badgeText}>On Site</Text>
-                        </View>
-                        )}
-                        {!item.on_site && item.estimatedETA == null && (
-                        <View style={styles.badge}>
-                            <View style={styles.dotRed} />
-                            <Text style={styles.badgeText}>TBD</Text>
-                        </View>
-                        )}
-                        {!item.on_site && item.estimatedETA != null && (
-                        <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
+                    <Text style={styles.label}>Arrival</Text>
+                        {item.on_site ? (
+                            <View style={styles.pillRow}>
+                            <View style={[styles.pill, styles.pillGreen]}>
+                                <Text style={styles.pillText}>On Site</Text>
+                            </View>
+                            </View>
+                        ) : item.estimatedETA == null ? (
+                            <View style={styles.pillRow}>
+                            <View style={[styles.pill, styles.pillGray]}>
+                                <Text style={styles.pillText}>TBD</Text>
+                            </View>
+                            </View>
+                        ) : (
+                            <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
                         )}
                     </View>
 
-                    {/* Departure */}
                     <View style={styles.section}>
                         <Text style={styles.label}>Departure</Text>
                         {item.estimatedETD == null ? (
-                        <View style={styles.badge}>
-                            <View style={styles.dotRed} />
-                            <Text style={styles.badgeText}>TBD</Text>
-                        </View>
+                            <View style={styles.pillRow}>
+                            <View style={[styles.pill, styles.pillGray]}>
+                                <Text style={styles.pillText}>TBD</Text>
+                            </View>
+                            </View>
                         ) : (
-                        <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                            <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
                         )}
                     </View>
 
-                    {/* Completion */}
                     <View style={styles.section}>
+                        <Text style={styles.label}>Completion</Text>
                         {item.status === 'C' || item.status === 'I' ? (
-                        <Text style={styles.label}>
-                            Completed on <Text style={styles.dateText}>{item.completion_date}</Text>
-                        </Text>
-                        ) : (
-                        <Text style={styles.label}>
-                            Complete before{' '}
-                            {item.completeBy ? (
+                            <Text style={styles.dateText}>{item.completion_date}</Text>
+                        ) : item.completeBy ? (
                             <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
-                            ) : (
-                            <View style={styles.badge}>
-                                <View style={styles.dotRed} />
-                                <Text style={styles.badgeText}>TBD</Text>
+                        ) : (
+                            <View style={styles.pillRow}>
+                            <View style={[styles.pill, styles.pillGray]}>
+                                <Text style={styles.pillText}>TBD</Text>
                             </View>
-                            )}
-                        </Text>
+                            </View>
                         )}
                     </View>
 
@@ -513,4 +506,30 @@ infoText: {
     color: '#9CA3AF', // Tailwind gray-400
     paddingHorizontal: 4,
   },
+pillRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+pill: {
+  paddingVertical: 4,
+  paddingHorizontal: 6,
+  borderRadius: 9999,
+  alignSelf: 'flex-start',
+  marginLeft: 6
+},
+
+pillText: {
+  fontSize: 12,
+  color: 'white',
+  fontWeight: '500',
+},
+
+pillGreen: {
+  backgroundColor: '#10B981', // Tailwind green-500
+},
+
+pillGray: {
+  backgroundColor: '#9CA3AF', // Tailwind gray-400
+},
 });
