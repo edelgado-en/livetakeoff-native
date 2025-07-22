@@ -133,15 +133,22 @@ const getStatusLabel = (status: string) => {
       <View style={styles.container}>
         <View style={styles.headerContainer}>
             <Text style={styles.title}>Livetakeoff</Text>
-            <TouchableOpacity style={styles.button} onPress={handleCreateJob}>
-                <Text style={styles.buttonText}>+ New Job</Text>
-            </TouchableOpacity>
+            
+            {(currentUser.isAdmin ||
+                currentUser.isSuperUser ||
+                currentUser.isAccountManager ||
+                currentUser.isCustomer ||
+                currentUser.isInternalCoordinator) && (
+                    <TouchableOpacity style={styles.button} onPress={handleCreateJob}>
+                        <Text style={styles.buttonText}>+ New Job</Text>
+                    </TouchableOpacity>
+                )}
         </View>
         <View style={styles.searchContainer}>
             <Ionicons name="search" size={20} color="#6b7280" style={styles.icon} />
             <TextInput
                 style={styles.input}
-                placeholder="Search jobs..."
+                placeholder="Search tails..."
                 placeholderTextColor="#9ca3af"
                 value={searchText}
                 onChangeText={setSearchText}
@@ -180,12 +187,12 @@ const getStatusLabel = (status: string) => {
                         </View>
                     </View>
                     
-                    <View style={{ marginTop: 2  }}>
-                        <Text >
-                            <Text>{item.airport.initials}</Text>
-                            {'  —  '}
-                            {item.fbo.name} — {item.aircraftType.name}
-                        </Text>
+                    <View style={{ marginTop: 2, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.infoText}>{item.airport.initials}</Text>
+                        <Text style={styles.dot}> • </Text>
+                        <Text style={styles.infoText}>{item.fbo.name}</Text>
+                        <Text style={styles.dot}> • </Text>
+                        <Text style={styles.infoText}>{item.aircraftType.name}</Text>
                     </View>
                     <View style={styles.tagContainer}>
                         {item.tags?.map((tag) => {
@@ -304,7 +311,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '900', // extra-bold, if available on device
     color: '#DC2626', // Tailwind's red-600
   },
@@ -350,7 +357,7 @@ const styles = StyleSheet.create({
     top: 8,
   },
   name: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#1f2937', // Tailwind's gray-800
   },
   tagContainer: {
@@ -496,4 +503,14 @@ emptyText: {
   fontSize: 18,
   color: '#6B7280', // gray-500
 },
+infoText: {
+    fontSize: 16,
+    color: '#374151', // Tailwind gray-700
+    flexShrink: 1,     // Allow text to wrap if needed
+  },
+  dot: {
+    fontSize: 16,
+    color: '#9CA3AF', // Tailwind gray-400
+    paddingHorizontal: 4,
+  },
 });
