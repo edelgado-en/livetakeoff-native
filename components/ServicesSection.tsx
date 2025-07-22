@@ -164,15 +164,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 4,
-    borderColor: '#E5E7EB',
+    borderColor: '#9CA3AF',
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 2,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,
     color: '#374151',
     marginLeft: 8,
+    fontWeight: '500',
   },
   selectedCount: {
     fontSize: 14,
@@ -208,6 +209,8 @@ const styles = StyleSheet.create({
     color: '#374151',
     flex: 1,
     flexWrap: 'wrap',
+    flexShrink: 1,                 // allow wrapping
+    textAlign: 'center',          // center text inside available width
   },
   cardTextSelected: {
     color: '#10B981',
@@ -216,8 +219,8 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
   checkIcon: {
     marginLeft: 8,
