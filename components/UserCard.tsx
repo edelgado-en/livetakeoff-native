@@ -75,20 +75,20 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   infoContainer: {
     flex: 1,
   },
   name: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
   },
   email: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#6B7280',
   },
   badge: {

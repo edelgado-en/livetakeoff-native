@@ -22,7 +22,7 @@ export default function MoreScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>More Options</Text>
       <UserCard currentUser={currentUser}/>
-      <Button title="Logout" color="#ef4444" onPress={handleLogout} />
+      <Button title="Sign out" color="#ef4444" onPress={handleLogout} />
     </View>
   );
 }
