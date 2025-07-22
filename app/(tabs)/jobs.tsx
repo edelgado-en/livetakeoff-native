@@ -1,16 +1,14 @@
 import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
-         ActivityIndicator, Image, TouchableOpacity,
+          Image, TouchableOpacity,
          TextInput, RefreshControl } from 'react-native';
 
+import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../../hooks/useAuth';
-
-import DotLoader from '../../components/DotLoader';
-
 import { AuthContext } from '../../providers/AuthProvider';
 
 import httpService from '../../services/httpService';
@@ -271,14 +269,15 @@ const getStatusLabel = (status: string) => {
                 <View style={{ paddingVertical: 20 }}>
                 </View>
             }
+            ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                    <MaterialIcons name="info-outline" size={32} color="#9CA3AF" />
+                    <Text style={styles.emptyTextTitle}>No jobs found</Text>
+                    <Text style={styles.emptyText}>Get Started by creating a new job.</Text>
+                </View>
+            )}
         />
-        
-        {/* I am using the RefreshControl from the FlatList instead */}
-        {/* {loading && (
-          <View style={styles.loaderOverlay}>
-            <DotLoader />
-          </View>
-        )} */}
+       
       </View>
     </SafeAreaView>
   );
@@ -474,5 +473,23 @@ row: {
   flexWrap: 'wrap',
   justifyContent: 'space-between',
   gap: 12,
+},
+emptyContainer: {
+  flexGrow: 1, // allows the empty component to fill available space
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingVertical: 40,
+  gap: 12,
+  minHeight: 300, // optional, to avoid being too small on some tablets
+},
+emptyTextTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#111827', // Tailwind's gray-800
+    marginBottom: 4,
+},
+emptyText: {
+  fontSize: 18,
+  color: '#6B7280', // gray-500
 },
 });

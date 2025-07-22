@@ -1,19 +1,27 @@
 import { View, Text, Button, StyleSheet } from 'react-native';
+import React, { useContext } from 'react';
+
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 
+import { AuthContext } from '../../providers/AuthProvider';
+
+import UserCard from '../../components/UserCard';
+
 export default function MoreScreen() {
   const { logout } = useAuth();
+  const { currentUser } = useContext(AuthContext);
   const router = useRouter();
 
   const handleLogout = async () => {
-    await logout();
+    logout();
     router.replace('/login');
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>More Options</Text>
+      <UserCard currentUser={currentUser}/>
       <Button title="Logout" color="#ef4444" onPress={handleLogout} />
     </View>
   );
