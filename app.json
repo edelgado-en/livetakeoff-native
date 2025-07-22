@@ -5,21 +5,29 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "plugins": ["expo-font"],
+    "plugins": [
+      "expo-font"
+    ],
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "updates": {
       "fallbackToCacheTimeout": 0
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.livetakeoff.app",
-      "buildNumber": "1.0.0"
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images."
+      }
     },
     "android": {
       "package": "com.livetakeoff.app",
@@ -28,11 +36,19 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
-    "scheme": "livetakeoff"
+    "scheme": "livetakeoff",
+    "extra": {
+      "eas": {
+        "projectId": "d37d6f35-686a-4b9d-852a-1945e96d059c"
+      }
+    }
   }
 }
