@@ -17,7 +17,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "ios": {
+        "workflow": "managed",
+        "autoIncrement": true
+      }
     }
   },
   "submit": {
