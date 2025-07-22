@@ -60,8 +60,20 @@ const ServicesSection: React.FC<Props> = ({
       onPress={() => onToggleService(item)}
     >
       <View style={styles.cardContent}>
-        <Text style={[styles.cardText, item.selected && styles.cardTextSelected]}>{item.name}</Text>
-        {/* {item.selected && <MaterialIcons name="check" size={18} color="#10B981" style={styles.checkIcon} />} */}
+        <View style={styles.cardTextWrapper}>
+            <Text
+                style={[
+                styles.cardTitle,
+                item.selected && styles.cardTextSelected,
+            ]}
+            >
+                {item.short_name?.trim() || item.name}
+            </Text>
+            <Text style={styles.cardSubtitle}>
+                {item.short_description}
+            </Text>
+        </View>
+        
         {item.selected && (
             <View style={styles.checkCircle}>
                 <MaterialIcons name="check" size={14} color="white" />
@@ -222,6 +234,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 20,
   },
+
+cardTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  color: '#374151', // Tailwind gray-700
+},
+cardTextWrapper: {
+  flexShrink: 1,
+  flex: 1,
+  alignItems: 'center',
+},
+
+cardSubtitle: {
+  fontSize: 16,
+  color: '#6B7280', // Tailwind gray-500
+  marginTop: 2,
+  textAlign: 'center',
+},
   checkIcon: {
     marginLeft: 8,
   },
