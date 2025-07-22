@@ -26,7 +26,8 @@
       "buildNumber": "1.0.0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images."
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

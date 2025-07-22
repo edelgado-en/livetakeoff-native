@@ -1,15 +1,10 @@
 {
   "cli": {
-    "version": ">= 6.0.0"
+    "version": ">= 6.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "production": {
-      "ios": {
-        "workflow": "managed"
-      },
-      "android": {
-        "workflow": "managed"
-      },
       "autoIncrement": true
     },
     "development": {
