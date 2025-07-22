@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity,
-         StyleSheet, SafeAreaView, ScrollView,
-          KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+         StyleSheet, SafeAreaView, ScrollView, Alert,
+          KeyboardAvoidingView, Platform, FlatList, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
 import { useRouter } from 'expo-router';
 import { Svg, Path } from "react-native-svg";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -311,6 +312,8 @@ export default function CreateJobScreen() {
   }
 
   const createJob = async () => {
+    setLoading(true);
+
     let selectedServices = [];
     selectedServices = selectedServices.concat(
         interiorServices.filter((service) => service.selected === true)
@@ -383,25 +386,22 @@ export default function CreateJobScreen() {
         } as any); // React Native's FormData needs this cast
     }
 
-    setLoading(true);
-    setCreateJobMessage("Creating job. Please wait...");
-
     try {
-        const response = await httpService.post('/jobs/create',formData);
+        await httpService.post('/jobs/create',formData);
 
         setLoading(false);
-        setCreateJobMessage(
-        `A new job with purchase order ${response.purchase_order} has been added to the queue.`
-        );
 
         const router = useRouter();
 
         router.replace('/job-success');
         
     } catch (error) {
-        console.log("Error creating job:", error);
         setLoading(false);
-        setCreateJobMessage("Unable to create job. Please try again later.");
+        Alert.alert(
+            "Error",
+            "There was an error creating the job. Please try again later.",
+            [{ text: "OK" }]
+        );
     } 
 };
 
@@ -730,6 +730,20 @@ export default function CreateJobScreen() {
         }
     };
 
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                {/* <ActivityIndicator size="large" color="#1D4ED8" /> */}
+                <LottieView
+                    source={require('../../assets/animations/progress-bar.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 150, height: 150 }}
+                />
+            </View>
+        );
+    }
+
   return (
     <SafeAreaView style={styles.safe}>
         <Portal>
@@ -1013,7 +1027,7 @@ export default function CreateJobScreen() {
                 </View>
                 }
                 data={[]}
-                renderItem={null}
+                renderItem={() => null}
                 keyboardShouldPersistTaps="handled"
             />
         </KeyboardAvoidingView>
@@ -1030,6 +1044,13 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 60,
     paddingHorizontal: 16,
+     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff', // or 'rgba(255,255,255,0.9)' for overlay effect
   },
   stepRow: {
     flexDirection: "row",

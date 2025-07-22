@@ -269,13 +269,17 @@ const getStatusLabel = (status: string) => {
                 <View style={{ paddingVertical: 20 }}>
                 </View>
             }
-            ListEmptyComponent={() => (
-                <View style={styles.emptyContainer}>
-                    <MaterialIcons name="info-outline" size={32} color="#9CA3AF" />
-                    <Text style={styles.emptyTextTitle}>No jobs found</Text>
-                    <Text style={styles.emptyText}>Get Started by creating a new job.</Text>
-                </View>
-            )}
+            ListEmptyComponent={
+                !loading ? (
+                    () => (
+                        <View style={styles.emptyContainer}>
+                        <MaterialIcons name="info-outline" size={32} color="#9CA3AF" />
+                        <Text style={styles.emptyTextTitle}>No jobs found</Text>
+                        <Text style={styles.emptyText}>Get started by creating a new job.</Text>
+                        </View>
+                    )
+                ) : null
+            }
         />
        
       </View>
