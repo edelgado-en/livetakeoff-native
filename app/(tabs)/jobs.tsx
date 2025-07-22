@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   statusPill: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 14,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
