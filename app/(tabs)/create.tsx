@@ -588,7 +588,7 @@ export default function CreateJobScreen() {
 
                     setCustomerSearchTerm(response.customer_name);
 
-                    const response1 = await httpService.get(`/customers/${response.customer_id}`);
+                    const response1 = await httpService.get(`/customers/${response.customer_id}/`);
 
                     setIsRequestPriorityEnabled(
                         response1.settings.enable_request_priority

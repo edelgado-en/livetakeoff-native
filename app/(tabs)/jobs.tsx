@@ -132,7 +132,7 @@ const getStatusLabel = (status: string) => {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <View style={styles.headerContainer}>
-            <Text style={styles.title}>Livetakeoff</Text>
+            <Text style={styles.title}>LiveTakeoff</Text>
             
             {(currentUser.isAdmin ||
                 currentUser.isSuperUser ||
