@@ -20,6 +20,7 @@ import HoursOfOperationAlert from '../../components/HoursOfOperationAlert';
 import ModalDropdown from '../../components/ModalDropdown';
 import ServicesSection from '../../components/ServicesSection';
 import ImagePickerSection from '../../components/ImagePickerSection';
+import PriorityRadioGroup from '../../components/PriorityRadioGroup';
 
 const requestPriorities = [
   {
@@ -470,8 +471,18 @@ export default function CreateJobScreen() {
     };
 
   const handleCustomerSelectedChange = (item: any) => {
-     setCustomerSelected(item);
-     getServicesAndRetainers(item.id);
+    setCustomerSelected(item);
+    getServicesAndRetainers(item.id);
+
+    fetchCustomerDetails(item.id)
+    .then((customerDetails) => {
+       if (customerDetails) {
+            setIsRequestPriorityEnabled(customerDetails.settings.enable_request_priority);
+        }
+    })
+    .catch((error) => {
+      console.error("Error fetching customer details:", error);
+    });
 
     if (currentUser.showAirportFees && airportSelected) {
         const request = {
@@ -577,11 +588,11 @@ export default function CreateJobScreen() {
 
                     setCustomerSearchTerm(response.customer_name);
 
-                    /* const response1 = await httpService.get(`/customers/${response.customer_id}`);
+                    const response1 = await httpService.get(`/customers/${response.customer_id}`);
 
                     setIsRequestPriorityEnabled(
                         response1.settings.enable_request_priority
-                    ); */
+                    );
                 }
             }
         } catch (error) {
@@ -589,6 +600,20 @@ export default function CreateJobScreen() {
         }
     }
   };
+
+  const fetchCustomerDetails = async (customerId) => {
+    try {
+        const response = await httpService.get(`/customers/${customerId}/`);
+
+        return response;
+
+    } catch(error) {
+        console.error("Error fetching customer details:", error);
+    }
+
+    return null;
+  };
+
 
   const handleGoToNextStep = (currentStep) => {
     let selectedCustomer = customerSelected;
@@ -849,6 +874,16 @@ export default function CreateJobScreen() {
                                 onSearchTermChange={setCustomerSearchTerm}
                             />
                         )}
+
+                        {isRequestPriorityEnabled && (
+                            <PriorityRadioGroup
+                                requestPriorities={requestPriorities}
+                                selectedPriority={selectedPriority}
+                                onChange={setSelectedPriority}
+                            />
+                        )}
+
+
                         <ModalDropdown
                             label="Aircraft Type"
                             data={aircraftTypes}
