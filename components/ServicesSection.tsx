@@ -9,6 +9,7 @@ import {
   UIManager,
   Animated
 } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface ServiceItem {
@@ -34,12 +35,15 @@ const ServicesSection: React.FC<Props> = ({
   otherServices,
   onToggleService,
 }) => {
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const rotationMap = useRef<Record<string, Animated.Value>>({
+    const { width } = useWindowDimensions();
+    const [expandedSection, setExpandedSection] = useState<string | null>(null);
+    const rotationMap = useRef<Record<string, Animated.Value>>({
         interior: new Animated.Value(0),
         exterior: new Animated.Value(0),
         addons: new Animated.Value(0),
     }).current;
+
+    const cardWidth = width >= 600 ? '48%' : '100%';
 
   const toggleSection = (section: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -56,7 +60,11 @@ const ServicesSection: React.FC<Props> = ({
   const renderServiceCard = (item: ServiceItem, section: string) => (
     <TouchableOpacity
       key={item.id}
-      style={[styles.card, item.selected && styles.cardSelected]}
+      style={[
+        styles.card,
+        { width: cardWidth },
+        item.selected && styles.cardSelected
+      ]}
       onPress={() => onToggleService(item)}
     >
       <View style={styles.cardContent}>
