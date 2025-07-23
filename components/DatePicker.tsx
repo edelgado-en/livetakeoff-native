@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
   View,
-  Platform,
   Text,
   Pressable,
   StyleSheet,
   Switch,
+  Platform
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 
 type Props = {
@@ -28,35 +28,41 @@ const DatePicker: React.FC<Props> = ({
   onToggleOnSite = () => {},
 }) => {
   const [mode, setMode] = useState<'date' | 'time'>('date');
-  const [show, setShow] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [tempDate, setTempDate] = useState<Date | null>(null);
+
+  const defaultDate = value || new Date(Date.now() + 3600000); // now + 1 hour
 
   const openPicker = () => {
     if (!onSiteValue) {
       setMode('date');
-      setShow(true);
+      setTempDate(defaultDate);
+      setPickerVisible(true);
     }
   };
 
-  const handleChange = (event: any, selectedDate?: Date) => {
-    if (event.type === 'dismissed') {
-      setShow(false);
-      return;
+  const handleConfirm = (selected: Date) => {
+    if (mode === 'date') {
+      setTempDate(selected);
+      setMode('time');
+    } else if (tempDate) {
+      const updated = new Date(tempDate);
+      updated.setHours(selected.getHours());
+      updated.setMinutes(selected.getMinutes());
+      onChange(updated);
+      setPickerVisible(false);
+      setMode('date');
     }
+  };
 
-    if (selectedDate) {
-      if (mode === 'date') {
-        onChange(selectedDate);
-        setMode('time');
-        setShow(true);
-      } else {
-        const fullDate = new Date(value || new Date());
-        fullDate.setHours(selectedDate.getHours());
-        fullDate.setMinutes(selectedDate.getMinutes());
-        onChange(fullDate);
-        setShow(false);
-        setMode('date');
-      }
-    }
+  const handleCancel = () => {
+    setPickerVisible(false);
+    setMode('date');
+  };
+
+  const handleToggleOnSite = (val: boolean) => {
+    onToggleOnSite?.(val);
+    if (val) onChange(null);
   };
 
   const formatDateTime = (date?: Date | null) => {
@@ -71,19 +77,11 @@ const DatePicker: React.FC<Props> = ({
     });
   };
 
-  const handleToggleOnSite = (val: boolean) => {
-    onToggleOnSite?.(val);
-    if (val) {
-      onChange(null); // Clear value when toggled ON
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
 
       <View style={styles.row}>
-        {/* Date input with X icon inside */}
         <View style={styles.inputWrapper}>
           <Pressable
             onPress={openPicker}
@@ -106,38 +104,38 @@ const DatePicker: React.FC<Props> = ({
           )}
         </View>
 
-        {/* On Site Toggle to the right */}
         {showOnSiteToggle && (
           <View style={styles.toggleInline}>
             <Text style={styles.toggleLabel}>On site</Text>
-            <Switch 
-                value={onSiteValue}
-                onValueChange={handleToggleOnSite}
-                thumbColor={onSiteValue ? '#EF4444' : '#f4f3f4'} // red-500 when ON
-                trackColor={{ false: '#D1D5DB', true: '#FCA5A5' }} // gray-300 / red-300    
+            <Switch
+              value={onSiteValue}
+              onValueChange={handleToggleOnSite}
+              thumbColor={onSiteValue ? '#EF4444' : '#f4f3f4'}
+              trackColor={{ false: '#D1D5DB', true: '#FCA5A5' }}
             />
           </View>
         )}
       </View>
 
-      {show && !onSiteValue && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode={mode}
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleChange}
-          accentColor={Platform.OS === 'ios' ? '#EF4444' : undefined}
-        />
-      )}
+      <DateTimePickerModal
+  isVisible={pickerVisible}
+  mode={mode}
+  date={tempDate || new Date()}
+  is24Hour
+  onConfirm={handleConfirm}
+  onCancel={handleCancel}
+  display={Platform.OS === 'ios' ? 'default' : 'calendar'} // ✅ ensures readable text
+  confirmTextIOS="Confirm"
+  cancelTextIOS="Cancel"
+  pickerContainerStyleIOS={{ backgroundColor: '#fff', borderRadius: 16 }}
+  modalStyleIOS={{ justifyContent: 'flex-end', margin: 0 }}
+/>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 30,
-  },
+  container: { marginTop: 30 },
   label: {
     position: 'absolute',
     top: -10,
@@ -148,21 +146,15 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     zIndex: 1,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputWrapper: {
-    flex: 1,
-    position: 'relative',
-  },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  inputWrapper: { flex: 1, position: 'relative' },
   input: {
     height: 50,
     borderColor: '#D1D5DB',
     borderWidth: 1,
     borderRadius: 6,
     paddingLeft: 12,
-    paddingRight: 36, // leave space for the ❌ icon
+    paddingRight: 36,
     justifyContent: 'center',
     backgroundColor: 'white',
   },
