@@ -97,11 +97,16 @@ const DatePicker: React.FC<Props> = ({
             </Text>
           </Pressable>
 
+          
           {value && (
-            <Pressable onPress={() => onChange(null)} style={styles.clearIcon}>
-              <MaterialIcons name="close" size={20} color="#9CA3AF" />
+            <Pressable
+                onPress={() => onChange(null)}
+                style={styles.clearIcon}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // 🔧 expands tap area
+            >
+                <MaterialIcons name="close" size={20} color="#9CA3AF" />
             </Pressable>
-          )}
+            )}
         </View>
 
         {showOnSiteToggle && (
