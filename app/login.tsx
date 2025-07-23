@@ -10,6 +10,7 @@ import {
   ScrollView,
   Linking
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 
@@ -18,6 +19,7 @@ import { TextInput } from 'react-native-paper';
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +36,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
             <Image
                 source={require('../assets/logo_2618936_web.png')}
                 style={styles.logo}
@@ -76,7 +78,7 @@ export default function LoginScreen() {
         </ScrollView>
 
         {/* Footer Terms and Privacy */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
         <Text style={styles.footerText}>
           By logging in, you agree to our{' '}
           <Text
