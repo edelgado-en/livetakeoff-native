@@ -7,6 +7,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import httpService from '../../../../services/httpService';
 
+import JobCommentsPreview from '../../../../components/JobCommentsPreview';
+
+const comments = [
+  {
+    id: 1,
+    comment: 'This aircraft has completed 26 flight(s) since its last Exterior Detail. The schedule might change. Please track on FlightAware.',
+    created_by: 'Enrique Delgado',
+    created_on: 'Mar 28, 2024',
+  },
+  {
+    id: 2,
+    comment: 'Checked and confirmed the task completion.',
+    created_by: 'Jane Smith',
+    created_on: 'Apr 2, 2024',
+  },
+  {
+    id: 3,
+    comment: 'Waiting on parts to proceed.',
+    created_by: 'John Doe',
+    created_on: 'Apr 4, 2024',
+  },
+  {
+    id: 4,
+    comment: 'Issue resolved. Ready for review.',
+    created_by: 'Alex Johnson',
+    created_on: 'Apr 5, 2024',
+  },
+  {
+    id: 5,
+    comment: 'Will return tomorrow to finish the job.',
+    created_by: 'Maria Garcia',
+    created_on: 'Apr 6, 2024',
+  },
+];
+
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
@@ -101,6 +136,8 @@ const getStatusLabel = (status: string) => {
             </Text>
         </View>
 
+        <JobCommentsPreview comments={comments} totalComments={23} />
+
         {/* Cards */}
         {sections.map(({ title, routeSuffix, action }) => (
             <TouchableOpacity
@@ -118,7 +155,6 @@ const getStatusLabel = (status: string) => {
 }
 
 const sections = [
-  { title: 'Comments', routeSuffix: 'comments', action: 'See more' },
   { title: 'Job Info', routeSuffix: 'info', action: 'Edit' },
   { title: 'Services', routeSuffix: 'services', action: 'Edit' },
   { title: 'Pictures', routeSuffix: 'pictures', action: undefined },
@@ -170,20 +206,20 @@ const styles = StyleSheet.create({
   tailNumber: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: '#ef4444', // Tailwind's red-500
   },
   customerName: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
   },
   statusBadge: {
     backgroundColor: '#F3F4F6',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#6B7280',
     fontWeight: '500',
   },
