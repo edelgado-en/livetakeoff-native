@@ -230,151 +230,153 @@ const getStatusLabel = (status: string) => {
             data={jobs}
             keyExtractor={(job) => job.id.toString()}
             renderItem={({ item }) => (
-                <View style={styles.card}>
-                    <View style={{ flexDirection: 'row' }}>
-                        <Text style={[styles.cardTitle, {marginRight: 8}]}>{item.tailNumber}</Text>
-                        <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>{item.purchase_order}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <View style={styles.wrapper}>
-                            <View style={styles.imageContainer}>
-                                <Image
-                                source={{ uri: item.customer.logo }}
-                                style={styles.logo}
-                                resizeMode="cover"
-                                />
+                <TouchableOpacity onPress={() => router.push(`/job-details/${item.id}/`)}>
+                    <View style={styles.card}>
+                        <View style={{ flexDirection: 'row' }}>
+                            <Text style={[styles.cardTitle, {marginRight: 8}]}>{item.tailNumber}</Text>
+                            <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>{item.purchase_order}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <View style={styles.wrapper}>
+                                <View style={styles.imageContainer}>
+                                    <Image
+                                    source={{ uri: item.customer.logo }}
+                                    style={styles.logo}
+                                    resizeMode="cover"
+                                    />
+                                </View>
+                                <View style={styles.nameContainer}>
+                                    <Text style={styles.name}>{item.customer.name}</Text>
+                                </View>
                             </View>
-                            <View style={styles.nameContainer}>
-                                <Text style={styles.name}>{item.customer.name}</Text>
+                            <View>
+                                <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
+                                    {getStatusLabel(item.status)}
+                                </Text>
                             </View>
                         </View>
-                        <View>
-                            <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
-                                {getStatusLabel(item.status)}
-                            </Text>
-                        </View>
-                    </View>
 
-                    {item.comments_count > 0 && (
-                        <View style={styles.commentBadge}>
-                              <Text style={styles.commentBadgeText}>{item.comments_count}</Text>
+                        {item.comments_count > 0 && (
+                            <View style={styles.commentBadge}>
+                                <Text style={styles.commentBadgeText}>{item.comments_count}</Text>
+                            </View>
+                        )}
+                        
+                        <View style={{ marginTop: 2, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={styles.infoText}>{item.airport.initials}</Text>
+                            <Text style={styles.dot}> • </Text>
+                            <Text style={styles.infoText}>{item.fbo.name}</Text>
+                            <Text style={styles.dot}> • </Text>
+                            <Text style={styles.infoText}>{item.aircraftType.name}</Text>
                         </View>
-                    )}
-                    
-                    <View style={{ marginTop: 2, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.infoText}>{item.airport.initials}</Text>
-                        <Text style={styles.dot}> • </Text>
-                        <Text style={styles.infoText}>{item.fbo.name}</Text>
-                        <Text style={styles.dot}> • </Text>
-                        <Text style={styles.infoText}>{item.aircraftType.name}</Text>
-                    </View>
-                    <View style={styles.tagContainer}>
-                        {item.isDueToday && (
-                            <Text style={styles.dueBadge}>DUE TODAY</Text>
-                        )}
-                        {item.isOverdue && (
-                            <Text style={styles.dueBadge}>OVERDUE</Text>
-                        )}
+                        <View style={styles.tagContainer}>
+                            {item.isDueToday && (
+                                <Text style={styles.dueBadge}>DUE TODAY</Text>
+                            )}
+                            {item.isOverdue && (
+                                <Text style={styles.dueBadge}>OVERDUE</Text>
+                            )}
 
-                        {item.tags?.map((tag) => {
-                            const tagStyle = getTagStyle(tag.tag_color);
-                            return (
-                                <View
-                                    key={tag.id}
+                            {item.tags?.map((tag) => {
+                                const tagStyle = getTagStyle(tag.tag_color);
+                                return (
+                                    <View
+                                        key={tag.id}
+                                        style={[
+                                        styles.tag,
+                                        { borderColor: tagStyle.borderColor },
+                                        ]}
+                                    >
+                                        <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                        {tag.tag_short_name}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+
+                        {!currentUser.isCustomer && (
+                            <>
+                            <View style={styles.section}>
+                                <Text style={styles.label}>Arrival</Text>
+                                {item.on_site ? (
+                                    <View style={styles.pillRow}>
+                                    <View style={[styles.pill, styles.pillGreen]}>
+                                        <Text style={styles.pillText}>On Site</Text>
+                                    </View>
+                                    </View>
+                                ) : item.estimatedETA == null ? (
+                                    <View style={styles.pillRow}>
+                                    <View style={[styles.pill, styles.pillGray]}>
+                                        <Text style={styles.pillText}>TBD</Text>
+                                    </View>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
+                                )}
+                            </View>
+
+                            <View style={styles.section}>
+                                <Text style={styles.label}>Departure</Text>
+                                {item.estimatedETD == null ? (
+                                    <View style={styles.pillRow}>
+                                    <View style={[styles.pill, styles.pillGray]}>
+                                        <Text style={styles.pillText}>TBD</Text>
+                                    </View>
+                                    </View>
+                                ) : (
+                                    <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                                )}
+                            </View>    
+                            </>
+                        )}
+                        
+                        <View style={styles.section}>
+                            {item.status === 'C' || item.status === 'I' ? (
+                                <>
+                                <Text style={styles.label}>Completed on</Text>
+                                <Text style={styles.dateText}>{item.completion_date}</Text>
+                                </>
+                            ) : item.completeBy ? (
+                                <>
+                                <Text style={styles.label}>Complete Before</Text>
+                                <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
+                                </>
+                            ) : (
+                                <View style={styles.pillRow}>
+                                <View style={[styles.pill, styles.pillGray]}>
+                                    <Text style={styles.pillText}>TBD</Text>
+                                </View>
+                                </View>
+                            )}
+                        </View>
+
+                        {(currentUser.isAdmin ||
+                                    currentUser.isSuperUser ||
+                                    currentUser.isAccountManager ||
+                                    currentUser.isInternalCoordinator ||
+                                    currentUser.isMasterPM) && item.asignees?.length > 0 && (
+                            <View style={styles.assigneeContainer}>
+                                <View style={styles.avatarRow}>
+                                {item.asignees.map((asignee, index) => (
+                                    <Image
+                                    key={asignee.username}
+                                    source={{ uri: asignee.profile.avatar }}
                                     style={[
-                                    styles.tag,
-                                    { borderColor: tagStyle.borderColor },
+                                        styles.avatar,
+                                        item.asignees.length > 1 && { marginLeft: index === 0 ? 0 : -10 },
                                     ]}
-                                >
-                                    <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                                    {tag.tag_short_name}
-                                    </Text>
+                                    />
+                                ))}
+                                {item.asignees.length === 1 && (
+                                    <Text style={styles.username}>{item.asignees[0].username}</Text>
+                                )}
                                 </View>
-                            );
-                        })}
-                    </View>
-
-                    {!currentUser.isCustomer && (
-                        <>
-                        <View style={styles.section}>
-                            <Text style={styles.label}>Arrival</Text>
-                            {item.on_site ? (
-                                <View style={styles.pillRow}>
-                                <View style={[styles.pill, styles.pillGreen]}>
-                                    <Text style={styles.pillText}>On Site</Text>
-                                </View>
-                                </View>
-                            ) : item.estimatedETA == null ? (
-                                <View style={styles.pillRow}>
-                                <View style={[styles.pill, styles.pillGray]}>
-                                    <Text style={styles.pillText}>TBD</Text>
-                                </View>
-                                </View>
-                            ) : (
-                                <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
-                            )}
-                        </View>
-
-                        <View style={styles.section}>
-                            <Text style={styles.label}>Departure</Text>
-                            {item.estimatedETD == null ? (
-                                <View style={styles.pillRow}>
-                                <View style={[styles.pill, styles.pillGray]}>
-                                    <Text style={styles.pillText}>TBD</Text>
-                                </View>
-                                </View>
-                            ) : (
-                                <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
-                            )}
-                        </View>    
-                        </>
-                    )}
-                    
-                    <View style={styles.section}>
-                        {item.status === 'C' || item.status === 'I' ? (
-                            <>
-                            <Text style={styles.label}>Completed on</Text>
-                            <Text style={styles.dateText}>{item.completion_date}</Text>
-                            </>
-                        ) : item.completeBy ? (
-                            <>
-                            <Text style={styles.label}>Complete Before</Text>
-                            <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
-                            </>
-                        ) : (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGray]}>
-                                <Text style={styles.pillText}>TBD</Text>
-                            </View>
                             </View>
                         )}
+
                     </View>
-
-                    {(currentUser.isAdmin ||
-                                currentUser.isSuperUser ||
-                                currentUser.isAccountManager ||
-                                currentUser.isInternalCoordinator ||
-                                currentUser.isMasterPM) && item.asignees?.length > 0 && (
-                        <View style={styles.assigneeContainer}>
-                            <View style={styles.avatarRow}>
-                            {item.asignees.map((asignee, index) => (
-                                <Image
-                                key={asignee.username}
-                                source={{ uri: asignee.profile.avatar }}
-                                style={[
-                                    styles.avatar,
-                                    item.asignees.length > 1 && { marginLeft: index === 0 ? 0 : -10 },
-                                ]}
-                                />
-                            ))}
-                            {item.asignees.length === 1 && (
-                                <Text style={styles.username}>{item.asignees[0].username}</Text>
-                            )}
-                            </View>
-                        </View>
-                    )}
-
-                </View>
+                </TouchableOpacity>
             )}
             refreshControl={
                 <RefreshControl refreshing={loading} onRefresh={onRefresh} />
