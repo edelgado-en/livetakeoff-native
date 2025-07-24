@@ -14,6 +14,7 @@ import {
   UIManager,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
 import { TextInput, RadioButton, ActivityIndicator, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
@@ -24,6 +25,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function SignupScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -146,7 +148,7 @@ export default function SignupScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView  contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}>
             <Image
                 source={require('../assets/logo_2618936_web.png')}
                 style={styles.logo}
