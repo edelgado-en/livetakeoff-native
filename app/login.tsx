@@ -75,6 +75,17 @@ export default function LoginScreen() {
                     <Text style={styles.buttonText}>Login</Text>
                 </TouchableOpacity>
             </View>  
+            <View style={{ marginTop: 24, alignItems: 'center' }}>
+                <Text style={{ fontSize: 16, color: '#6B7280' }}>
+                    Don't have an account?
+                    <Text
+                    style={{ color: '#2563EB', fontWeight: '500', marginLeft: 4 }}
+                    onPress={() => router.replace('/signup')}
+                    >
+                    {' '}Sign up
+                    </Text>
+                </Text>
+            </View>
         </ScrollView>
 
         {/* Footer Terms and Privacy */}

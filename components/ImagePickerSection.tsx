@@ -47,7 +47,7 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
 
   return (
     <View style={{ marginTop: 24 }}>
-      <Text style={styles.title}>Photos</Text>
+      <Text style={styles.title}>Pictures</Text>
       <Button
         mode="outlined"
         icon="image"
