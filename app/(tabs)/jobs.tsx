@@ -294,44 +294,53 @@ const getStatusLabel = (status: string) => {
                         })}
                     </View>
 
-                    <View style={styles.section}>
-                    <Text style={styles.label}>Arrival</Text>
-                        {item.on_site ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGreen]}>
-                                <Text style={styles.pillText}>On Site</Text>
-                            </View>
-                            </View>
-                        ) : item.estimatedETA == null ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGray]}>
-                                <Text style={styles.pillText}>TBD</Text>
-                            </View>
-                            </View>
-                        ) : (
-                            <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
-                        )}
-                    </View>
+                    {!currentUser.isCustomer && (
+                        <>
+                        <View style={styles.section}>
+                            <Text style={styles.label}>Arrival</Text>
+                            {item.on_site ? (
+                                <View style={styles.pillRow}>
+                                <View style={[styles.pill, styles.pillGreen]}>
+                                    <Text style={styles.pillText}>On Site</Text>
+                                </View>
+                                </View>
+                            ) : item.estimatedETA == null ? (
+                                <View style={styles.pillRow}>
+                                <View style={[styles.pill, styles.pillGray]}>
+                                    <Text style={styles.pillText}>TBD</Text>
+                                </View>
+                                </View>
+                            ) : (
+                                <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
+                            )}
+                        </View>
 
+                        <View style={styles.section}>
+                            <Text style={styles.label}>Departure</Text>
+                            {item.estimatedETD == null ? (
+                                <View style={styles.pillRow}>
+                                <View style={[styles.pill, styles.pillGray]}>
+                                    <Text style={styles.pillText}>TBD</Text>
+                                </View>
+                                </View>
+                            ) : (
+                                <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                            )}
+                        </View>    
+                        </>
+                    )}
+                    
                     <View style={styles.section}>
-                        <Text style={styles.label}>Departure</Text>
-                        {item.estimatedETD == null ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGray]}>
-                                <Text style={styles.pillText}>TBD</Text>
-                            </View>
-                            </View>
-                        ) : (
-                            <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
-                        )}
-                    </View>
-
-                    <View style={styles.section}>
-                        <Text style={styles.label}>Completion</Text>
                         {item.status === 'C' || item.status === 'I' ? (
+                            <>
+                            <Text style={styles.label}>Completed on</Text>
                             <Text style={styles.dateText}>{item.completion_date}</Text>
+                            </>
                         ) : item.completeBy ? (
+                            <>
+                            <Text style={styles.label}>Complete Before</Text>
                             <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
+                            </>
                         ) : (
                             <View style={styles.pillRow}>
                             <View style={[styles.pill, styles.pillGray]}>
