@@ -163,9 +163,9 @@ const getStatusLabel = (status: string) => {
             keyExtractor={(job) => job.id.toString()}
             renderItem={({ item }) => (
                 <View style={styles.card}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={styles.cardTitle}>{item.tailNumber}</Text>
-                        <Text>{item.purchase_order}</Text>
+                    <View style={{ flexDirection: 'row' }}>
+                        <Text style={[styles.cardTitle, {marginRight: 8}]}>{item.tailNumber}</Text>
+                        <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>{item.purchase_order}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <View style={styles.wrapper}>
@@ -186,6 +186,12 @@ const getStatusLabel = (status: string) => {
                             </Text>
                         </View>
                     </View>
+
+                    {item.comments_count > 0 && (
+                        <View style={styles.commentBadge}>
+                              <Text style={styles.commentBadgeText}>{item.comments_count}</Text>
+                        </View>
+                    )}
                     
                     <View style={{ marginTop: 2, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.infoText}>{item.airport.initials}</Text>
@@ -325,6 +331,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2, // for Android shadow
+    position: 'relative',
   },
   cardTitle: {
     fontSize: 18,
@@ -532,4 +539,22 @@ pillGreen: {
 pillGray: {
   backgroundColor: '#9CA3AF', // Tailwind gray-400
 },
+  commentBadge: {
+  position: 'absolute',
+  top: 12,
+  right: 12,
+  backgroundColor: '#EF4444', // Tailwind red-500
+  width: 28,
+  height: 28,
+  borderRadius: 14, // half of width/height
+  justifyContent: 'center',
+  alignItems: 'center',
+  transform: [{ scale: 0.9 }],
+  zIndex: 10,
+},
+  commentBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
