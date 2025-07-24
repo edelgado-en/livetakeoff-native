@@ -17,10 +17,15 @@ export default function JobsScreen() {
   const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
   const router = useRouter();
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [totalJobs, setTotalJobs] = useState(0);
+  const [dueToday, setDueToday] = useState(false);
+  const [dueTodayCount, setDueTodayCount] = useState(0);
+
+  const [overdue, setOverdue] = useState(false);
+  const [overdueCount, setOverdueCount] = useState(0);
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -113,9 +118,72 @@ const getStatusLabel = (status: string) => {
             tags: [],
             airport_type: "All",
         });
+
+        const jobs: any[] = [];
+
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const day = today.getDate();
+      const todayFormattedDate = `${month.toString().padStart(2, "0")}/${day
+        .toString()
+        .padStart(2, "0")}`;
+
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let totalDueToday = 0;
+      let totalOverdue = 0;
+
+      response.results.forEach((job: any) => {
+        let uniqueUserIds = [];
+        const uniqueUsers = [];
+
+        job.job_service_assignments?.forEach((assignment) => {
+          const userId = assignment.project_manager?.id;
+          if (userId != null) {
+            if (!uniqueUserIds.includes(userId)) {
+              uniqueUserIds.push(userId);
+              uniqueUsers.push(assignment.project_manager);
+            }
+          }
+        });
+
+        job.job_retainer_service_assignments?.forEach((assignment) => {
+          const userId = assignment.project_manager?.id;
+          if (userId != null) {
+            if (!uniqueUserIds.includes(userId)) {
+              uniqueUserIds.push(userId);
+              uniqueUsers.push(assignment.project_manager);
+            }
+          }
+        });
+
+        job.asignees = uniqueUsers;
+
+        if (job.completeBy && job.completeBy.includes(todayFormattedDate)) {
+          job.isDueToday = true;
+          totalDueToday++;
+        }
+
+        if (job.completeByFullDate) {
+          const completeByDate = new Date(job.completeByFullDate);
+          if (completeByDate < yesterday) {
+            job.isOverdue = true;
+            totalOverdue++;
+          }
+        }
+
+        if (!dueToday && !overdue) {
+          jobs.push(job);
+        } else if (dueToday && job.isDueToday) {
+          jobs.push(job);
+        } else if (overdue && job.isOverdue) {
+          jobs.push(job);
+        }
+      });
+
         
-        setJobs(response.results || []);
-        
+        setJobs(jobs || []);
         setTotalJobs(response.count || 0);
       } catch (e) {
         console.error(e);
@@ -201,6 +269,13 @@ const getStatusLabel = (status: string) => {
                         <Text style={styles.infoText}>{item.aircraftType.name}</Text>
                     </View>
                     <View style={styles.tagContainer}>
+                        {item.isDueToday && (
+                            <Text style={styles.dueBadge}>DUE TODAY</Text>
+                        )}
+                        {item.isOverdue && (
+                            <Text style={styles.dueBadge}>OVERDUE</Text>
+                        )}
+
                         {item.tags?.map((tag) => {
                             const tagStyle = getTagStyle(tag.tag_color);
                             return (
@@ -372,7 +447,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingVertical: 4,
     paddingHorizontal: 8,
-    marginRight: 8,
+    marginRight: 4,
     marginBottom: 4,
   },
   tagText: {
@@ -557,4 +632,15 @@ pillGray: {
     fontSize: 14,
     fontWeight: '500',
   },
+  dueBadge: {
+  alignSelf: 'flex-start',
+  fontSize: 12,
+  paddingVertical: 4,
+  paddingHorizontal: 8,
+  color: '#EF4444', // Tailwind red-500
+  borderWidth: 1,
+  borderColor: '#EF4444',
+  borderRadius: 6,
+  fontWeight: '600',
+},
 });
