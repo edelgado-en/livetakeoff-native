@@ -98,7 +98,6 @@ const getStatusLabel = (status: string) => {
     const fetchJob = async () => {
       try {
         const response = await httpService.get(`/jobs/${jobId}/`);
-        console.log('Fetched job:', response);
         setJob(response);
       } catch (err) {
         console.error('Failed to fetch job', err);

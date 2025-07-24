@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import Modal from 'react-native-modal';
+import { TextInput } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
@@ -24,7 +26,10 @@ type Props = {
 };
 
 const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
-  const previewComments = comments.slice(0, 5);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [newComment, setNewComment] = useState('');
+
+    const previewComments = comments.slice(0, 5);
 
   const renderItem = ({ item }: { item: Comment }) => (
     <View style={styles.card}>
@@ -40,9 +45,27 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
   return (
     <View style={{ marginTop: 4 }}>
-      <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 8 }}>
-        Comments 
-      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <Text style={{ fontSize: 18, fontWeight: '600' }}>Comments</Text>
+        <TouchableOpacity
+            onPress={() => {
+                setNewComment('');
+                setModalVisible(true);
+            }}
+            style={{
+                backgroundColor: '#ffffff',
+                borderWidth: 1,
+                borderColor: '#D1D5DB', // Tailwind gray-300
+                borderRadius: 8,
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+            }}
+        >
+            <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500' }}>
+                Add comment
+            </Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={previewComments}
         keyExtractor={(item) => item.id.toString()}
@@ -52,11 +75,50 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         contentContainerStyle={{ paddingRight: 0 }}
         ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
       />
+      
+      {totalComments > 5 && (
+        <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>See all {totalComments} comments</Text>
+            <Feather name="chevron-right" size={18} color="#3B82F6" />
+        </TouchableOpacity>
+        )}
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>See all {totalComments} comments</Text>
-        <Feather name="chevron-right" size={18} color="#3B82F6" />
-      </TouchableOpacity>
+       <Modal
+        isVisible={isModalVisible}
+        onBackdropPress={() => setModalVisible(false)}
+        onBackButtonPress={() => setModalVisible(false)}
+        useNativeDriver
+        hideModalContentWhileAnimating
+        >
+        <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Add Comment</Text>
+            <TextInput
+                label="Write your comment..."
+                value={newComment}
+                onChangeText={setNewComment}
+                mode="outlined"
+                multiline
+                numberOfLines={5}
+                style={styles.textarea}
+            />
+            <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                    <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.postButton}
+                    onPress={() => {
+                    console.log('Post comment:', newComment);
+                    setNewComment('');
+                    setModalVisible(false);
+                    }}
+                >
+                    <Text style={styles.postText}>Post</Text>
+                </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+
     </View>
   );
 };
@@ -105,6 +167,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3B82F6',
   },
+  modalContainer: {
+  backgroundColor: 'white',
+  borderRadius: 12,
+  padding: 20,
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  marginBottom: 12,
+  color: '#111827',
+},
+textarea: {
+  marginBottom: 20,
+},
+modalActions: {
+  flexDirection: 'row',
+  justifyContent: 'flex-end',
+},
+cancelButton: {
+  marginRight: 16,
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+},
+cancelText: {
+  color: '#6B7280',
+  fontSize: 14,
+},
+postButton: {
+  backgroundColor: '#3B82F6',
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  borderRadius: 6,
+},
+postText: {
+  color: 'white',
+  fontSize: 14,
+  fontWeight: '600',
+},
 });
 
 export default JobCommentsPreview;
