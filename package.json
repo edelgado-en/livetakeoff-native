@@ -12,6 +12,7 @@
     "@expo-google-fonts/inter": "^0.4.1",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-community/datetimepicker": "^8.4.2",
+    "date-fns": "^4.1.0",
     "eas-cli": "^16.17.0",
     "expo": "~53.0.17",
     "expo-constants": "^17.1.7",

@@ -5,19 +5,29 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  Image,
   Dimensions,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { TextInput } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
+import { formatDistanceToNow } from 'date-fns';
 
 const { width } = Dimensions.get('window');
 
 type Comment = {
   id: number;
   comment: string;
-  created_by: string;
-  created_on: string;
+  created: string;
+  author: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    profile: {
+      avatar: string;
+    };
+  };
 };
 
 type Props = {
@@ -28,20 +38,33 @@ type Props = {
 const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const previewComments = comments.slice(0, 5);
 
-    const previewComments = comments.slice(0, 5);
+  const renderItem = ({ item }: { item: Comment }) => {
+    const { comment, created, author } = item;
+    const fullName = `${author?.first_name} ${author?.last_name}`;
+    const avatar = author?.profile?.avatar;
+    const timeAgo = formatDistanceToNow(new Date(created), { addSuffix: true });
 
-  const renderItem = ({ item }: { item: Comment }) => (
-    <View style={styles.card}>
-      <Text style={styles.commentText} numberOfLines={5}>
-        {item.comment}
-      </Text>
-      <View style={styles.footer}>
-        <Text style={styles.author}>{item.created_by}</Text>
-        <Text style={styles.date}>{item.created_on}</Text>
-      </View>
-    </View>
-  );
+    return (
+        <View style={styles.card}>
+        <Text style={styles.commentText} numberOfLines={5}>
+            {comment}
+        </Text>
+
+        <View style={styles.footerRow}>
+            <Image
+            source={{ uri: avatar }}
+            style={styles.avatar}
+            />
+            <View style={{ marginLeft: 10 }}>
+            <Text style={styles.author}>{fullName}</Text>
+            <Text style={styles.date}>{timeAgo}</Text>
+            </View>
+        </View>
+        </View>
+    );
+    };
 
   return (
     <View style={{ marginTop: 4 }}>
@@ -74,13 +97,24 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 0 }}
         ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+        ListEmptyComponent={() => (
+            <View style={styles.emptyWrapper}>
+                <View style={styles.emptyContainer}>
+                    <Feather name="message-square" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
+                    <Text style={styles.emptyTitle}>No comments found.</Text>
+                    <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
+                </View>
+            </View>
+        )}
       />
       
-      {totalComments > 5 && (
+      {totalComments > 5 ? (
         <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>See all {totalComments} comments</Text>
             <Feather name="chevron-right" size={18} color="#3B82F6" />
         </TouchableOpacity>
+        ) : (
+        <View style={{ paddingVertical: 20 }} />
         )}
 
        <Modal
@@ -204,6 +238,41 @@ postText: {
   color: 'white',
   fontSize: 14,
   fontWeight: '600',
+},
+emptyWrapper: {
+    width: width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+emptyContainer: {
+  paddingVertical: 10,
+  marginBottom:40,
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+},
+emptyTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: '#4B5563', // gray-600
+},
+emptySubtitle: {
+  marginTop: 4,
+  fontSize: 14,
+  color: '#6B7280', // gray-400
+  textAlign: 'center',
+},
+footerRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 12,
+},
+avatar: {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: '#E5E7EB',
 },
 });
 

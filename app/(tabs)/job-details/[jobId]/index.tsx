@@ -9,45 +9,14 @@ import httpService from '../../../../services/httpService';
 
 import JobCommentsPreview from '../../../../components/JobCommentsPreview';
 
-const comments = [
-  {
-    id: 1,
-    comment: 'This aircraft has completed 26 flight(s) since its last Exterior Detail. The schedule might change. Please track on FlightAware.',
-    created_by: 'Enrique Delgado',
-    created_on: 'Mar 28, 2024',
-  },
-  {
-    id: 2,
-    comment: 'Checked and confirmed the task completion.',
-    created_by: 'Jane Smith',
-    created_on: 'Apr 2, 2024',
-  },
-  {
-    id: 3,
-    comment: 'Waiting on parts to proceed.',
-    created_by: 'John Doe',
-    created_on: 'Apr 4, 2024',
-  },
-  {
-    id: 4,
-    comment: 'Issue resolved. Ready for review.',
-    created_by: 'Alex Johnson',
-    created_on: 'Apr 5, 2024',
-  },
-  {
-    id: 5,
-    comment: 'Will return tomorrow to finish the job.',
-    created_by: 'Maria Garcia',
-    created_on: 'Apr 6, 2024',
-  },
-];
-
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
 
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState([])
+  const [totalComments, setTotalComments] = useState(0);
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -109,6 +78,24 @@ const getStatusLabel = (status: string) => {
     fetchJob();
   }, [jobId]);
 
+  useEffect(() => {
+    if (!jobId) return;
+    fetchComments();
+
+  }, [jobId])
+
+  const fetchComments = async () => {
+    try {
+        const response = await httpService.get(`/job-comments/${jobId}/`)
+
+        setComments(response.results || []);
+        setTotalComments(response.count || 0);
+
+    } catch (err) {
+        console.error('Failed to fetch comments', err);
+    }
+  }
+
   if (loading || !job) {
     return <Text style={styles.loading}>Loading job...</Text>;
   }
@@ -135,7 +122,7 @@ const getStatusLabel = (status: string) => {
             </Text>
         </View>
 
-        <JobCommentsPreview comments={comments} totalComments={23} />
+        <JobCommentsPreview comments={comments} totalComments={totalComments} />
 
         {/* Cards */}
         {sections.map(({ title, routeSuffix, action }) => (
