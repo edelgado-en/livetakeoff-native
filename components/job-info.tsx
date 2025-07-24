@@ -7,17 +7,34 @@ const data = [
   { label: 'Departure', value: '07/25/25 17:00 LT' },
 ];
 
-export default function InfoTable() {
-  return (
+export default function InfoTable({ job }: any) {
+    return (
     <View style={styles.container}>
-      {data.map((item) => (
-        <View key={item.label} style={styles.row}>
-          <Text style={styles.label}>{item.label}</Text>
+        <View  style={styles.row}>
+          <Text style={styles.label}>Airport</Text>
           <View style={styles.valueContainer}>
-            <Text style={styles.value}>{item.value}</Text>
+            <Text style={styles.value}>{job.airport?.name}</Text>
           </View>
         </View>
-      ))}
+        <View  style={styles.row}>
+          <Text style={styles.label}>FBO</Text>
+          <View style={styles.valueContainer}>
+            <Text style={styles.value}>{job.fbo?.name}</Text>
+          </View>
+        </View>
+        <View  style={styles.row}>
+          <Text style={styles.label}>Arrival</Text>
+          <View style={styles.valueContainer}>
+            <Text style={styles.value}>{job.arrival_formatted_date}</Text>
+          </View>
+        </View>
+        <View  style={styles.row}>
+          <Text style={styles.label}>Departure</Text>
+          <View style={styles.valueContainer}>
+            <Text style={styles.value}>{job.departure_formatted_date}</Text>
+            <Text style={{ marginTop: 15, color: '#3B82F6', fontWeight: 600 }}>Show more</Text>
+          </View>
+        </View>
     </View>
   );
 }

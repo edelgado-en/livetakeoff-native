@@ -272,6 +272,7 @@ const getStatusLabel = (status: string) => {
                             <Text style={styles.dot}> • </Text>
                             <Text style={styles.infoText}>{item.aircraftType.name}</Text>
                         </View>
+                        
                         <View style={styles.tagContainer}>
                             {item.isDueToday && (
                                 <Text style={styles.dueBadge}>DUE TODAY</Text>

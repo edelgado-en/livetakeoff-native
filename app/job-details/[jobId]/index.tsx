@@ -1,18 +1,21 @@
 // app/(tabs)/job-details/[jobId]/index.tsx
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import httpService from '../../../services/httpService';
 
 import JobCommentsPreview from '../../../components/JobCommentsPreview';
-import InfoTable from '../../job-info';
+import InfoTable from '../../../components/job-info';
+
+import { AuthContext } from '../../../providers/AuthProvider';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
+  const { currentUser } = useContext(AuthContext);
 
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +71,7 @@ const getStatusLabel = (status: string) => {
     const fetchJob = async () => {
       try {
         const response = await httpService.get(`/jobs/${jobId}/`);
+        console.log('Job Details:', response);
         setJob(response);
       } catch (err) {
         console.error('Failed to fetch job', err);
@@ -107,21 +111,42 @@ const getStatusLabel = (status: string) => {
         {/* Header Row */}
         <View style={styles.header}>
             <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+                style={styles.backButton}
+                onPress={() => router.back()}
             >
-            <Ionicons name="arrow-back" size={20} color="#4B5563" />
+                <Ionicons name="arrow-back" size={20} color="#4B5563" />
             </TouchableOpacity>
 
             <View style={styles.jobTitleContainer}>
-            <Text style={styles.tailNumber}>{job.tailNumber}</Text>
-            <Text style={styles.customerName}>{job.customer.name}</Text>
+                <Text style={styles.tailNumber}>{job.tailNumber}</Text>
+                <Text style={styles.customerName}>{job.customer.name}</Text>
             </View>
 
             <Text style={[styles.statusPill, getStatusStyle(job.status)]}>
                 {getStatusLabel(job.status)}
             </Text>
         </View>
+
+        {!currentUser.isCustomer && (
+            <View style={styles.tagContainer}>
+                {job.tags?.map((tag) => {
+                    const tagStyle = getTagStyle(tag.tag_color);
+                    return (
+                        <View
+                            key={tag.id}
+                            style={[
+                            styles.tag,
+                            { borderColor: tagStyle.borderColor },
+                            ]}
+                        >
+                            <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                            {tag.tag_short_name}
+                            </Text>
+                        </View>
+                    );
+                })}
+            </View>
+        )}
 
         <JobCommentsPreview comments={comments} totalComments={totalComments} />
 
@@ -134,7 +159,7 @@ const getStatusLabel = (status: string) => {
                 <Text style={styles.cardTitle}>Job Info</Text>
                 <Text >{job.purchase_order}</Text>
             </View>
-            <InfoTable />
+            <InfoTable job={job} />
 
         </View>
 
@@ -171,12 +196,23 @@ const sections = [
   { title: 'Activity', routeSuffix: 'activity', action: undefined },
 ];
 
-const infoData = [
-  { label: 'Airport', value: 'KTYR/TYR Tyler Pounds Regional Airport' },
-  { label: 'FBO', value: 'Jet Center of Tyler TYR' },
-  { label: 'Arrival', value: '07/24/25 15:30 LT' },
-  { label: 'Departure', value: '07/25/25 17:00 LT' },
-];
+  const getTagStyle = (color: string) => {
+    const colorStyles = {
+      red: { borderColor: '#ef4444', color: '#ef4444' },
+      orange: { borderColor: '#f97316', color: '#f97316' },
+      amber: { borderColor: '#f59e0b', color: '#f59e0b' },
+      indigo: { borderColor: '#6366f1', color: '#6366f1' },
+      violet: { borderColor: '#8b5cf6', color: '#8b5cf6' },
+      fuchsia: { borderColor: '#d946ef', color: '#d946ef' },
+      pink: { borderColor: '#ec4899', color: '#ec4899' },
+      slate: { borderColor: '#64748b', color: '#64748b' },
+      lime: { borderColor: '#84cc16', color: '#84cc16' },
+      emerald: { borderColor: '#10b981', color: '#10b981' },
+      cyan: { borderColor: '#06b6d4', color: '#06b6d4' },
+      blue: { borderColor: '#3b82f6', color: '#3b82f6' },
+    };
+    return colorStyles[color] || { borderColor: '#ccc', color: '#fff' };
+  };
 
 const styles = StyleSheet.create({
     safe: {
@@ -195,6 +231,25 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     paddingBottom: 40,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: 8,
+    marginBottom: 8,
+  },
+  tag: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginRight: 4,
+    marginBottom: 4,
+  },
+  tagText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   loading: {
     marginTop: 100,

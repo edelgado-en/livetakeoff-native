@@ -100,7 +100,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         ListEmptyComponent={() => (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>
-                    <Feather name="message-square" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
+                    {/* <Feather name="message-square" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} /> */}
                     <Text style={styles.emptyTitle}>No comments found.</Text>
                     <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
                 </View>
@@ -119,6 +119,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
        <Modal
         isVisible={isModalVisible}
+         backdropOpacity={0.5}
         onBackdropPress={() => setModalVisible(false)}
         onBackButtonPress={() => setModalVisible(false)}
         useNativeDriver
@@ -243,7 +244,6 @@ emptyWrapper: {
     width: width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
   },
 emptyContainer: {
   paddingVertical: 10,
