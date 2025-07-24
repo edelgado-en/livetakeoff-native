@@ -1,7 +1,7 @@
 // app/(tabs)/job-details/[jobId]/index.tsx
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ import httpService from '../../../services/httpService';
 
 import JobCommentsPreview from '../../../components/JobCommentsPreview';
 import InfoTable from '../../../components/job-info';
+import ImageGallery from '../../../components/ImageGallery';
 
 import { AuthContext } from '../../../providers/AuthProvider';
 
@@ -21,6 +22,8 @@ export default function JobDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState([])
   const [totalComments, setTotalComments] = useState(0);
+
+  const [photos, setPhotos] = useState([]);
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -71,7 +74,6 @@ const getStatusLabel = (status: string) => {
     const fetchJob = async () => {
       try {
         const response = await httpService.get(`/jobs/${jobId}/`);
-        console.log('Job Details:', response);
         setJob(response);
       } catch (err) {
         console.error('Failed to fetch job', err);
@@ -89,6 +91,20 @@ const getStatusLabel = (status: string) => {
 
   }, [jobId])
 
+  useEffect(() => {
+    if (!jobId) return;
+    fetchPhotos();
+
+  }, [jobId])
+
+  const imageUrls: string[] = [
+  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-FE0B8961-CF6C-43BF-9127-9958BF0BF32B_igoxfz',
+  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-C2E5399E-2844-4135-93E2-766F9970C8D2_zweliv',
+  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-D4DC4411-FB4A-4B76-A4F3-9608D3E27C34_yjtf2d',
+];
+
+const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [imageUrls]);
+
   const fetchComments = async () => {
     try {
         const response = await httpService.get(`/job-comments/${jobId}/`)
@@ -98,6 +114,17 @@ const getStatusLabel = (status: string) => {
 
     } catch (err) {
         console.error('Failed to fetch comments', err);
+    }
+  }
+
+  const fetchPhotos = async () => {
+    try {
+      const response = await httpService.get(`/job-photos/${jobId}/`);
+      console.log('Fetched photos:', response);
+      // Handle photos if needed
+      setPhotos(response.results || []);
+    } catch (err) {
+      console.error('Failed to fetch photos', err);
     }
   }
 
@@ -174,13 +201,16 @@ const getStatusLabel = (status: string) => {
         </TouchableOpacity>
 
         {/* Pictures */}
-        <TouchableOpacity
+        <View
             style={styles.card}
         >
-            <Text style={styles.cardTitle}>Pictures</Text>
-            {/* <Text style={styles.cardAction}>{action}</Text> */}
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                <Text style={styles.cardTitle}>Pictures</Text>
+            </View>
 
-        </TouchableOpacity>
+            <ImageGallery />
+
+        </View>
         
         </ScrollView>
     </SafeAreaView>
