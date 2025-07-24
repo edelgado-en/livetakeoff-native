@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import httpService from '../../../../services/httpService';
+import httpService from '../../../services/httpService';
 
-import JobCommentsPreview from '../../../../components/JobCommentsPreview';
+import JobCommentsPreview from '../../../components/JobCommentsPreview';
+import InfoTable from '../../job-info';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -124,29 +125,57 @@ const getStatusLabel = (status: string) => {
 
         <JobCommentsPreview comments={comments} totalComments={totalComments} />
 
-        {/* Cards */}
-        {sections.map(({ title, routeSuffix, action }) => (
-            <TouchableOpacity
-            key={title}
+        {/* Job Info */}
+        <View
             style={styles.card}
-            onPress={() => router.push(`/job-details/${jobId}/${routeSuffix}`)}
-            >
-            <Text style={styles.cardTitle}>{title}</Text>
-            {action && <Text style={styles.cardAction}>{action}</Text>}
-            </TouchableOpacity>
-        ))}
+            /* onPress={() => router.push(`/job-details/${jobId}/${routeSuffix}`)} */
+        >
+            <View style={{flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={styles.cardTitle}>Job Info</Text>
+                <Text >{job.purchase_order}</Text>
+            </View>
+            <InfoTable />
+
+        </View>
+
+        {/* Services */}
+        <TouchableOpacity
+            style={styles.card}
+            /* onPress={() => router.push(`/job-details/${jobId}/${routeSuffix}`)} */
+        >
+            <Text style={styles.cardTitle}>Services</Text>
+            {/* <Text style={styles.cardAction}>{action}</Text> */}
+
+        </TouchableOpacity>
+
+        {/* Pictures */}
+        <TouchableOpacity
+            style={styles.card}
+        >
+            <Text style={styles.cardTitle}>Pictures</Text>
+            {/* <Text style={styles.cardAction}>{action}</Text> */}
+
+        </TouchableOpacity>
+        
         </ScrollView>
     </SafeAreaView>
   );
 }
 
 const sections = [
-  { title: 'Job Info', routeSuffix: 'info', action: 'Edit' },
-  { title: 'Services', routeSuffix: 'services', action: 'Edit' },
+  { title: 'Job Info', routeSuffix: 'info', action: 'See more' },
+  { title: 'Services', routeSuffix: 'services', action: undefined },
   { title: 'Pictures', routeSuffix: 'pictures', action: undefined },
-  { title: 'Price Breakdown', routeSuffix: 'price', action: 'Edit' },
+  { title: 'Price Breakdown', routeSuffix: 'price', action: undefined },
   { title: 'Attachments', routeSuffix: 'attachments', action: undefined },
-  { title: 'Activity', routeSuffix: 'activity', action: 'See more' },
+  { title: 'Activity', routeSuffix: 'activity', action: undefined },
+];
+
+const infoData = [
+  { label: 'Airport', value: 'KTYR/TYR Tyler Pounds Regional Airport' },
+  { label: 'FBO', value: 'Jet Center of Tyler TYR' },
+  { label: 'Arrival', value: '07/24/25 15:30 LT' },
+  { label: 'Departure', value: '07/25/25 17:00 LT' },
 ];
 
 const styles = StyleSheet.create({
@@ -216,9 +245,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
+  
   cardTitle: {
     fontSize: 16,
     fontWeight: '500',
@@ -228,5 +256,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3B82F6',
     fontWeight: '500',
+  },
+  infoContainer: {
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
+    padding: 16,
+    margin: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  label: {
+    width: 100,
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#374151', // Tailwind gray-700
+  },
+  value: {
+    flex: 1,
+    fontSize: 14,
+    color: '#4B5563', // Tailwind gray-600
   },
 });

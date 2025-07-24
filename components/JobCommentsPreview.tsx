@@ -114,7 +114,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
             <Feather name="chevron-right" size={18} color="#3B82F6" />
         </TouchableOpacity>
         ) : (
-        <View style={{ paddingVertical: 20 }} />
+        <View style={{ paddingVertical: 10 }} />
         )}
 
        <Modal
