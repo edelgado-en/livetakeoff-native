@@ -1,5 +1,5 @@
 // app/(tabs)/job-details/[jobId]/index.tsx
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,9 @@ import InfoTable from '../../../components/job-info';
 import ImageGallery from '../../../components/ImageGallery';
 
 import { AuthContext } from '../../../providers/AuthProvider';
+
+const { width: screenWidth } = Dimensions.get('window');
+const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -179,8 +182,10 @@ const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [im
 
         {/* Job Info */}
         <View
-            style={styles.card}
-            /* onPress={() => router.push(`/job-details/${jobId}/${routeSuffix}`)} */
+            style={[styles.card,
+                     {alignSelf: 'center',
+                      width: '100%',
+                      maxWidth: isTablet ? 600 : '100%',}]}
         >
             <View style={{flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.cardTitle}>Job Info</Text>
