@@ -247,7 +247,7 @@ emptyWrapper: {
   },
 emptyContainer: {
   paddingVertical: 10,
-  marginBottom:40,
+  marginBottom:10,
   alignItems: 'center',
   justifyContent: 'center',
   width: '100%',

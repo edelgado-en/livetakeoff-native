@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
           Image, TouchableOpacity,
-         TextInput, RefreshControl } from 'react-native';
+         TextInput, RefreshControl, Dimensions } from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,6 +26,9 @@ export default function JobsScreen() {
 
   const [overdue, setOverdue] = useState(false);
   const [overdueCount, setOverdueCount] = useState(0);
+
+  const screenWidth = Dimensions.get('window').width;  
+  const isTablet = screenWidth >= 768; // adjust as needed for your breakpoint
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -344,6 +347,7 @@ const getStatusLabel = (status: string) => {
                                 </>
                             ) : (
                                 <View style={styles.pillRow}>
+                                <Text style={styles.label}>Complete Before</Text>
                                 <View style={[styles.pill, styles.pillGray]}>
                                     <Text style={styles.pillText}>TBD</Text>
                                 </View>
@@ -368,8 +372,10 @@ const getStatusLabel = (status: string) => {
                                     ]}
                                     />
                                 ))}
-                                {item.asignees.length === 1 && (
-                                    <Text style={styles.username}>{item.asignees[0].username}</Text>
+                                {isTablet && item.asignees.length === 1 && (
+                                    <Text style={styles.username}>
+                                        {item.asignees[0].profile?.vendor?.name}
+                                    </Text>
                                 )}
                                 </View>
                             </View>
