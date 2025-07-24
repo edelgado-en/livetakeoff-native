@@ -341,6 +341,30 @@ const getStatusLabel = (status: string) => {
                         )}
                     </View>
 
+                    {(currentUser.isAdmin ||
+                                currentUser.isSuperUser ||
+                                currentUser.isAccountManager ||
+                                currentUser.isInternalCoordinator ||
+                                currentUser.isMasterPM) && item.asignees?.length > 0 && (
+                        <View style={styles.assigneeContainer}>
+                            <View style={styles.avatarRow}>
+                            {item.asignees.map((asignee, index) => (
+                                <Image
+                                key={asignee.username}
+                                source={{ uri: asignee.profile.avatar }}
+                                style={[
+                                    styles.avatar,
+                                    item.asignees.length > 1 && { marginLeft: index === 0 ? 0 : -10 },
+                                ]}
+                                />
+                            ))}
+                            {item.asignees.length === 1 && (
+                                <Text style={styles.username}>{item.asignees[0].username}</Text>
+                            )}
+                            </View>
+                        </View>
+                    )}
+
                 </View>
             )}
             refreshControl={
@@ -642,5 +666,28 @@ pillGray: {
   borderColor: '#EF4444',
   borderRadius: 6,
   fontWeight: '600',
+},
+assigneeContainer: {
+  position: 'absolute',
+  bottom: 12,
+  right: 12,
+},
+
+avatarRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+avatar: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  borderWidth: 2,
+  borderColor: '#fff',
+},
+username: {
+  color: '#6B7280', // Tailwind gray-500
+  fontSize: 13,
+  marginLeft: 6,
 },
 });
