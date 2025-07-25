@@ -98,7 +98,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 0 }}
-        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+        ItemSeparatorComponent={() => <View style={{ width: 4 }} />}
         ListEmptyComponent={() => (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>

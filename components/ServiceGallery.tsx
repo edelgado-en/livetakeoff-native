@@ -54,7 +54,7 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
 
 const styles = StyleSheet.create({
   listContent: {
-    gap: 12,
+    gap: 6,
   },
   card: {
     width: 270,
