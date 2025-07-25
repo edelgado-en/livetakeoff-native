@@ -67,7 +67,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
     };
 
   return (
-    <View style={{ marginTop: 4 }}>
+    <View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <Text style={{ fontSize: 18, fontWeight: '600' }}>Comments</Text>
         <TouchableOpacity
@@ -164,6 +164,8 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     minHeight: 180,
     backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     borderRadius: 12,
     padding: 12,
     justifyContent: 'space-between',

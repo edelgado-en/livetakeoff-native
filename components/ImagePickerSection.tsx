@@ -57,7 +57,7 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
       >
         Select from Gallery
       </Button>
-      <Button
+      {/* <Button
         mode="outlined"
         icon="camera"
         onPress={takePhoto}
@@ -65,7 +65,7 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
         labelStyle={styles.buttonLabel}
       >
         Take Photo
-      </Button>
+      </Button> */}
 
       <ScrollView
         horizontal

@@ -179,7 +179,11 @@ const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [im
             </View>
         )}
 
-        <JobCommentsPreview comments={comments} totalComments={totalComments} />
+        <View
+            style={styles.card}
+        >
+            <JobCommentsPreview comments={comments} totalComments={totalComments} />
+        </View>
 
         {/* Job Info */}
         <View
@@ -300,6 +304,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
+    marginBottom: 6
   },
   tag: {
     borderWidth: 1,
@@ -322,7 +327,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   backButton: {
     borderRadius: 9999,
