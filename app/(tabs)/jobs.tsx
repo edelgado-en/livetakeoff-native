@@ -13,6 +13,8 @@ import { AuthContext } from '../../providers/AuthProvider';
 
 import httpService from '../../services/httpService';
 
+import { cropTextForDevice } from '../../utils/textUtils';
+
 export default function JobsScreen() {
   const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
@@ -249,7 +251,7 @@ const getStatusLabel = (status: string) => {
                                     />
                                 </View>
                                 <View style={styles.nameContainer}>
-                                    <Text style={styles.name}>{item.customer.name}</Text>
+                                    <Text style={styles.name}>{cropTextForDevice(item.customer.name)}</Text>
                                 </View>
                             </View>
                             <View>

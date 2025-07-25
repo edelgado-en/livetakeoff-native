@@ -30,7 +30,7 @@ export default function InfoTable({ job }: any) {
           </View>
         </View>
         <View style={{ alignItems: 'flex-end', width: '100%' }}>
-            <Text style={{ color: '#3B82F6', fontWeight: '600' }}>
+            <Text style={{ color: '#3B82F6', fontWeight: '500' }}>
                 Show more
             </Text>
         </View>
