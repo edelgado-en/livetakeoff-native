@@ -311,12 +311,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
-    marginBottom: 6
+    marginBottom: 8
   },
   tag: {
     borderWidth: 1,
     borderRadius: 6,
-    paddingVertical: 4,
+    paddingVertical: 6,
     paddingHorizontal: 8,
     marginRight: 4,
     marginBottom: 4,

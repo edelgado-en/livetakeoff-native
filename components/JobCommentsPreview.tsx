@@ -109,13 +109,11 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         )}
       />
       
-      {totalComments > 5 ? (
+      {totalComments > 5 && (
         <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>See all {totalComments} comments</Text>
             <Feather name="chevron-right" size={18} color="#3B82F6" />
         </TouchableOpacity>
-        ) : (
-        <View style={{ paddingVertical: 10 }} />
         )}
 
        <Modal
