@@ -131,14 +131,6 @@ export default function InfoTable({ job }: any) {
                     </View>
                 </View>
                 )}
-            
-            <View style={styles.row}>
-                <Text style={styles.label}>Extra Instructions</Text>
-                <View style={styles.valueContainer}>
-                <Text style={styles.valueLight}>{job.special_instructions ? job.special_instructions : 'Not specified'}</Text>
-                </View>
-            </View>
-
         </>
       )}
 
