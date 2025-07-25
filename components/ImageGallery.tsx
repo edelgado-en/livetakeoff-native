@@ -5,16 +5,9 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   Text,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
-
-type ImageGalleryProps = {
-  images: { uri: string }[];
-};
-
-const { width } = Dimensions.get('window');
 
 const imageUrls = [
   'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-FE0B8961-CF6C-43BF-9127-9958BF0BF32B_igoxfz',

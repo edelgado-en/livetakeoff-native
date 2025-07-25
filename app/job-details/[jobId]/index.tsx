@@ -10,6 +10,7 @@ import httpService from '../../../services/httpService';
 import JobCommentsPreview from '../../../components/JobCommentsPreview';
 import InfoTable from '../../../components/job-info';
 import ImageGallery from '../../../components/ImageGallery';
+import ServiceGallery from '../../../components/ServiceGallery';
 
 import { AuthContext } from '../../../providers/AuthProvider';
 
@@ -196,14 +197,41 @@ const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [im
         </View>
 
         {/* Services */}
-        <TouchableOpacity
+        <View
             style={styles.card}
-            /* onPress={() => router.push(`/job-details/${jobId}/${routeSuffix}`)} */
         >
-            <Text style={styles.cardTitle}>Services</Text>
-            {/* <Text style={styles.cardAction}>{action}</Text> */}
+             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827' }}>Services</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '500', color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>Total: 3</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: '#ffffff',
+                            borderWidth: 1,
+                            borderColor: '#D1D5DB', // Tailwind gray-300
+                            borderRadius: 8,
+                            paddingVertical: 6,
+                            paddingHorizontal: 12,
+                        }}
+                    >
+                        <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500' }}>
+                            Add Service
+                        </Text>
+                    </TouchableOpacity>
+                  </View>
 
-        </TouchableOpacity>
+            <ServiceGallery
+             services={[
+                { id: 1, short_name: 'Exterior Wash', short_description: 'Level 2. Full wash. Wet or dry.' },
+                { id: 2, short_name: 'Interior Detail', short_description: 'Leve 2. VIP detail. Full cabin and cockpit' },
+                { id: 3, short_name: 'Wax', short_description: 'By hand or machine. Shine on' },
+            ]}
+            showRemove={true}
+            onRemove={(id) => console.log('Remove service with ID:', id)}
+            />
+
+        </View>
 
         {/* Pictures */}
         <View
@@ -272,7 +300,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
-    marginBottom: 8,
   },
   tag: {
     borderWidth: 1,
