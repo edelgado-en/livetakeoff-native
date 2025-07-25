@@ -209,7 +209,7 @@ const getStatusLabel = (status: string) => {
              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
-                        <Text style={{ fontSize: 15, fontWeight: '500', color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>Total: 3</Text>
+                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>3</Text>
                     </View>
                     <TouchableOpacity
                         style={{
@@ -256,16 +256,6 @@ const getStatusLabel = (status: string) => {
     </SafeAreaView>
   );
 }
-
-const sections = [
-  { title: 'Job Info', routeSuffix: 'info', action: 'See more' },
-  { title: 'Services', routeSuffix: 'services', action: undefined },
-  { title: 'Pictures', routeSuffix: 'pictures', action: undefined },
-  { title: 'Price Breakdown', routeSuffix: 'price', action: undefined },
-  { title: 'Attachments', routeSuffix: 'attachments', action: undefined },
-  { title: 'Activity', routeSuffix: 'activity', action: undefined },
-];
-
   const getTagStyle = (color: string) => {
     const colorStyles = {
       red: { borderColor: '#ef4444', color: '#ef4444' },
@@ -299,7 +289,8 @@ const styles = StyleSheet.create({
     top: 2,
   },
   container: {
-    padding: 16,
+    paddingTop: 16,
+    paddingHorizontal: 8,
     paddingBottom: 40,
   },
   tagContainer: {

@@ -84,7 +84,10 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
   return (
     <View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <Text style={{ fontSize: 16, fontWeight: '500' }}>Comments</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Comments</Text>
+            <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{totalComments}</Text>
+        </View>
         <TouchableOpacity
             onPress={() => {
                 setNewComment('');

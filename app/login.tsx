@@ -79,7 +79,7 @@ export default function LoginScreen() {
                 <Text style={{ fontSize: 16, color: '#6B7280' }}>
                     Don't have an account?
                     <Text
-                    style={{ color: '#2563EB', fontWeight: '500', marginLeft: 4 }}
+                    style={{ color: '#2563EB', marginLeft: 4 }}
                     onPress={() => router.replace('/signup')}
                     >
                     {' '}Sign up
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   link: {
-    color: '#ef4444', // Tailwind's red-500
+    color: '#2563EB', // Tailwind's blue-500
     textDecorationLine: 'underline',
   },
 });

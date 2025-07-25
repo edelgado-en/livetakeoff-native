@@ -25,7 +25,7 @@ export default function InfoTable({ job }: any) {
       <View style={styles.row}>
         <Text style={styles.label}>FBO</Text>
         <View style={styles.valueContainer}>
-          <Text style={styles.value}>{job.fbo?.name}</Text>
+          <Text style={styles.value}>{cropTextForDevice(job.fbo?.name)}</Text>
         </View>
       </View>
       <View style={styles.row}>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#111827',
     paddingVertical: 4,
-    width: 120, // ✅ fixed width based on longest label
+    width: 100, // ✅ fixed width based on longest label
   },
   valueContainer: {
     flex: 1,
