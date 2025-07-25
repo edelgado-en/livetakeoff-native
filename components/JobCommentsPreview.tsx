@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,18 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+   TextInput as RNTextInput,
 } from 'react-native';
 import Modal from 'react-native-modal';
-import { TextInput } from 'react-native-paper';
+import { TextInput as PaperTextInput } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 
+import { AuthContext } from '../providers/AuthProvider';
+
 const { width } = Dimensions.get('window');
+
+import UserAvatar from './UserAvatar';
 
 type Comment = {
   id: number;
@@ -36,9 +41,19 @@ type Props = {
 };
 
 const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
+    const { currentUser } = useContext(AuthContext);
   const [isModalVisible, setModalVisible] = useState(false);
+  const inputRef = useRef<PaperTextInput>(null);
   const [newComment, setNewComment] = useState('');
   const previewComments = comments.slice(0, 5);
+
+  useEffect(() => {
+    if (isModalVisible) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 250); // Slight delay ensures the modal is rendered
+    }
+  }, [isModalVisible]);
 
   const renderItem = ({ item }: { item: Comment }) => {
     const { comment, created, author } = item;
@@ -125,16 +140,22 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         hideModalContentWhileAnimating
         >
         <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Add Comment</Text>
-            <TextInput
-                label="Write your comment..."
-                value={newComment}
-                onChangeText={setNewComment}
-                mode="outlined"
-                multiline
-                numberOfLines={5}
-                style={styles.textarea}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+                <UserAvatar avatar={currentUser.avatar} initials={currentUser.initials} />
+                <View style={{ flex: 1 }}>
+                    <PaperTextInput
+                        ref={inputRef}
+                        label="Write your comment..."
+                        value={newComment}
+                        onChangeText={setNewComment}
+                        mode="outlined"
+                        multiline
+                        numberOfLines={5}
+                        style={styles.textarea}
+                        theme={{ colors: { outline: '#D1D5DB' } }} // Tailwind's gray-300
+                    />
+                </View>
+            </View>
             <View style={styles.modalActions}>
                 <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
                     <Text style={styles.cancelText}>Cancel</Text>
@@ -217,6 +238,8 @@ modalTitle: {
 },
 textarea: {
   marginBottom: 20,
+  width: '100%',
+  minHeight: 100
 },
 modalActions: {
   flexDirection: 'row',

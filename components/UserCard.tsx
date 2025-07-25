@@ -18,7 +18,6 @@ interface Props {
 
 const UserCard: React.FC<Props> = ({ currentUser }) => {
   const { width } = useWindowDimensions();
-  const isTablet = width >= 768;
 
   const getBadgeStyle = () => {
     if (currentUser.is_staff || currentUser.is_super_user) {
