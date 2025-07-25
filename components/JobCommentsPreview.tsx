@@ -68,8 +68,8 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <Text style={{ fontSize: 18, fontWeight: '600' }}>Comments</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <Text style={{ fontSize: 16, fontWeight: '500' }}>Comments</Text>
         <TouchableOpacity
             onPress={() => {
                 setNewComment('');
@@ -100,7 +100,6 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         ListEmptyComponent={() => (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>
-                    {/* <Feather name="message-square" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} /> */}
                     <Text style={styles.emptyTitle}>No comments found.</Text>
                     <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
                 </View>
@@ -196,7 +195,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    marginBottom: 16
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
   },
   buttonText: {
     fontWeight: '500',
@@ -249,7 +249,6 @@ emptyWrapper: {
   },
 emptyContainer: {
   paddingVertical: 10,
-  marginBottom:10,
   alignItems: 'center',
   justifyContent: 'center',
   width: '100%',

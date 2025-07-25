@@ -1,7 +1,5 @@
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-
-const { width: screenWidth } = Dimensions.get('window');
-const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
+import { View, Text, StyleSheet } from 'react-native';
+import { cropTextForDevice } from '../utils/textUtils';
 
 export default function InfoTable({ job }: any) {
    
@@ -10,7 +8,7 @@ export default function InfoTable({ job }: any) {
         <View  style={styles.row}>
           <Text style={styles.label}>Airport</Text>
           <View style={styles.valueContainer}>
-            <Text style={styles.value}>{job.airport?.name}</Text>
+            <Text style={styles.value}>{cropTextForDevice(job.airport?.name)}</Text>
           </View>
         </View>
         <View  style={styles.row}>
@@ -32,7 +30,7 @@ export default function InfoTable({ job }: any) {
           </View>
         </View>
         <View style={{ alignItems: 'flex-end', width: '100%' }}>
-            <Text style={{ marginTop: 15, color: '#3B82F6', fontWeight: '600' }}>
+            <Text style={{ color: '#3B82F6', fontWeight: '600' }}>
                 Show more
             </Text>
         </View>

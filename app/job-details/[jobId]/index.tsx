@@ -17,6 +17,8 @@ import { AuthContext } from '../../../providers/AuthProvider';
 const { width: screenWidth } = Dimensions.get('window');
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
+import { cropTextForDevice } from '../../../utils/textUtils';
+
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
@@ -101,14 +103,6 @@ const getStatusLabel = (status: string) => {
 
   }, [jobId])
 
-  const imageUrls: string[] = [
-  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-FE0B8961-CF6C-43BF-9127-9958BF0BF32B_igoxfz',
-  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-C2E5399E-2844-4135-93E2-766F9970C8D2_zweliv',
-  'https://res.cloudinary.com/datidxeqm/image/upload/v1/media/images/thumbnail_processed-D4DC4411-FB4A-4B76-A4F3-9608D3E27C34_yjtf2d',
-];
-
-const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [imageUrls]);
-
   const fetchComments = async () => {
     try {
         const response = await httpService.get(`/job-comments/${jobId}/`)
@@ -150,7 +144,7 @@ const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [im
 
             <View style={styles.jobTitleContainer}>
                 <Text style={styles.tailNumber}>{job.tailNumber}</Text>
-                <Text style={styles.customerName}>{job.customer.name}</Text>
+                <Text style={styles.customerName}>{cropTextForDevice(job.customer.name)}</Text>
             </View>
 
             <Text style={[styles.statusPill, getStatusStyle(job.status)]}>
@@ -206,7 +200,7 @@ const memoizedImages = useMemo(() => imageUrls.map((url) => ({ uri: url })), [im
         >
              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827' }}>Services</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
                         <Text style={{ fontSize: 15, fontWeight: '500', color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>Total: 3</Text>
                     </View>
                     <TouchableOpacity
@@ -287,9 +281,9 @@ const styles = StyleSheet.create({
   },
     statusPill: {
     color: '#fff',
-    fontSize: 14,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    fontSize: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 6,
     alignSelf: 'flex-start',
     overflow: 'hidden',
