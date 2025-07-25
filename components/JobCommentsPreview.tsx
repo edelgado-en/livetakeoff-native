@@ -63,7 +63,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
     return (
         <View style={styles.card}>
-        <Text style={styles.commentText} numberOfLines={5}>
+        <Text style={styles.commentText}>
             {comment}
         </Text>
 
