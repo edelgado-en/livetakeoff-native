@@ -109,6 +109,10 @@ const getStatusLabel = (status: string) => {
     try {
         const response = await httpService.get(`/job-comments/${jobId}/`)
 
+        if (response.results && response.results.length > 0) {
+            response.results.reverse();
+        }
+
         setComments(response.results || []);
         setTotalComments(response.count || 0);
 
@@ -184,25 +188,18 @@ const getStatusLabel = (status: string) => {
             </View>
         )}
 
-        <View
-            style={styles.card}
-        >
-            <JobCommentsPreview comments={comments} totalComments={totalComments} />
-        </View>
-
         {/* Job Info */}
         <View
             style={[styles.card,
                      {alignSelf: 'center',
                       width: '100%',
-                      maxWidth: isTablet ? 600 : '100%',}]}
+                      maxWidth: isTablet ? 600 : '100%'}]}
         >
             <View style={{flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.cardTitle}>Job Info</Text>
                 <Text >{job.purchase_order}</Text>
             </View>
             <InfoTable job={job} />
-
         </View>
 
         {/* Services */}
@@ -244,18 +241,17 @@ const getStatusLabel = (status: string) => {
 
         </View>
 
+        <View style={styles.card}>
+            <JobCommentsPreview comments={comments} totalComments={totalComments} />
+        </View>
+
         {/* Pictures */}
-        <View
-            style={styles.card}
-        >
+        <View style={styles.card}>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                 <Text style={styles.cardTitle}>Pictures</Text>
             </View>
-
             <ImageGallery />
-
         </View>
-        
         </ScrollView>
     </SafeAreaView>
   );
@@ -311,7 +307,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
-    marginBottom: 8
+    marginBottom: 4
   },
   tag: {
     borderWidth: 1,
@@ -371,7 +367,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 10,
-    marginBottom: 12,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },

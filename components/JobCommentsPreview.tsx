@@ -181,7 +181,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 const styles = StyleSheet.create({
   card: {
     width: Math.min(width * 0.8, 320), // limits to 320 on large screens
-    maxWidth: 320,
+    maxWidth: 310,
     minHeight: 180,
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
