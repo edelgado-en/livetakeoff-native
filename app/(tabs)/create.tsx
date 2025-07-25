@@ -758,7 +758,6 @@ export default function CreateJobScreen() {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                {/* <ActivityIndicator size="large" color="#1D4ED8" /> */}
                 <LottieView
                     source={require('../../assets/animations/progress-bar.json')}
                     autoPlay

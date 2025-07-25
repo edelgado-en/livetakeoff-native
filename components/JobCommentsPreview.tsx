@@ -82,11 +82,13 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
                 borderRadius: 8,
                 paddingVertical: 6,
                 paddingHorizontal: 12,
+                flexDirection: 'row', alignItems: 'center'
             }}
         >
-            <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500' }}>
-                Add comment
-            </Text>
+                <Feather name="plus" size={16} color="#3B82F6" />
+                <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
+                    Add
+                </Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -255,7 +257,7 @@ emptyContainer: {
 },
 emptyTitle: {
   fontSize: 16,
-  fontWeight: '600',
+  fontWeight: '500',
   color: '#4B5563', // gray-600
 },
 emptySubtitle: {

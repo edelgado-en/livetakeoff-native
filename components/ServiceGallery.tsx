@@ -20,8 +20,6 @@ type ServiceGalleryProps = {
   onRemove?: (id: number) => void;
 };
 
-const { width } = Dimensions.get('window');
-
 const ServiceGallery: React.FC<ServiceGalleryProps> = ({
   services,
   showRemove = false,

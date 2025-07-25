@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import LottieView from 'lottie-react-native';
+import { Feather } from '@expo/vector-icons';
 
 import httpService from '../../../services/httpService';
 
@@ -127,7 +129,16 @@ const getStatusLabel = (status: string) => {
   }
 
   if (loading || !job) {
-    return <Text style={styles.loading}>Loading job...</Text>;
+    return (
+        <View style={styles.loadingContainer}>
+                <LottieView
+                    source={require('../../../assets/animations/progress-bar.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 150, height: 150 }}
+                />
+            </View>
+        );
   }
 
   return (
@@ -211,10 +222,12 @@ const getStatusLabel = (status: string) => {
                             borderRadius: 8,
                             paddingVertical: 6,
                             paddingHorizontal: 12,
+                            flexDirection: 'row', alignItems: 'center'
                         }}
                     >
-                        <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500' }}>
-                            Add Service
+                        <Feather name="plus" size={16} color="#3B82F6" />
+                        <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
+                            Add
                         </Text>
                     </TouchableOpacity>
                   </View>
@@ -287,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignSelf: 'flex-start',
     overflow: 'hidden',
-    top: 12,
+    top: 2,
   },
   container: {
     padding: 16,
@@ -321,7 +334,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   backButton: {
     borderRadius: 9999,
@@ -396,5 +409,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#4B5563', // Tailwind gray-600
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff', // or 'rgba(255,255,255,0.9)' for overlay effect
   },
 });
