@@ -229,7 +229,7 @@ const getStatusLabel = (status: string) => {
         </View>
 
         <View style={{ marginBottom: 10 }}>
-            <Text>Open Jobs: {totalJobs}</Text>
+            <Text>{totalJobs} Open Jobs</Text>
         </View>
         <FlatList
             data={jobs}
@@ -285,19 +285,19 @@ const getStatusLabel = (status: string) => {
 
                             {item.tags?.map((tag) => {
                                 const tagStyle = getTagStyle(tag.tag_color);
-                                return (
-                                    <View
-                                        key={tag.id}
-                                        style={[
-                                        styles.tag,
-                                        { borderColor: tagStyle.borderColor },
-                                        ]}
-                                    >
-                                        <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                                        {tag.tag_short_name}
-                                        </Text>
-                                    </View>
-                                );
+                                    return (
+                                        <View
+                                            key={tag.id}
+                                            style={[
+                                            styles.tag,
+                                            { borderColor: tagStyle.borderColor },
+                                            ]}
+                                        >
+                                            <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                            {tag.tag_short_name}
+                                            </Text>
+                                        </View>
+                                    );
                             })}
                         </View>
 
@@ -415,7 +415,7 @@ const getStatusLabel = (status: string) => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F3F4F6'
   },
   container: {
     flex: 1,
@@ -440,9 +440,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   card: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFFFFF', // White
     borderRadius: 12,
-    borderColor: '#9CA3AF',
+    borderColor: '#E5E7EB', // Tailwind gray-200
     borderWidth: 1,
     padding: 16,
     marginBottom: 12,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    elevation: 2, // for Android shadow
+    elevation: 2,
     position: 'relative',
   },
   cardTitle: {
@@ -474,10 +474,10 @@ const styles = StyleSheet.create({
   },
   nameContainer: {
     position: 'relative',
-    top: 8,
+    top: 10,
   },
   name: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1f2937', // Tailwind's gray-800
   },
   tagContainer: {
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
-    marginVertical: 8,
+    paddingVertical: 6,
   },
   tag: {
     borderWidth: 1,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     top: 12,
   },
     section: {
-    marginTop: 6,
+    marginBottom: 6,
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6', // Tailwind gray-100
+    backgroundColor: '#FFFFFF', // White
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -624,12 +624,12 @@ emptyText: {
   color: '#6B7280', // gray-500
 },
 infoText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#374151', // Tailwind gray-700
     flexShrink: 1,     // Allow text to wrap if needed
-  },
+},
   dot: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#9CA3AF', // Tailwind gray-400
     paddingHorizontal: 4,
   },

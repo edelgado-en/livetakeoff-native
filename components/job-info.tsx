@@ -71,7 +71,7 @@ export default function InfoTable({ job }: any) {
             <View style={[styles.valueContainer, { flexDirection: 'row', alignItems: 'center' }]}>
                 {job.requested_by ? (
                 <Text style={styles.valueLight}>
-                    {job.requested_by.first_name} {job.requested_by.last_name}
+                    {job.requested_by}
                 </Text>
                 ) : (
                 <>
