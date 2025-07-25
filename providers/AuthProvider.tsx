@@ -60,29 +60,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
     setToken(null);
   };
-
-  const refreshAccessToken = async () => {
-    const refreshToken = await SecureStore.getItemAsync('refreshToken');
-    if (!refreshToken) return;
-
-    const res = await fetch('https://api-livetakeoff.herokuapp.com/api/token/refresh/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh: refreshToken }),
-    });
-
-    if (res.ok) {
-        const data = await res.json();
-        await SecureStore.setItemAsync('accessToken', data.access);
-        setToken(data.access);
-        return data.access;
-    } else {
-        // Refresh failed: logout
-        await logout();
-    }
- };
 
   return (
     <AuthContext.Provider value={{ token, currentUser, login, logout }}>
