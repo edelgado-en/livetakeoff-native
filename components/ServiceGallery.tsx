@@ -57,11 +57,10 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
 const styles = StyleSheet.create({
   listContent: {
     gap: 12,
-    paddingHorizontal: 16,
   },
   card: {
-    width: 300,
-    padding: 16,
+    width: 270,
+    padding: 12,
     borderRadius: 12,
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
@@ -72,14 +71,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom:20
+    paddingBottom:10
   },
   name: {
     fontSize: 16,
     fontWeight: '500',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,

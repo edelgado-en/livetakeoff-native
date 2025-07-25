@@ -38,7 +38,7 @@ const ImageGallery = () => {
         keyExtractor={(_, index) => index.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingHorizontal: 16 }}
+        contentContainerStyle={{ gap: 12 }}
         renderItem={({ item, index }) => (
           <TouchableOpacity onPress={() => openViewer(index)}>
             <Image
