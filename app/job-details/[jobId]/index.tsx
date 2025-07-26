@@ -125,8 +125,8 @@ const getStatusLabel = (status: string) => {
     try {
       const response = await httpService.get(`/job-photos/${jobId}/`);
       console.log('Fetched photos:', response);
-      // Handle photos if needed
       setPhotos(response.results || []);
+    
     } catch (err) {
       console.error('Failed to fetch photos', err);
     }
@@ -243,10 +243,29 @@ const getStatusLabel = (status: string) => {
 
         {/* Pictures */}
         <View style={styles.card}>
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                <Text style={styles.cardTitle}>Pictures</Text>
-            </View>
-            <ImageGallery />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Pictures</Text>
+                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{photos.length}</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: '#ffffff',
+                            borderWidth: 1,
+                            borderColor: '#D1D5DB', // Tailwind gray-300
+                            borderRadius: 8,
+                            paddingVertical: 6,
+                            paddingHorizontal: 6,
+                            flexDirection: 'row', alignItems: 'center'
+                        }}
+                    >
+                            <Feather name="plus" size={16} color="#3B82F6" />
+                            <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
+                                Add
+                            </Text>
+                    </TouchableOpacity>
+                  </View>
+            <ImageGallery images={photos}/>
         </View>
         </ScrollView>
     </SafeAreaView>

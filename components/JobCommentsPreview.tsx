@@ -120,8 +120,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         ListEmptyComponent={() => (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyTitle}>No comments found.</Text>
-                    <Text style={styles.emptySubtitle}>Be the first to comment!</Text>
+                    <Text style={styles.emptySubtitle}>No comments found.</Text>
                 </View>
             </View>
         )}

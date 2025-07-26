@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   removeText: {
     color: '#3B82F6',
-    fontWeight: '600',
+    fontWeight: '500',
     fontSize: 14,
   },
 });
