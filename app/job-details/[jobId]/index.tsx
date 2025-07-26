@@ -209,7 +209,7 @@ const getStatusLabel = (status: string) => {
              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
-                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>3</Text>
+                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
                     </View>
                     <TouchableOpacity
                         style={{
@@ -230,11 +230,7 @@ const getStatusLabel = (status: string) => {
                   </View>
 
             <ServiceGallery
-             services={[
-                { id: 1, short_name: 'Exterior Wash', short_description: 'Level 2. Full wash. Wet or dry.' },
-                { id: 2, short_name: 'Interior Detail', short_description: 'Leve 2. VIP detail. Full cabin and cockpit' },
-                { id: 3, short_name: 'Wax', short_description: 'By hand or machine. Shine on' },
-            ]}
+             services={job.service_assignments}
             showRemove={true}
             onRemove={(id) => console.log('Remove service with ID:', id)}
             />
@@ -299,7 +295,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
-    marginBottom: 4
+    marginBottom: 4,
+    marginLeft: 6
   },
   tag: {
     borderWidth: 1,
