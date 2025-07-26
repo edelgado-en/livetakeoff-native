@@ -218,7 +218,7 @@ const getStatusLabel = (status: string) => {
                             borderColor: '#D1D5DB', // Tailwind gray-300
                             borderRadius: 8,
                             paddingVertical: 6,
-                            paddingHorizontal: 12,
+                            paddingHorizontal: 10,
                             flexDirection: 'row', alignItems: 'center'
                         }}
                     >
@@ -287,10 +287,11 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     overflow: 'hidden',
     top: 2,
+    right: isTablet ? 0 : 4,
   },
   container: {
     paddingTop: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: isTablet ? 8 : 0,
     paddingBottom: 40,
   },
   tagContainer: {

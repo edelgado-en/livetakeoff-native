@@ -15,6 +15,9 @@ import httpService from '../../services/httpService';
 
 import { cropTextForDevice } from '../../utils/textUtils';
 
+const screenWidth = Dimensions.get('window').width;  
+const isTablet = screenWidth >= 768; // adjust as needed for your breakpoint
+
 export default function JobsScreen() {
   const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
@@ -28,9 +31,6 @@ export default function JobsScreen() {
 
   const [overdue, setOverdue] = useState(false);
   const [overdueCount, setOverdueCount] = useState(0);
-
-  const screenWidth = Dimensions.get('window').width;  
-  const isTablet = screenWidth >= 768; // adjust as needed for your breakpoint
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -222,13 +222,13 @@ const getStatusLabel = (status: string) => {
             <TextInput
                 style={styles.input}
                 placeholder="Search tails..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#374151"
                 value={searchText}
                 onChangeText={setSearchText}
             />
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={{ marginBottom: 10, marginLeft: isTablet ? 0 : 4 }}>
             <Text>{totalJobs} Open Jobs</Text>
         </View>
         <FlatList
@@ -391,7 +391,7 @@ const getStatusLabel = (status: string) => {
                 <RefreshControl refreshing={loading} onRefresh={onRefresh} />
             }
             ListFooterComponent={
-                <View style={{ paddingVertical: 20 }}>
+                <View style={{ paddingVertical: 10 }}>
                 </View>
             }
             ListEmptyComponent={
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
-    paddingHorizontal: 8
+    paddingHorizontal: isTablet ? 8 : 0
   },
   headerContainer: {
     flexDirection: 'row',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB', // Tailwind gray-200
     borderWidth: 1,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
