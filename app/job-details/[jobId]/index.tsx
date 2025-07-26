@@ -203,10 +203,8 @@ const getStatusLabel = (status: string) => {
         </View>
 
         {/* Services */}
-        <View
-            style={styles.card}
-        >
-             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <View style={styles.card}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
                         <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
@@ -227,14 +225,13 @@ const getStatusLabel = (status: string) => {
                             Add
                         </Text>
                     </TouchableOpacity>
-                  </View>
+            </View>
 
             <ServiceGallery
              services={job.service_assignments}
-            showRemove={true}
-            onRemove={(id) => console.log('Remove service with ID:', id)}
+             showRemove={true}
+             onRemove={(id) => console.log('Remove service with ID:', id)}
             />
-
         </View>
 
         <View style={styles.card}>

@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   emptyContainer: {
-    paddingVertical: 24,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -109,22 +109,23 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
                 </Text>
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={previewComments}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingRight: 0 }}
-        ItemSeparatorComponent={() => <View style={{ width: 0 }} />}
-        ListEmptyComponent={() => (
+      {previewComments.length > 0 ? (
+            <FlatList
+                data={previewComments}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderItem}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 0 }}
+                ItemSeparatorComponent={() => <View style={{ width: 0 }} />}
+            />
+            ) : (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptySubtitle}>No comments found.</Text>
+                <Text style={styles.emptySubtitle}>No comments found.</Text>
                 </View>
             </View>
         )}
-      />
       
       {totalComments > 5 && (
         <TouchableOpacity style={styles.button}>
@@ -268,10 +269,10 @@ postText: {
   fontWeight: '600',
 },
 emptyWrapper: {
-    width: width,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
 emptyContainer: {
   paddingVertical: 10,
   alignItems: 'center',
