@@ -135,12 +135,14 @@ export default function InfoTable({ job }: any) {
       )}
 
       {/* Toggle button */}
-        <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-            <View style={{ alignItems: 'flex-end', width: '100%' }}>
-                <Text style={{ color: '#3B82F6', fontWeight: '500' }}>
-                    {showMore ? 'Show less' : 'Show more'}
-                </Text>
-            </View>
+        <TouchableOpacity
+            onPress={() => setShowMore(!showMore)}
+            style={styles.toggleButton}
+            activeOpacity={0.7}
+        >
+            <Text style={styles.toggleText}>
+                {showMore ? 'Show less' : 'Show more'}
+            </Text>
         </TouchableOpacity>
     </View>
   );
@@ -198,5 +200,15 @@ bullet: {
   marginRight: 6,
   lineHeight: 20,
   color: '#4B5563',
+},
+toggleButton: {
+  width: '100%',
+  paddingVertical: 12,
+  alignItems: 'flex-end',
+},
+toggleText: {
+  color: '#3B82F6',
+  fontWeight: '500',
+  fontSize: 14,
 },
 });

@@ -38,7 +38,7 @@ const ImageGallery = () => {
         keyExtractor={(_, index) => index.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
+        contentContainerStyle={{ gap: 4 }}
         renderItem={({ item, index }) => (
           <TouchableOpacity onPress={() => openViewer(index)}>
             <Image
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: 180,
     height: 160,
-    borderRadius: 10,
+    borderRadius: 5,
     backgroundColor: '#E5E7EB',
   },
   footer: {
