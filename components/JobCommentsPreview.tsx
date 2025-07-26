@@ -63,20 +63,20 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
     return (
         <View style={styles.card}>
-        <Text style={styles.commentText}>
-            {comment}
-        </Text>
+            <Text style={styles.commentText}>
+                {comment}
+            </Text>
 
-        <View style={styles.footerRow}>
-            <Image
-            source={{ uri: avatar }}
-            style={styles.avatar}
-            />
-            <View style={{ marginLeft: 10 }}>
-            <Text style={styles.author}>{fullName}</Text>
-            <Text style={styles.date}>{timeAgo}</Text>
+            <View style={styles.footerRow}>
+                <Image
+                source={{ uri: avatar }}
+                style={styles.avatar}
+                />
+                <View style={{ marginLeft: 10 }}>
+                <Text style={styles.author}>{fullName}</Text>
+                <Text style={styles.date}>{timeAgo}</Text>
+                </View>
             </View>
-        </View>
         </View>
     );
     };
@@ -116,7 +116,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 0 }}
-        ItemSeparatorComponent={() => <View style={{ width: 4 }} />}
+        ItemSeparatorComponent={() => <View style={{ width: 0 }} />}
         ListEmptyComponent={() => (
             <View style={styles.emptyWrapper}>
                 <View style={styles.emptyContainer}>
@@ -136,7 +136,7 @@ const JobCommentsPreview: React.FC<Props> = ({ comments, totalComments }) => {
 
        <Modal
         isVisible={isModalVisible}
-         backdropOpacity={0.5}
+        backdropOpacity={0.5}
         onBackdropPress={() => setModalVisible(false)}
         onBackButtonPress={() => setModalVisible(false)}
         useNativeDriver

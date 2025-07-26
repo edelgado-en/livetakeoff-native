@@ -6,7 +6,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import { useRouter } from 'expo-router';
 import { Svg, Path } from "react-native-svg";
-import { Dropdown } from 'react-native-element-dropdown';
 import { TextInput, Snackbar, Portal } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

@@ -59,8 +59,13 @@ const ModalDropdown: React.FC<Props> = ({
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{label}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#374151" />
+            <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.7}
+            >
+                <Ionicons name="close" size={24} color="#374151" />
             </TouchableOpacity>
           </View>
 
@@ -155,6 +160,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
   },
+  closeButton: {
+  padding: 8,
+  borderRadius: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
 });
 
 export default ModalDropdown;
