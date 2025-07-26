@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   card: {
-    width: 270,
+    width: 250,
     padding: 12,
     borderRadius: 12,
     backgroundColor: '#F9FAFB',

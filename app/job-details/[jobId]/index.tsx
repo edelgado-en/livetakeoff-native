@@ -218,7 +218,7 @@ const getStatusLabel = (status: string) => {
                             borderColor: '#D1D5DB', // Tailwind gray-300
                             borderRadius: 8,
                             paddingVertical: 6,
-                            paddingHorizontal: 10,
+                            paddingHorizontal: 6,
                             flexDirection: 'row', alignItems: 'center'
                         }}
                     >
