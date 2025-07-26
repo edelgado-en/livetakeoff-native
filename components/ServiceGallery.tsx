@@ -10,6 +10,7 @@ import {
 
 type Service = {
   id: number;
+  name: string;
   short_name: string;
   short_description: string;
 };
@@ -35,7 +36,7 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
       renderItem={({ item }) => (
         <View style={styles.card}>
           <View style={styles.content}>
-            <Text style={styles.name}>{item.short_name}</Text>
+            <Text style={styles.name}>{item.short_name ? item.short_name : item.name}</Text>
             <Text style={styles.description}>{item.short_description}</Text>
           </View>
 
@@ -86,8 +87,7 @@ const styles = StyleSheet.create({
   footer: {
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    marginTop: 12,
-    paddingTop: 12,
+    paddingTop: 10,
     alignItems: 'center',
   },
   removeText: {
