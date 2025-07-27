@@ -13,6 +13,7 @@ import JobCommentsPreview from '../../../components/JobCommentsPreview';
 import InfoTable from '../../../components/job-info';
 import ImageGallery from '../../../components/ImageGallery';
 import ServiceGallery from '../../../components/ServiceGallery';
+import JobStatusSteps from '../../../components/JobStatusSteps';
 
 import { AuthContext } from '../../../providers/AuthProvider';
 
@@ -165,8 +166,7 @@ const getStatusLabel = (status: string) => {
         )}
 
         {/* Job Info */}
-        <View
-            style={[styles.card,
+        <View style={[styles.card,
                      {alignSelf: 'center',
                       width: '100%',
                       maxWidth: isTablet ? 600 : '100%'}]}
@@ -176,6 +176,10 @@ const getStatusLabel = (status: string) => {
                 <Text >{job.purchase_order}</Text>
             </View>
             <InfoTable job={job} />
+        </View>
+
+        <View style={styles.card}>
+            <JobStatusSteps jobId={job.id} jobCurrentStatus={job.status} />
         </View>
 
         {/* Services */}
