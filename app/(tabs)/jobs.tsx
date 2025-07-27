@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
           Image, TouchableOpacity,
          TextInput, RefreshControl, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -100,14 +101,16 @@ const getStatusLabel = (status: string) => {
     return colorStyles[color] || { borderColor: '#ccc', color: '#fff' };
   };
 
-  useEffect(() => {
-    const timeoutID = setTimeout(() => {
-      fetchJobs();
-    }, 500);
+  useFocusEffect(
+    useCallback(() => {
+        const timeoutID = setTimeout(() => {
+        fetchJobs();
+        }, 500);
 
-    return () => clearTimeout(timeoutID);
-    
-  }, [token, searchText]);
+        return () => clearTimeout(timeoutID);
+        
+    }, [token, searchText])
+  );
 
   const fetchJobs = async () => {
     setLoading(true);
