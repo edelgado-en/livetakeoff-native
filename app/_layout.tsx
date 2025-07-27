@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
 import Toast from 'react-native-toast-message';
+import { toastConfig } from '../toastConfig';
 
 enableScreens();
 
@@ -39,7 +40,7 @@ export default function Layout() {
                     <AuthProvider>
                         <Stack screenOptions={{ headerShown: false }} />
                         <StatusBar style="auto" />
-                        <Toast />
+                        <Toast config={toastConfig} />
                     </AuthProvider>
                 </PaperProvider>
             </SafeAreaProvider>
