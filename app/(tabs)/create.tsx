@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, useRef, useCallback } from 'rea
 import { View, Text, TouchableOpacity,
          StyleSheet, SafeAreaView, Alert,
           KeyboardAvoidingView, Platform, FlatList } from 'react-native';
-import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import { useRouter } from 'expo-router';
@@ -166,9 +165,17 @@ export default function CreateJobScreen() {
         }, [])
     );
 
-  useEffect(() => {
-    getJobInfo();
-  }, []);
+    useFocusEffect(
+        useCallback(() => {
+            const timeoutID = setTimeout(() => {
+            getJobInfo();
+            }, 500);
+
+            return () => {
+            clearTimeout(timeoutID);
+            };
+        }, [])
+    );
 
  useEffect(() => {
     const newSteps = [...steps];
@@ -184,16 +191,17 @@ export default function CreateJobScreen() {
     setSteps(newSteps);
   }, []);
 
-  useEffect(() => {
-    //Basic throttling
-    let timeoutID = setTimeout(() => {
-      searchCustomers();
-    }, 500);
+  useFocusEffect(
+    useCallback(() => {
+        const timeoutID = setTimeout(() => {
+        searchCustomers();
+        }, 500);
 
-    return () => {
-      clearTimeout(timeoutID);
-    };
-  }, [customerSearchTerm]);
+        return () => {
+        clearTimeout(timeoutID);
+        };
+    }, [customerSearchTerm])
+    );
 
   useEffect(() => {
     //Basic throttling
@@ -206,44 +214,48 @@ export default function CreateJobScreen() {
     };
   }, [tailNumber]);
 
-  useEffect(() => {
-    //Basic throttling
-    let timeoutID = setTimeout(() => {
-      searchAircraftTypes();
-    }, 500);
+  useFocusEffect(
+    useCallback(() => {
+        const timeoutID = setTimeout(() => {
+        searchAircraftTypes();
+        }, 500);
 
-    return () => {
-      clearTimeout(timeoutID);
-    };
+        return () => {
+        clearTimeout(timeoutID);
+        };
+    }, [aircraftSearchTerm])
+    );
 
-  }, [aircraftSearchTerm])
-
-    useEffect(() => {
-        if (suppressSearchRef.current) {
-            suppressSearchRef.current = false;
-            return; // Skip search
-        }
+    useFocusEffect(
+        useCallback(() => {
+            if (suppressSearchRef.current) {
+                suppressSearchRef.current = false;
+                return; // Skip search
+            }
+            
+            //Basic throttling
+            let timeoutID = setTimeout(() => {
+            searchAirports();
+            }, 500);
         
-        //Basic throttling
-        let timeoutID = setTimeout(() => {
-        searchAirports();
-        }, 500);
-    
-        return () => {
-        clearTimeout(timeoutID);
-        };
-    }, [airportSearchTerm]);
+            return () => {
+            clearTimeout(timeoutID);
+            };
+        }, [airportSearchTerm])
+    );
 
-    useEffect(() => {
-        //Basic throttling
-        let timeoutID = setTimeout(() => {
-        searchFbos();
-        }, 500);
-    
-        return () => {
-        clearTimeout(timeoutID);
-        };
-    }, [fboSearchTerm]);
+    useFocusEffect(
+        useCallback(() => {
+            //Basic throttling
+            let timeoutID = setTimeout(() => {
+            searchFbos();
+            }, 500);
+        
+            return () => {
+            clearTimeout(timeoutID);
+            };
+        }, [fboSearchTerm])
+    );
 
   const searchCustomers = async () => {
     try {

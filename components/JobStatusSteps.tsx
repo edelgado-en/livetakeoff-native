@@ -61,58 +61,58 @@ const JobStatusSteps = ({ jobId, jobCurrentStatus }) => {
   return (
     <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
       {steps.map((step, index) => (
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-  <View style={{ alignItems: 'center' }}>
-    {/* Circle */}
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor:
-          step.status === 'complete' ? '#10B981' : step.status === 'current' ? '#FFF' : '#D1D5DB',
-        borderWidth: 2,
-        borderColor: step.status === 'current' ? '#10B981' : 'transparent',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      {step.status === 'complete' && (
-        <Feather name="check" size={14} color="white" />
-      )}
-    </View>
+        <View key={index} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <View style={{ alignItems: 'center' }}>
+                {/* Circle */}
+                <View
+                style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor:
+                    step.status === 'complete' ? '#10B981' : step.status === 'current' ? '#FFF' : '#D1D5DB',
+                    borderWidth: 2,
+                    borderColor: step.status === 'current' ? '#10B981' : 'transparent',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+                >
+                {step.status === 'complete' && (
+                    <Feather name="check" size={14} color="white" />
+                )}
+                </View>
 
-    {/* Vertical line below, if not last */}
-    {index !== steps.length - 1 && (
-      <View
-        style={{
-          width: 2,
-          height: 15,
-          backgroundColor: '#D1D5DB',
-          marginTop: 2,
-        }}
-      />
-    )}
-  </View>
+                {/* Vertical line below, if not last */}
+                {index !== steps.length - 1 && (
+                <View
+                    style={{
+                    width: 2,
+                    height: 15,
+                    backgroundColor: '#D1D5DB',
+                    marginTop: 2,
+                    }}
+                />
+                )}
+            </View>
 
-  {/* Step label */}
-  <Text
-    style={{
-      marginLeft: 12,
-      marginTop: 2,
-      fontSize: 14,
-      color:
-        step.status === 'current'
-          ? '#3B82F6'
-          : step.status === 'complete'
-          ? '#111827'
-          : '#9CA3AF',
-      fontWeight: step.status === 'current' ? '500' : '400',
-    }}
-  >
-    {step.name}
-  </Text>
-</View>
+            {/* Step label */}
+            <Text
+                style={{
+                marginLeft: 12,
+                marginTop: 2,
+                fontSize: 14,
+                color:
+                    step.status === 'current'
+                    ? '#3B82F6'
+                    : step.status === 'complete'
+                    ? '#3B82F6'
+                    : '#9CA3AF',
+                fontWeight: step.status === 'current' ? '500' : '400',
+                }}
+            >
+                {step.name}
+            </Text>
+        </View>
       ))}
     </View>
   );
