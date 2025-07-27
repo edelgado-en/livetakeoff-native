@@ -100,14 +100,14 @@ const JobStatusSteps = ({ jobId, jobCurrentStatus }) => {
     style={{
       marginLeft: 12,
       marginTop: 2,
-      fontSize: 16,
+      fontSize: 14,
       color:
         step.status === 'current'
           ? '#3B82F6'
           : step.status === 'complete'
           ? '#111827'
           : '#9CA3AF',
-      fontWeight: step.status === 'current' ? '600' : '400',
+      fontWeight: step.status === 'current' ? '500' : '400',
     }}
   >
     {step.name}

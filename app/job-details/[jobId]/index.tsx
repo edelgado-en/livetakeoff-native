@@ -1,5 +1,6 @@
 // app/(tabs)/job-details/[jobId]/index.tsx
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity,
+     ScrollView, Dimensions, useWindowDimensions, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,12 +26,15 @@ import { cropTextForDevice } from '../../../utils/textUtils';
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const { currentUser } = useContext(AuthContext);
 
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const [photos, setPhotos] = useState([]);
+
+  const isTablet = width >= 768;
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -166,21 +170,29 @@ const getStatusLabel = (status: string) => {
         )}
 
         {/* Job Info */}
-        <View style={[styles.card,
-                     {alignSelf: 'center',
-                      width: '100%',
-                      maxWidth: isTablet ? 600 : '100%'}]}
-        >
-            <View style={{flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={styles.cardTitle}>Job Info</Text>
-                <Text >{job.purchase_order}</Text>
-            </View>
-            <InfoTable job={job} />
-        </View>
+        {isTablet ? (
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+                <View style={[styles.card, { flex: 4 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={styles.cardTitle}>Job Info</Text>
+                        <Text>{job.purchase_order}</Text>
+                    </View>
+                    <InfoTable job={job} />
+                </View>
 
-        <View style={styles.card}>
-            <JobStatusSteps jobId={job.id} jobCurrentStatus={job.status} />
-        </View>
+                <View style={[styles.card, { flex: 1 }]}>
+                    <JobStatusSteps jobId={job.id} jobCurrentStatus={job.status} />
+                </View>
+            </View>
+        ) : (
+            <View style={styles.card}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={styles.cardTitle}>Job Info</Text>
+                    <Text>{job.purchase_order}</Text>
+                </View>
+                <InfoTable job={job} />
+            </View>
+        )}
 
         {/* Services */}
         <View style={styles.card}>
