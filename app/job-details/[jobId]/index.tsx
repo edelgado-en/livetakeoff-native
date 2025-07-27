@@ -28,8 +28,6 @@ export default function JobDetailsScreen() {
 
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [comments, setComments] = useState([])
-  const [totalComments, setTotalComments] = useState(0);
 
   const [photos, setPhotos] = useState([]);
 
@@ -95,36 +93,14 @@ const getStatusLabel = (status: string) => {
 
   useEffect(() => {
     if (!jobId) return;
-    fetchComments();
-
-  }, [jobId])
-
-  useEffect(() => {
-    if (!jobId) return;
     fetchPhotos();
 
   }, [jobId])
 
-  const fetchComments = async () => {
-    try {
-        const response = await httpService.get(`/job-comments/${jobId}/`)
-
-        if (response.results && response.results.length > 0) {
-            response.results.reverse();
-        }
-
-        setComments(response.results || []);
-        setTotalComments(response.count || 0);
-
-    } catch (err) {
-        console.error('Failed to fetch comments', err);
-    }
-  }
 
   const fetchPhotos = async () => {
     try {
       const response = await httpService.get(`/job-photos/${jobId}/`);
-      console.log('Fetched photos:', response);
       setPhotos(response.results || []);
     
     } catch (err) {
@@ -204,7 +180,7 @@ const getStatusLabel = (status: string) => {
 
         {/* Services */}
         <View style={styles.card}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: job.service_assignments?.length > 0 ? 8 : 0 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
                         <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
@@ -235,7 +211,7 @@ const getStatusLabel = (status: string) => {
         </View>
 
         <View style={styles.card}>
-            <JobCommentsPreview comments={comments} totalComments={totalComments} />
+            <JobCommentsPreview jobId={job.id} />
         </View>
 
         {/* Pictures */}
