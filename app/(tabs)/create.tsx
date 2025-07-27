@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity,
-         StyleSheet, SafeAreaView, ScrollView, Alert,
-          KeyboardAvoidingView, Platform, FlatList, ActivityIndicator } from 'react-native';
+         StyleSheet, SafeAreaView, Alert,
+          KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import { useRouter } from 'expo-router';

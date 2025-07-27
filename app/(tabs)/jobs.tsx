@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
           Image, TouchableOpacity,
          TextInput, RefreshControl, Dimensions } from 'react-native';
-
+import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -191,7 +191,12 @@ const getStatusLabel = (status: string) => {
         setJobs(jobs || []);
         setTotalJobs(response.count || 0);
       } catch (e) {
-        console.error(e);
+         Toast.show({
+                type: 'error',
+                text1: 'Failed to fetch jobs',
+                text2: 'Please try again.',
+                position: 'top',
+                });
       } finally {
         setLoading(false);
       }
