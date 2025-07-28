@@ -10,6 +10,7 @@ import {
   ScrollView,
   Linking
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
@@ -24,15 +25,36 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    try {
-      await login(email, password);
-      router.replace('/jobs');
-    } catch (err) {
-      Alert.alert('Login Failed', 'Invalid email or password');
+  setLoading(true);
+  try {
+    const user = await login(email, password);
+    if (user) {
+      setLoading(false);
+      router.replace('/jobs'); // ✅ only after currentUser is set
+    } else {
+      throw new Error('Could not fetch user');
     }
-  };
+  } catch (err) {
+    setLoading(false);
+    Alert.alert('Login Failed', 'Invalid email or password');
+  }
+};
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <LottieView
+                    source={require('../assets/animations/progress-bar.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 150, height: 150 }}
+                />
+            </View>
+        );
+    }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -178,5 +200,11 @@ const styles = StyleSheet.create({
   link: {
     color: '#2563EB', // Tailwind's blue-500
     textDecorationLine: 'underline',
+  },
+    loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff', // or 'rgba(255,255,255,0.9)' for overlay effect
   },
 });

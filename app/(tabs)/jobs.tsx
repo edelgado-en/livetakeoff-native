@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList,
           Image, TouchableOpacity,
          TextInput, RefreshControl, Dimensions } from 'react-native';
+import LottieView from 'lottie-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -213,12 +214,19 @@ const getStatusLabel = (status: string) => {
         <TouchableOpacity onPress={() => router.push(`/job-details/${item.id}/`)}>
             <View style={styles.card}>
                 <View style={{ flexDirection: 'row' }}>
-                    <Text style={[styles.cardTitle, {marginRight: 8}]}>{item.tailNumber}</Text>
+                    <View style={styles.imageContainer}>
+                        <Image
+                        source={{ uri: item.customer.logo }}
+                        style={styles.logo}
+                        resizeMode="cover"
+                        />
+                    </View>
+                    <Text style={[styles.cardTitle, {marginHorizontal: 8}]}>{item.tailNumber}</Text>
                     <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>
                         {cropTextForDevice(item.aircraftType.name)}
                     </Text>
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <View style={styles.wrapper}>
                         <View style={styles.imageContainer}>
                             <Image
@@ -231,12 +239,7 @@ const getStatusLabel = (status: string) => {
                             <Text style={styles.name}>{cropTextForDevice(item.customer.name)}</Text>
                         </View>
                     </View>
-                   {/*  <View>
-                        <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
-                            {getStatusLabel(item.status)}
-                        </Text>
-                    </View> */}
-                </View>
+                </View> */}
 
                 <View style={styles.statusBadge}>
                     <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
@@ -249,7 +252,16 @@ const getStatusLabel = (status: string) => {
                         <Text style={styles.commentBadgeText}>{item.comments_count}</Text>
                     </View>
                 )}
+
+                <View style={{ paddingVertical: 6 }}></View>
                 
+                {!currentUser.isCustomer && (
+                    <View style={styles.section}>
+                        <Text style={styles.label}>Customer:</Text>
+                        <Text style={styles.dateText}>{cropTextForDevice(item.customer.name)}</Text>
+                    </View>
+                )}
+
                 <View style={styles.section}>
                     <Text style={styles.label}>Airport:</Text>
                     <Text style={styles.dateText}>{item.airport.initials}</Text>
@@ -351,6 +363,21 @@ const getStatusLabel = (status: string) => {
     ), [router]);
 
     const keyExtractor = useCallback((item) => item.id.toString(), [])
+
+
+    if (!currentUser || !currentUser.id) {
+        // Still loading user — avoid rendering role-based UI
+        return (
+            <View style={styles.loadingContainer}>
+                <LottieView
+                    source={require('../../assets/animations/progress-bar.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 150, height: 150 }}
+                />
+            </View>
+        )
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -469,6 +496,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flexShrink: 0,
+    position: 'relative',
+    bottom: 4
   },
   logo: {
     width: 30,
@@ -721,4 +750,10 @@ username: {
   fontSize: 13,
   marginLeft: 6,
 },
+    loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff', // or 'rgba(255,255,255,0.9)' for overlay effect
+  },
 });
