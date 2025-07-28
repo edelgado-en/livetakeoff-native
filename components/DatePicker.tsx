@@ -3,11 +3,13 @@ import {
   View,
   Text,
   Pressable,
+  Modal,
   StyleSheet,
   Switch,
-  Platform
+  Platform,
+  ScrollView
 } from 'react-native';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 
 type Props = {
@@ -19,6 +21,17 @@ type Props = {
   onToggleOnSite?: (val: boolean) => void;
 };
 
+const generateTimeOptions = () => {
+  const options = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let min = 0; min < 60; min += 15) {
+      const label = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+      options.push(label);
+    }
+  }
+  return options;
+};
+
 const DatePicker: React.FC<Props> = ({
   label,
   value,
@@ -27,37 +40,34 @@ const DatePicker: React.FC<Props> = ({
   onSiteValue = false,
   onToggleOnSite = () => {},
 }) => {
-  const [mode, setMode] = useState<'date' | 'time'>('date');
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [tempDate, setTempDate] = useState<Date | null>(null);
-
-  const defaultDate = value || new Date(Date.now() + 3600000); // now + 1 hour
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState('12:00');
 
   const openPicker = () => {
     if (!onSiteValue) {
-      setMode('date');
-      setTempDate(defaultDate);
       setPickerVisible(true);
+      if (value) {
+        const isoDate = value.toISOString().split('T')[0];
+        const time = value.toTimeString().slice(0, 5);
+        setSelectedDate(isoDate);
+        setSelectedTime(time);
+      } else {
+        setSelectedDate(new Date().toISOString().split('T')[0]);
+        setSelectedTime('12:00');
+      }
     }
   };
 
-  const handleConfirm = (selected: Date) => {
-    if (mode === 'date') {
-      setTempDate(selected);
-      setMode('time');
-    } else if (tempDate) {
-      const updated = new Date(tempDate);
-      updated.setHours(selected.getHours());
-      updated.setMinutes(selected.getMinutes());
-      onChange(updated);
-      setPickerVisible(false);
-      setMode('date');
+  const handleConfirm = () => {
+    if (selectedDate) {
+      const [hour, minute] = selectedTime.split(':').map(Number);
+      const date = new Date(selectedDate);
+      date.setHours(hour);
+      date.setMinutes(minute);
+      onChange(date);
     }
-  };
-
-  const handleCancel = () => {
     setPickerVisible(false);
-    setMode('date');
   };
 
   const handleToggleOnSite = (val: boolean) => {
@@ -97,16 +107,15 @@ const DatePicker: React.FC<Props> = ({
             </Text>
           </Pressable>
 
-          
           {value && (
             <Pressable
-                onPress={() => onChange(null)}
-                style={styles.clearIcon}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // 🔧 expands tap area
+              onPress={() => onChange(null)}
+              style={styles.clearIcon}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <MaterialIcons name="close" size={20} color="#9CA3AF" />
+              <MaterialIcons name="close" size={20} color="#9CA3AF" />
             </Pressable>
-            )}
+          )}
         </View>
 
         {showOnSiteToggle && (
@@ -122,19 +131,72 @@ const DatePicker: React.FC<Props> = ({
         )}
       </View>
 
-      <DateTimePickerModal
-  isVisible={pickerVisible}
-  mode={mode}
-  date={tempDate || new Date()}
-  is24Hour
-  onConfirm={handleConfirm}
-  onCancel={handleCancel}
-  display={Platform.OS === 'ios' ? 'default' : 'calendar'} // ✅ ensures readable text
-  confirmTextIOS="Confirm"
-  cancelTextIOS="Cancel"
-  pickerContainerStyleIOS={{ backgroundColor: '#fff', borderRadius: 16 }}
-  modalStyleIOS={{ justifyContent: 'flex-end', margin: 0 }}
-/>
+      <Modal
+        visible={pickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Calendar
+              onDayPress={(day) => setSelectedDate(day.dateString)}
+              markedDates={{
+                [selectedDate || '']: {
+                  selected: true,
+                  selectedColor: '#EF4444',
+                },
+              }}
+              theme={{
+                backgroundColor: '#1F2937',
+                calendarBackground: '#1F2937',
+                dayTextColor: '#FFFFFF',
+                monthTextColor: '#FFFFFF',
+                selectedDayBackgroundColor: '#EF4444',
+                selectedDayTextColor: '#FFFFFF',
+              }}
+            />
+
+            <View style={{ marginTop: 16 }}>
+              <Text style={styles.modalLabel}>Select Time</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingVertical: 10 }}
+              >
+                {generateTimeOptions().map((time) => (
+                  <Pressable
+                    key={time}
+                    onPress={() => setSelectedTime(time)}
+                    style={[
+                      styles.timeOption,
+                      time === selectedTime && styles.timeOptionSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.timeText,
+                        time === selectedTime && styles.timeTextSelected,
+                      ]}
+                    >
+                      {time}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <Pressable onPress={() => setPickerVisible(false)}>
+                <Text style={styles.cancel}>Cancel</Text>
+              </Pressable>
+              <Pressable onPress={handleConfirm}>
+                <Text style={styles.confirm}>Confirm</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -186,6 +248,54 @@ const styles = StyleSheet.create({
     marginRight: 6,
     fontSize: 14,
     color: '#374151',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#111827',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
+  },
+  modalLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  timeOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#374151',
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  timeOptionSelected: {
+    backgroundColor: '#EF4444',
+  },
+  timeText: {
+    color: '#D1D5DB',
+    fontSize: 14,
+  },
+  timeTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  cancel: {
+    color: '#9CA3AF',
+    fontSize: 16,
+  },
+  confirm: {
+    color: '#EF4444',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
