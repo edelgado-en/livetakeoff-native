@@ -214,7 +214,9 @@ const getStatusLabel = (status: string) => {
             <View style={styles.card}>
                 <View style={{ flexDirection: 'row' }}>
                     <Text style={[styles.cardTitle, {marginRight: 8}]}>{item.tailNumber}</Text>
-                    <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>{item.purchase_order}</Text>
+                    <Text style={{ position: 'relative', top: 4, color: '#6b7280' }}>
+                        {cropTextForDevice(item.aircraftType.name)}
+                    </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <View style={styles.wrapper}>
@@ -229,11 +231,17 @@ const getStatusLabel = (status: string) => {
                             <Text style={styles.name}>{cropTextForDevice(item.customer.name)}</Text>
                         </View>
                     </View>
-                    <View>
+                   {/*  <View>
                         <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
                             {getStatusLabel(item.status)}
                         </Text>
-                    </View>
+                    </View> */}
+                </View>
+
+                <View style={styles.statusBadge}>
+                    <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
+                        {getStatusLabel(item.status)}
+                    </Text>
                 </View>
 
                 {item.comments_count > 0 && (
@@ -242,96 +250,75 @@ const getStatusLabel = (status: string) => {
                     </View>
                 )}
                 
-                <View style={{ marginTop: 2, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.infoText}>{item.airport.initials}</Text>
-                    <Text style={styles.dot}> • </Text>
-                    <Text style={styles.infoText}>{item.fbo.name}</Text>
-                    <Text style={styles.dot}> • </Text>
-                    <Text style={styles.infoText}>{item.aircraftType.name}</Text>
-                </View>
-                
-                <View style={styles.tagContainer}>
-                    {item.isDueToday && (
-                        <Text style={styles.dueBadge}>DUE TODAY</Text>
-                    )}
-                    {item.isOverdue && (
-                        <Text style={styles.dueBadge}>OVERDUE</Text>
-                    )}
+                <View style={styles.section}>
+                    <Text style={styles.label}>Airport:</Text>
+                    <Text style={styles.dateText}>{item.airport.initials}</Text>
+                </View>    
 
-                    {item.tags?.map((tag) => {
-                        const tagStyle = getTagStyle(tag.tag_color);
-                            return (
-                                <View
-                                    key={tag.id}
-                                    style={[
-                                    styles.tag,
-                                    { borderColor: tagStyle.borderColor },
-                                    ]}
-                                >
-                                    <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                                    {tag.tag_short_name}
-                                    </Text>
-                                </View>
-                            );
-                    })}
-                </View>
-
-                {!currentUser.isCustomer && (
-                    <>
-                    <View style={styles.section}>
-                        <Text style={styles.label}>Arrival</Text>
-                        {item.on_site ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGreen]}>
-                                <Text style={styles.pillText}>On Site</Text>
-                            </View>
-                            </View>
-                        ) : item.estimatedETA == null ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGray]}>
-                                <Text style={styles.pillText}>TBD</Text>
-                            </View>
-                            </View>
-                        ) : (
-                            <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
-                        )}
-                    </View>
-
-                    <View style={styles.section}>
-                        <Text style={styles.label}>Departure</Text>
-                        {item.estimatedETD == null ? (
-                            <View style={styles.pillRow}>
-                            <View style={[styles.pill, styles.pillGray]}>
-                                <Text style={styles.pillText}>TBD</Text>
-                            </View>
-                            </View>
-                        ) : (
-                            <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
-                        )}
-                    </View>    
-                    </>
-                )}
+                <View style={styles.section}>
+                    <Text style={styles.label}>FBO:</Text>
+                    <Text style={styles.dateText}>{item.fbo.name}</Text>
+                </View>    
                 
                 <View style={styles.section}>
-                    {item.status === 'C' || item.status === 'I' ? (
-                        <>
-                        <Text style={styles.label}>Completed on</Text>
-                        <Text style={styles.dateText}>{item.completion_date}</Text>
-                        </>
-                    ) : item.completeBy ? (
-                        <>
-                        <Text style={styles.label}>Complete Before</Text>
-                        <Text style={styles.dateText}>{item.complete_before_formatted_date}</Text>
-                        </>
-                    ) : (
+                    <Text style={styles.label}>Arrival:</Text>
+                    {item.on_site ? (
                         <View style={styles.pillRow}>
-                        <Text style={styles.label}>Complete Before</Text>
+                        <View style={[styles.pill, styles.pillGreen]}>
+                            <Text style={styles.pillText}>On Site</Text>
+                        </View>
+                        </View>
+                    ) : item.estimatedETA == null ? (
+                        <View style={styles.pillRow}>
                         <View style={[styles.pill, styles.pillGray]}>
                             <Text style={styles.pillText}>TBD</Text>
                         </View>
                         </View>
+                    ) : (
+                        <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
                     )}
                 </View>
+                <View style={styles.section}>
+                    <Text style={styles.label}>Departure:</Text>
+                    {item.estimatedETD == null ? (
+                        <View style={styles.pillRow}>
+                        <View style={[styles.pill, styles.pillGray]}>
+                            <Text style={styles.pillText}>TBD</Text>
+                        </View>
+                        </View>
+                    ) : (
+                        <Text style={styles.dateText}>{item.departure_formatted_date}</Text>
+                    )}
+                </View>    
+                
+                {/* Tags */}
+                {item.tags && item.tags.length > 0 && (
+                    <View style={styles.tagContainer}>
+                        {item.isDueToday && (
+                            <Text style={styles.dueBadge}>DUE TODAY</Text>
+                        )}
+                        {item.isOverdue && (
+                            <Text style={styles.dueBadge}>OVERDUE</Text>
+                        )}
+
+                        {item.tags?.map((tag) => {
+                            const tagStyle = getTagStyle(tag.tag_color);
+                                return (
+                                    <View
+                                        key={tag.id}
+                                        style={[
+                                        styles.tag,
+                                        { borderColor: tagStyle.borderColor },
+                                        ]}
+                                    >
+                                        <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                        {tag.tag_short_name}
+                                        </Text>
+                                    </View>
+                                );
+                        })}
+                    </View>
+                )}
 
                 {(currentUser.isAdmin ||
                             currentUser.isSuperUser ||
@@ -392,7 +379,7 @@ const getStatusLabel = (status: string) => {
             />
         </View>
 
-        <View style={{ marginBottom: 10, marginLeft: isTablet ? 0 : 4 }}>
+        <View style={{ marginBottom: 10, marginLeft: isTablet ? 0 : 8 }}>
             <Text>{totalJobs} Open Jobs</Text>
         </View>
         <FlatList
@@ -484,9 +471,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
   nameContainer: {
     position: 'relative',
@@ -500,8 +487,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    gap: 8,
-    paddingVertical: 6,
+    gap: 6,
+    marginTop: 16,
   },
   tag: {
     borderWidth: 1,
@@ -513,7 +500,6 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    fontWeight: '500',
   },
    button: {
     backgroundColor: '#ef4444', // Tailwind's red-500
@@ -534,13 +520,12 @@ const styles = StyleSheet.create({
   },
   statusPill: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     alignSelf: 'flex-start',
     overflow: 'hidden',
-    position: true,
     top: 12,
   },
     section: {
@@ -552,7 +537,8 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#6b7280', // Tailwind's gray-500
-  },
+    width: 70  
+},
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -677,7 +663,7 @@ pillGray: {
 },
   commentBadge: {
   position: 'absolute',
-  top: 12,
+  top: 52,
   right: 12,
   backgroundColor: '#EF4444', // Tailwind red-500
   width: 28,
@@ -686,6 +672,14 @@ pillGray: {
   justifyContent: 'center',
   alignItems: 'center',
   transform: [{ scale: 0.9 }],
+  zIndex: 10,
+},
+  statusBadge: {
+  position: 'absolute',
+  top: 6,
+  right: 12,
+  justifyContent: 'center',
+  alignItems: 'center',
   zIndex: 10,
 },
   commentBadgeText: {

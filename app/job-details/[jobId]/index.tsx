@@ -132,7 +132,7 @@ const getStatusLabel = (status: string) => {
         {/* Header Row */}
         <View style={styles.header}>
             <TouchableOpacity
-                style={styles.backButton}
+                style={[styles.backButton, {marginLeft: isTablet ? 0 : 7}]}
                 onPress={() => router.back()}
             >
                 <Ionicons name="arrow-back" size={20} color="#4B5563" />
