@@ -2,11 +2,16 @@
 import { View, Text, StyleSheet, TouchableOpacity,
      ScrollView, Dimensions, useWindowDimensions, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useContext, useMemo } from 'react';
+import { useEffect, useState, useContext, useMemo, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
 import { Feather } from '@expo/vector-icons';
+import Modal from 'react-native-modal';
+import { TextInput as PaperTextInput } from 'react-native-paper';
+import Toast from 'react-native-toast-message';
+
+import UserAvatar from '../../../components/UserAvatar';
 
 import httpService from '../../../services/httpService';
 
@@ -28,6 +33,10 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { currentUser } = useContext(AuthContext);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const inputRef = useRef<PaperTextInput>(null);
+  const [newComment, setNewComment] = useState('');
+  const [commentsRefreshKey, setCommentsRefreshKey] = useState(0);
   
   const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<any>(null);
@@ -83,6 +92,14 @@ const getStatusLabel = (status: string) => {
 };
 
   useEffect(() => {
+    if (isModalVisible) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 250);
+    }
+  }, [isModalVisible]);
+
+  useEffect(() => {
     const fetchJob = async () => {
       try {
         const response = await httpService.get(`/jobs/${jobId}/`);
@@ -103,6 +120,36 @@ const getStatusLabel = (status: string) => {
 
   }, [jobId])
 
+    const saveComment = async () => {
+    if (!newComment.trim()) return;
+
+    try {
+      await httpService.post(`/job-comments/${jobId}/`, {
+        comment: newComment,
+        isPublic: true,
+      });
+
+      setNewComment('');
+      setModalVisible(false);
+
+      setCommentsRefreshKey((prev) => prev + 1);
+    
+      Toast.show({
+      type: 'success',
+      text1: 'Our team has been notified!',
+      position: 'top',
+    });
+
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to post comment',
+        text2: 'Please try again.',
+        position: 'top',
+        });
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
 
@@ -112,6 +159,9 @@ const getStatusLabel = (status: string) => {
 
         const photosResponse = await httpService.get(`/job-photos/${jobId}/`);
         setPhotos(photosResponse.results || []);
+        
+        setCommentsRefreshKey((prev) => prev + 1);
+
     } catch (error) {
         console.error('Refresh failed:', error);
     } finally {
@@ -198,9 +248,31 @@ const getStatusLabel = (status: string) => {
             {isTablet ? (
                 <View style={{ flexDirection: 'row', gap: 6 }}>
                     <View style={[styles.card, { flex: 4 }]}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={styles.cardTitle}>Job Info</Text>
-                            <Text>{job.purchase_order}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 14, color: '#374151', marginRight: 12 }}>
+                                    {job.purchase_order}
+                                </Text>
+                                
+                                <TouchableOpacity
+                                    style={{
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: 16,
+                                        backgroundColor: '#fff',
+                                        borderWidth: 1,
+                                        borderColor: '#6B7280',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                    onPress={() => {
+                                        setNewComment('');
+                                        setModalVisible(true);
+                                    }}>
+                                    <Feather name="edit-2" size={16} color="#6B7280" />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <InfoTable job={job} />
                     </View>
@@ -253,7 +325,7 @@ const getStatusLabel = (status: string) => {
             
             {/* Comments */}
             <View style={styles.card}>
-                <JobCommentsPreview jobId={job.id} />
+                <JobCommentsPreview jobId={job.id} refreshKey={commentsRefreshKey} />
             </View>
 
             {/* Pictures */}
@@ -283,6 +355,41 @@ const getStatusLabel = (status: string) => {
                 <ImageGallery images={photos}/>
             </View>
         </ScrollView>
+        <Modal
+        isVisible={isModalVisible}
+        backdropOpacity={0.5}
+        onBackdropPress={() => setModalVisible(false)}
+        onBackButtonPress={() => setModalVisible(false)}
+        useNativeDriver
+        hideModalContentWhileAnimating
+      >
+        <View style={styles.modalContainer}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+            <UserAvatar avatar={currentUser.avatar} initials={currentUser.initials} />
+            <View style={{ flex: 1 }}>
+              <PaperTextInput
+                ref={inputRef}
+                label="Tell us what would you like to change..."
+                value={newComment}
+                onChangeText={setNewComment}
+                mode="outlined"
+                multiline
+                numberOfLines={5}
+                style={styles.textarea}
+                theme={{ colors: { outline: '#D1D5DB' } }}
+              />
+            </View>
+          </View>
+          <View style={styles.modalActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.postButton} onPress={saveComment}>
+              <Text style={styles.postText}>Post</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -310,7 +417,7 @@ const styles = StyleSheet.create({
   },
     statusPill: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: isTablet ? 18 : 16,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -434,5 +541,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff', // or 'rgba(255,255,255,0.9)' for overlay effect
+  },
+    modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+  },
+  textarea: {
+    marginBottom: 20,
+    width: '100%',
+    minHeight: 100,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  cancelButton: {
+    marginRight: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  cancelText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  postButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  postText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

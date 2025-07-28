@@ -20,7 +20,12 @@ import httpService from '../services/httpService';
 
 const { width } = Dimensions.get('window');
 
-const JobCommentsPreview = ({ jobId }: { jobId: number }) => {
+type Props = {
+  jobId: number;
+  refreshKey?: number; // optional if you want a default
+};
+
+const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const { currentUser } = useContext(AuthContext);
   const [isModalVisible, setModalVisible] = useState(false);
   const inputRef = useRef<PaperTextInput>(null);
@@ -30,7 +35,7 @@ const JobCommentsPreview = ({ jobId }: { jobId: number }) => {
 
   useEffect(() => {
     fetchComments();
-  }, []);
+  }, [jobId, refreshKey]);
 
   useEffect(() => {
     if (isModalVisible) {
