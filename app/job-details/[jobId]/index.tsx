@@ -1,6 +1,6 @@
 // app/(tabs)/job-details/[jobId]/index.tsx
 import { View, Text, StyleSheet, TouchableOpacity,
-     ScrollView, Dimensions, useWindowDimensions, Platform } from 'react-native';
+     ScrollView, Dimensions, useWindowDimensions, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,7 +28,8 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { currentUser } = useContext(AuthContext);
-
+  
+  const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -102,6 +103,22 @@ const getStatusLabel = (status: string) => {
 
   }, [jobId])
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+        const response = await httpService.get(`/jobs/${jobId}/`);
+        setJob(response);
+
+        const photosResponse = await httpService.get(`/job-photos/${jobId}/`);
+        setPhotos(photosResponse.results || []);
+    } catch (error) {
+        console.error('Refresh failed:', error);
+    } finally {
+        setRefreshing(false);
+    }
+    };
+
 
   const fetchPhotos = async () => {
     try {
@@ -128,134 +145,143 @@ const getStatusLabel = (status: string) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.container}>
-        {/* Header Row */}
-        <View style={styles.header}>
-            <TouchableOpacity
-                style={[styles.backButton, {marginLeft: isTablet ? 0 : 7}]}
-                onPress={() => router.back()}
+        <ScrollView 
+            contentContainerStyle={styles.container}
+            refreshControl={
+                    <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    />
+                }
             >
-                <Ionicons name="arrow-back" size={20} color="#4B5563" />
-            </TouchableOpacity>
+            {/* Header Row */}
+            <View style={styles.header}>
+                <TouchableOpacity
+                    style={[styles.backButton, {marginLeft: isTablet ? 0 : 7}]}
+                    onPress={() => router.back()}
+                >
+                    <Ionicons name="arrow-back" size={20} color="#4B5563" />
+                </TouchableOpacity>
 
-            <View style={styles.jobTitleContainer}>
-                <Text style={styles.tailNumber}>{job.tailNumber}</Text>
-                <Text style={styles.customerName}>{cropTextForDevice(job.customer.name)}</Text>
+                <View style={styles.jobTitleContainer}>
+                    <Text style={styles.tailNumber}>{job.tailNumber}</Text>
+                    <Text style={styles.customerName}>{cropTextForDevice(job.customer.name)}</Text>
+                </View>
+
+                <Text style={[styles.statusPill, getStatusStyle(job.status)]}>
+                    {getStatusLabel(job.status)}
+                </Text>
             </View>
 
-            <Text style={[styles.statusPill, getStatusStyle(job.status)]}>
-                {getStatusLabel(job.status)}
-            </Text>
-        </View>
+            {!currentUser.isCustomer && (
+                <View style={styles.tagContainer}>
+                    {job.tags?.map((tag) => {
+                        const tagStyle = getTagStyle(tag.tag_color);
+                        return (
+                            <View
+                                key={tag.id}
+                                style={[
+                                styles.tag,
+                                { borderColor: tagStyle.borderColor },
+                                ]}
+                            >
+                                <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                                {tag.tag_short_name}
+                                </Text>
+                            </View>
+                        );
+                    })}
+                </View>
+            )}
 
-        {!currentUser.isCustomer && (
-            <View style={styles.tagContainer}>
-                {job.tags?.map((tag) => {
-                    const tagStyle = getTagStyle(tag.tag_color);
-                    return (
-                        <View
-                            key={tag.id}
-                            style={[
-                            styles.tag,
-                            { borderColor: tagStyle.borderColor },
-                            ]}
-                        >
-                            <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                            {tag.tag_short_name}
-                            </Text>
+            {/* Job Info */}
+            {isTablet ? (
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <View style={[styles.card, { flex: 4 }]}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Text style={styles.cardTitle}>Job Info</Text>
+                            <Text>{job.purchase_order}</Text>
                         </View>
-                    );
-                })}
-            </View>
-        )}
+                        <InfoTable job={job} />
+                    </View>
 
-        {/* Job Info */}
-        {isTablet ? (
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-                <View style={[styles.card, { flex: 4 }]}>
+                    <View style={[styles.card, { flex: 1 }]}>
+                        <JobStatusSteps jobId={job.id} jobCurrentStatus={job.status} />
+                    </View>
+                </View>
+            ) : (
+                <View style={styles.card}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={styles.cardTitle}>Job Info</Text>
                         <Text>{job.purchase_order}</Text>
                     </View>
                     <InfoTable job={job} />
                 </View>
+            )}
 
-                <View style={[styles.card, { flex: 1 }]}>
-                    <JobStatusSteps jobId={job.id} jobCurrentStatus={job.status} />
-                </View>
-            </View>
-        ) : (
+            {/* Services */}
             <View style={styles.card}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.cardTitle}>Job Info</Text>
-                    <Text>{job.purchase_order}</Text>
-                </View>
-                <InfoTable job={job} />
-            </View>
-        )}
-
-        {/* Services */}
-        <View style={styles.card}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: job.service_assignments?.length > 0 ? 8 : 0 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
-                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
-                    </View>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: '#ffffff',
-                            borderWidth: 1,
-                            borderColor: '#D1D5DB', // Tailwind gray-300
-                            borderRadius: 8,
-                            paddingVertical: 6,
-                            paddingHorizontal: 6,
-                            flexDirection: 'row', alignItems: 'center'
-                        }}
-                    >
-                        <Feather name="plus" size={16} color="#3B82F6" />
-                        <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
-                            Add
-                        </Text>
-                    </TouchableOpacity>
-            </View>
-
-            <ServiceGallery
-             services={job.service_assignments}
-             showRemove={true}
-             onRemove={(id) => console.log('Remove service with ID:', id)}
-            />
-        </View>
-
-        <View style={styles.card}>
-            <JobCommentsPreview jobId={job.id} />
-        </View>
-
-        {/* Pictures */}
-        <View style={styles.card}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Pictures</Text>
-                        <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{photos.length}</Text>
-                    </View>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: '#ffffff',
-                            borderWidth: 1,
-                            borderColor: '#D1D5DB', // Tailwind gray-300
-                            borderRadius: 8,
-                            paddingVertical: 6,
-                            paddingHorizontal: 6,
-                            flexDirection: 'row', alignItems: 'center'
-                        }}
-                    >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: job.service_assignments?.length > 0 ? 8 : 0 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
+                            <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: '#ffffff',
+                                borderWidth: 1,
+                                borderColor: '#D1D5DB', // Tailwind gray-300
+                                borderRadius: 8,
+                                paddingVertical: 6,
+                                paddingHorizontal: 6,
+                                flexDirection: 'row', alignItems: 'center'
+                            }}
+                        >
                             <Feather name="plus" size={16} color="#3B82F6" />
                             <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
                                 Add
                             </Text>
-                    </TouchableOpacity>
-                  </View>
-            <ImageGallery images={photos}/>
-        </View>
+                        </TouchableOpacity>
+                </View>
+
+                <ServiceGallery
+                services={job.service_assignments}
+                showRemove={true}
+                onRemove={(id) => console.log('Remove service with ID:', id)}
+                />
+            </View>
+            
+            {/* Comments */}
+            <View style={styles.card}>
+                <JobCommentsPreview jobId={job.id} />
+            </View>
+
+            {/* Pictures */}
+            <View style={styles.card}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Pictures</Text>
+                            <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{photos.length}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: '#ffffff',
+                                borderWidth: 1,
+                                borderColor: '#D1D5DB', // Tailwind gray-300
+                                borderRadius: 8,
+                                paddingVertical: 6,
+                                paddingHorizontal: 6,
+                                flexDirection: 'row', alignItems: 'center'
+                            }}
+                        >
+                                <Feather name="plus" size={16} color="#3B82F6" />
+                                <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
+                                    Add
+                                </Text>
+                        </TouchableOpacity>
+                    </View>
+                <ImageGallery images={photos}/>
+            </View>
         </ScrollView>
     </SafeAreaView>
   );

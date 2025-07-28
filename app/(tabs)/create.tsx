@@ -948,11 +948,13 @@ export default function CreateJobScreen() {
                             onChange={setEstimatedDepartureDate}
                         />
 
-                        <DatePicker
-                            label="Complete By"
-                            value={completeByDate}
-                            onChange={setCompleteByDate}
-                        />
+                        {!currentUser.isCustomer && (
+                                <DatePicker
+                                    label="Complete By"
+                                    value={completeByDate}
+                                    onChange={setCompleteByDate}
+                                />
+                        )}
 
                         {!currentUser.isCustomer && (
                             <TextInput

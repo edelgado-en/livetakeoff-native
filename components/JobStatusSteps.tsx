@@ -103,11 +103,11 @@ const JobStatusSteps = ({ jobId, jobCurrentStatus }) => {
                 fontSize: 14,
                 color:
                     step.status === 'current'
-                    ? '#3B82F6'
+                    ? '#10B981'
                     : step.status === 'complete'
-                    ? '#3B82F6'
+                    ? '#000000'
                     : '#9CA3AF',
-                fontWeight: step.status === 'current' ? '500' : '400',
+                fontWeight: step.status === 'current' ? '600' : '400',
                 }}
             >
                 {step.name}
