@@ -251,27 +251,30 @@ const getStatusLabel = (status: string) => {
                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={styles.cardTitle}>Job Info</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 14, color: '#374151', marginRight: 12 }}>
+                                <Text style={{ fontSize: 14, color: '#374151'}}>
                                     {job.purchase_order}
                                 </Text>
                                 
-                                <TouchableOpacity
-                                    style={{
-                                        width: 32,
-                                        height: 32,
-                                        borderRadius: 16,
-                                        backgroundColor: '#fff',
-                                        borderWidth: 1,
-                                        borderColor: '#6B7280',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                    }}
-                                    onPress={() => {
-                                        setNewComment('');
-                                        setModalVisible(true);
-                                    }}>
-                                    <Feather name="edit-2" size={16} color="#6B7280" />
-                                </TouchableOpacity>
+                                {currentUser.isCustomer && (
+                                    <TouchableOpacity
+                                        style={{
+                                            width: 32,
+                                            height: 32,
+                                            borderRadius: 16,
+                                            marginLeft: 12,
+                                            backgroundColor: '#fff',
+                                            borderWidth: 1,
+                                            borderColor: '#6B7280',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
+                                        onPress={() => {
+                                            setNewComment('');
+                                            setModalVisible(true);
+                                        }}>
+                                        <Feather name="edit-2" size={16} color="#6B7280" />
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                         <InfoTable job={job} />
@@ -283,10 +286,35 @@ const getStatusLabel = (status: string) => {
                 </View>
             ) : (
                 <View style={styles.card}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={styles.cardTitle}>Job Info</Text>
-                        <Text>{job.purchase_order}</Text>
-                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={styles.cardTitle}>Job Info</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 14, color: '#374151' }}>
+                                    {job.purchase_order}
+                                </Text>
+                                
+                                {currentUser.isCustomer && (
+                                    <TouchableOpacity
+                                        style={{
+                                            width: 32,
+                                            height: 32,
+                                            borderRadius: 16,
+                                            marginLeft: 12,
+                                            backgroundColor: '#fff',
+                                            borderWidth: 1,
+                                            borderColor: '#6B7280',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
+                                        onPress={() => {
+                                            setNewComment('');
+                                            setModalVisible(true);
+                                        }}>
+                                        <Feather name="edit-2" size={16} color="#6B7280" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
                     <InfoTable job={job} />
                 </View>
             )}
