@@ -226,20 +226,6 @@ const getStatusLabel = (status: string) => {
                         {cropTextForDevice(item.aircraftType.name)}
                     </Text>
                 </View>
-                {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <View style={styles.wrapper}>
-                        <View style={styles.imageContainer}>
-                            <Image
-                            source={{ uri: item.customer.logo }}
-                            style={styles.logo}
-                            resizeMode="cover"
-                            />
-                        </View>
-                        <View style={styles.nameContainer}>
-                            <Text style={styles.name}>{cropTextForDevice(item.customer.name)}</Text>
-                        </View>
-                    </View>
-                </View> */}
 
                 <View style={styles.statusBadge}>
                     <Text style={[styles.statusPill, getStatusStyle(item.status)]}>
@@ -484,7 +470,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#ef4444', // Tailwind's red-500
   },
@@ -705,7 +691,7 @@ pillGray: {
 },
   statusBadge: {
   position: 'absolute',
-  top: 6,
+  top: 4,
   right: 12,
   justifyContent: 'center',
   alignItems: 'center',
