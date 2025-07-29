@@ -16,11 +16,14 @@ import { AuthContext } from '../../providers/AuthProvider';
 import httpService from '../../services/httpService';
 
 import { cropTextForDevice } from '../../utils/textUtils';
+import { useRegisterPushTokenOnce } from '../../hooks/useRegisterPushTokenOnce';
 
 const screenWidth = Dimensions.get('window').width;  
 const isTablet = screenWidth >= 768; // adjust as needed for your breakpoint
 
 export default function JobsScreen() {
+  useRegisterPushTokenOnce();
+  
   const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
   const router = useRouter();
