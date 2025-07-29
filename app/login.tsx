@@ -14,8 +14,42 @@ import LottieView from 'lottie-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
-
 import { TextInput } from 'react-native-paper';
+
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+
+import httpService from '../services/httpService';
+
+async function registerForPushNotificationsAsync() {
+  let token;
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.warn('Push notification permission not granted');
+    return;
+  }
+
+  if (Device.isDevice) {
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log('📲 Expo Push Token:', token);
+
+    if (token) {
+        await httpService.post('/users/push-token', {
+          expo_push_token: token,
+        });
+    }
+
+  } else {
+    console.warn('Must use physical device for push notifications');
+  }
+}
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -33,7 +67,12 @@ export default function LoginScreen() {
     const user = await login(email, password);
     if (user) {
       setLoading(false);
-      router.replace('/jobs'); // ✅ only after currentUser is set
+
+      // Token is saved at this point — safe to make authenticated requests
+      await registerForPushNotificationsAsync();
+
+      router.replace('/jobs'); // only after currentUser is set
+    
     } else {
       throw new Error('Could not fetch user');
     }

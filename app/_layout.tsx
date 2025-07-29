@@ -9,8 +9,18 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from '../toastConfig';
+import * as Notifications from 'expo-notifications';
 
 enableScreens();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,  // shows alert while app is foregrounded
+    shouldShowList: true,    // puts it in the notification center
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
