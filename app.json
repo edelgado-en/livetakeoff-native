@@ -2,11 +2,12 @@
   "expo": {
     "name": "LiveTakeoff",
     "slug": "livetakeoff",
-    "version": "1.4.3",
+    "version": "1.4.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-notifications"
     ],
     "userInterfaceStyle": "light",
     "splash": {
@@ -23,13 +24,14 @@
     "ios": {
         "supportsTablet": true,
         "bundleIdentifier": "com.livetakeoff.app",
-        "buildNumber": "1.4.3",
+        "buildNumber": "1.4.6",
         "infoPlist": {
             "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
             "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
             "ITSAppUsesNonExemptEncryption": false,
             "UIBackgroundModes": ["remote-notification"],
-            "NSUserTrackingUsageDescription": "This identifier will be used to send you notifications."
+            "NSUserTrackingUsageDescription": "This identifier will be used to send you notifications.",
+            "NSUserNotificationUsageDescription": "This app uses notifications to alert you about job updates."
         }
     },
     "android": {
