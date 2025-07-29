@@ -6,9 +6,6 @@
   "build": {
     "production": {
       "ios": {
-        "entitlements": {
-            "com.apple.developer.user-notifications": true
-        },
         "autoIncrement": true
       }
     },

@@ -21,14 +21,16 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.livetakeoff.app",
-      "buildNumber": "1.4.3",
-      "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
-        "ITSAppUsesNonExemptEncryption": false
-      }
+        "supportsTablet": true,
+        "bundleIdentifier": "com.livetakeoff.app",
+        "buildNumber": "1.4.3",
+        "infoPlist": {
+            "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
+            "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
+            "ITSAppUsesNonExemptEncryption": false,
+            "UIBackgroundModes": ["remote-notification"],
+            "NSUserTrackingUsageDescription": "This identifier will be used to send you notifications."
+        }
     },
     "android": {
       "package": "com.livetakeoff.app",
