@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#6b7280', // Tailwind's gray-500
-    width: 70  
+    width: 90  
 },
   badge: {
     flexDirection: 'row',

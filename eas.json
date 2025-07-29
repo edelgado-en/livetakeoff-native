@@ -5,6 +5,9 @@
   },
   "build": {
     "production": {
+      "ios": {
+        "buildType": "release"
+      },
       "autoIncrement": true
     },
     "development": {
