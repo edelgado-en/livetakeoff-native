@@ -11,6 +11,7 @@ import {
   Linking
 } from 'react-native';
 import LottieView from 'lottie-react-native';
+import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
@@ -21,7 +22,7 @@ import * as Device from 'expo-device';
 
 import httpService from '../services/httpService';
 
-async function registerForPushNotificationsAsync() {
+async function registerForPushNotificationsAsync(accessToken: string) {
   let token;
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -41,11 +42,16 @@ async function registerForPushNotificationsAsync() {
     console.log('📲 Expo Push Token:', token);
 
     if (token) {
-        await httpService.post('/users/push-token', {
-          expo_push_token: token,
-        });
+      // Use raw fetch or inject the token into httpService
+      await fetch('https://api-livetakeoff.herokuapp.com/api/users/push-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `JWT ${accessToken}`,
+        },
+        body: JSON.stringify({ expo_push_token: token }),
+      });
     }
-
   } else {
     console.warn('Must use physical device for push notifications');
   }
@@ -68,8 +74,11 @@ export default function LoginScreen() {
     if (user) {
       setLoading(false);
 
-      // Token is saved at this point — safe to make authenticated requests
-      await registerForPushNotificationsAsync();
+      // Get token directly from SecureStore, or return it from login()
+      const accessToken = await SecureStore.getItemAsync('accessToken');
+      if (accessToken) {
+        await registerForPushNotificationsAsync(accessToken);
+      }
 
       router.replace('/jobs'); // only after currentUser is set
     
