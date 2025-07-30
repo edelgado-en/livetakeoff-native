@@ -333,7 +333,7 @@ const getStatusLabel = (status: string) => {
                             <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
                             <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
                         </View>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             style={{
                                 backgroundColor: '#ffffff',
                                 borderWidth: 1,
@@ -348,7 +348,7 @@ const getStatusLabel = (status: string) => {
                             <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
                                 Add
                             </Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                 </View>
 
                 <ServiceGallery
