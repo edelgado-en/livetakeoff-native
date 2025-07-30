@@ -180,6 +180,13 @@ const getStatusLabel = (status: string) => {
     }
   }
 
+  const handleRemoveService = async (id: number) => {
+    setJob((prev) => ({
+        ...prev,
+        service_assignments: prev.service_assignments.filter((service) => service.id !== id),
+    }));
+  };
+
   if (loading || !job) {
     return (
         <View style={styles.loadingContainer}>
@@ -345,9 +352,9 @@ const getStatusLabel = (status: string) => {
                 </View>
 
                 <ServiceGallery
-                services={job.service_assignments}
-                showRemove={true}
-                onRemove={(id) => console.log('Remove service with ID:', id)}
+                    services={job.service_assignments}
+                    showRemove={currentUser.isCustomer && (job.status === 'A' || job.status === 'U')}
+                    onRemove={handleRemoveService}
                 />
             </View>
             
