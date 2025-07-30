@@ -1,15 +1,17 @@
-// app/(tabs)/job-details/[jobId]/index.tsx
 import { View, Text, StyleSheet, TouchableOpacity,
-     ScrollView, Dimensions, useWindowDimensions, RefreshControl } from 'react-native';
+     ScrollView, Dimensions, useWindowDimensions,
+      RefreshControl, Alert, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useContext, useMemo, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
+import { Button, IconButton } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
 
 import UserAvatar from '../../../components/UserAvatar';
 
@@ -43,6 +45,8 @@ export default function JobDetailsScreen() {
   const [loading, setLoading] = useState(true);
 
   const [photos, setPhotos] = useState([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
   const isTablet = width >= 768;
 
@@ -180,6 +184,75 @@ const getStatusLabel = (status: string) => {
     }
   }
 
+  const handleUploadPictures = async () => {
+    const formData = new FormData()
+    formData.append("is_customer", true);
+    
+    // Convert each image URI into a blob and append
+    for (const uri of images) {
+        const filename = uri.split('/').pop() || 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : `image`;
+
+        formData.append('photo', {
+        uri,
+        name: filename,
+        type,
+        } as any); // React Native's FormData needs this cast
+    }
+
+    setImageUploadLoading(true);
+
+    try {
+        await httpService.post(`/job-photos/upload/${jobId}/`, formData)
+
+        setImages([]);
+
+        Toast.show({
+            type: 'success',
+            text1: 'Pictures uploaded!',
+            position: 'top',
+        });
+
+        fetchPhotos();
+
+    } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to upload pictures',
+          text2: 'Please try again.',
+          position: 'top',
+        });
+    } finally {
+        setImageUploadLoading(false);
+    }
+
+  }
+
+  const pickImages = async () => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
+  
+      if (!result.canceled) {
+        const uris = result.assets.map(asset => asset.uri);
+        setImages(prev => [...prev, ...uris]);
+      }
+    };
+
+  const removeImage = (uri: string) => {
+    Alert.alert('Remove Image', 'Are you sure you want to remove this image?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => setImages(prev => prev.filter(img => img !== uri)),
+      },
+    ]);
+  };
+
   const handleRemoveService = async (id: number) => {
     setJob((prev) => ({
         ...prev,
@@ -199,6 +272,7 @@ const getStatusLabel = (status: string) => {
             </View>
         );
   }
+
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -333,22 +407,6 @@ const getStatusLabel = (status: string) => {
                             <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Services</Text>
                             <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{job.service_assignments?.length}</Text>
                         </View>
-                        {/* <TouchableOpacity
-                            style={{
-                                backgroundColor: '#ffffff',
-                                borderWidth: 1,
-                                borderColor: '#D1D5DB', // Tailwind gray-300
-                                borderRadius: 8,
-                                paddingVertical: 6,
-                                paddingHorizontal: 6,
-                                flexDirection: 'row', alignItems: 'center'
-                            }}
-                        >
-                            <Feather name="plus" size={16} color="#3B82F6" />
-                            <Text style={{ fontSize: 14, color: '#3B82F6', fontWeight: '500', marginLeft: 4 }}>
-                                Add
-                            </Text>
-                        </TouchableOpacity> */}
                 </View>
 
                 <ServiceGallery
@@ -365,12 +423,22 @@ const getStatusLabel = (status: string) => {
 
             {/* Pictures */}
             <View style={styles.card}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                {imageUploadLoading ? (
+                    <LottieView
+                        source={require('../../../assets/animations/progress-bar.json')}
+                        autoPlay
+                        loop
+                        style={{ width: 150, height: 150, alignSelf: 'center' }}
+                    />
+                ) : (
+                    <>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Text style={{ fontSize: 16, fontWeight: '500', color: '#111827' }}>Pictures</Text>
                             <Text style={{ fontSize: 14, color: '#6B7280', marginLeft: 6, position: 'relative', top:1 }}>{photos.length}</Text>
                         </View>
                         <TouchableOpacity
+                            onPress={pickImages}
                             style={{
                                 backgroundColor: '#ffffff',
                                 borderWidth: 1,
@@ -387,7 +455,41 @@ const getStatusLabel = (status: string) => {
                                 </Text>
                         </TouchableOpacity>
                     </View>
-                <ImageGallery images={photos}/>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.imageContainer}
+                        >
+                        {images.map((uri, index) => (
+                            <View key={index} style={styles.imageWrapper}>
+                            <Image source={{ uri }} style={styles.image} />
+                            <IconButton
+                                icon="close"
+                                size={16}
+                                onPress={() => removeImage(uri)}
+                                style={styles.removeButton}
+                                iconColor="#fff"
+                            />
+                            </View>
+                        ))}
+                    </ScrollView>
+
+                    {images.length > 0 && (
+                        <Button
+                            mode="outlined"
+                            style={[styles.outlinedButton, { marginBottom: 20 }]}
+                            labelStyle={styles.buttonLabel}
+                            onPress={handleUploadPictures}
+                            >
+                            Upload Pictures
+                        </Button>
+                    )}
+
+                    <ImageGallery images={photos}/>                
+                    </>
+                )}
+                
             </View>
         </ScrollView>
         <Modal
@@ -424,7 +526,7 @@ const getStatusLabel = (status: string) => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+        </Modal>
     </SafeAreaView>
   );
 }
@@ -610,5 +712,36 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+  },
+    imageContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  imageWrapper: {
+    position: 'relative',
+  },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+    removeButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#ef4444',
+    borderRadius: 9999,
+    zIndex: 1,
+  },
+    outlinedButton: {
+    width: '100%',
+    borderRadius: 12,
+  },
+  buttonLabel: {
+    fontSize: 14,
+    color: '#6B7280',
   },
 });

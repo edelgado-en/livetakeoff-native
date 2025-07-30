@@ -22,18 +22,6 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
     }
   };
 
-  const takePhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const uris = result.assets.map(asset => asset.uri);
-      setImages(prev => [...prev, ...uris]);
-    }
-  };
-
   const removeImage = (uri: string) => {
     Alert.alert('Remove Image', 'Are you sure you want to remove this image?', [
       { text: 'Cancel', style: 'cancel' },
@@ -57,15 +45,6 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
       >
         Select from Gallery
       </Button>
-      {/* <Button
-        mode="outlined"
-        icon="camera"
-        onPress={takePhoto}
-        style={styles.button}
-        labelStyle={styles.buttonLabel}
-      >
-        Take Photo
-      </Button> */}
 
       <ScrollView
         horizontal
