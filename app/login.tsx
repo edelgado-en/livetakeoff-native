@@ -117,14 +117,8 @@ export default function LoginScreen() {
           By logging in, you agree to our{' '}
           <Text
             style={styles.link}
-            onPress={() => Linking.openURL('https://www.livetakeoff.com/terms-and-conditions')}>
-            Terms of Service
-          </Text>{' '}
-          and{' '}
-          <Text
-            style={styles.link}
             onPress={() => Linking.openURL('https://www.livetakeoff.com/privacy-policy')}>
-            Privacy Policy
+            Terms and Conditions and Privacy Policy
           </Text>.
         </Text>
       </View>

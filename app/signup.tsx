@@ -250,11 +250,8 @@ export default function SignupScreen() {
 
         <Text style={styles.agreement}>
           By signing up, you agree to our{' '}
-          <Text style={styles.link} onPress={() => Linking.openURL('https://www.livetakeoff.com/terms-and-conditions')}>
-            Terms and Conditions
-          </Text>{' '}and{' '}
           <Text style={styles.link} onPress={() => Linking.openURL('https://www.livetakeoff.com/privacy-policy')}>
-            Privacy Policy
+            Terms and Conditions and Privacy Policy
           </Text>.
         </Text>
 
