@@ -57,7 +57,7 @@ export default function JobCommentsScreen() {
       });
       setComments((prev) => [...prev, response]);
       setNewComment('');
-      scrollViewRef.current?.scrollToEnd({ animated: true });
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -86,7 +86,7 @@ export default function JobCommentsScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <View style={styles.container}>
           <View style={styles.header}>
@@ -103,7 +103,7 @@ export default function JobCommentsScreen() {
 
           <ScrollView
             ref={scrollViewRef}
-            contentContainerStyle={[styles.commentsContainer, { flexGrow: 1 }]}
+            contentContainerStyle={[styles.commentsContainer, { paddingBottom: 100 }]}
             keyboardShouldPersistTaps="handled"
           >
             {comments.length === 0 ? (
@@ -122,22 +122,22 @@ export default function JobCommentsScreen() {
                 </View>
               ))
             )}
-
-            <View style={styles.inputContainerStatic}>
-              <TextInput
-                value={newComment}
-                onChangeText={setNewComment}
-                placeholder="Write a comment..."
-                mode="outlined"
-                style={styles.textInput}
-              />
-              {newComment.trim().length > 0 && (
-                <TouchableOpacity style={styles.postButton} onPress={handlePostComment}>
-                  <Text style={styles.postButtonText}>Post</Text>
-                </TouchableOpacity>
-              )}
-            </View>
           </ScrollView>
+
+          <View style={styles.inputContainerStatic}>
+            <TextInput
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder="Write a comment..."
+              mode="outlined"
+              style={styles.textInput}
+            />
+            {newComment.trim().length > 0 && (
+              <TouchableOpacity style={styles.postButton} onPress={handlePostComment}>
+                <Text style={styles.postButtonText}>Post</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
   commentsContainer: {
     paddingTop: 16,
     paddingHorizontal: isTablet ? 16 : 8,
-    paddingBottom: 20,
     backgroundColor: '#fff',
   },
   commentCard: {
@@ -224,6 +223,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   textInput: {
     flex: 1,
