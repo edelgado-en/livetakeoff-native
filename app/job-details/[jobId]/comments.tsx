@@ -130,6 +130,8 @@ export default function JobCommentsScreen() {
               onChangeText={setNewComment}
               placeholder="Write a comment..."
               mode="outlined"
+              multiline
+              numberOfLines={3}
               style={styles.textInput}
             />
             {newComment.trim().length > 0 && (
