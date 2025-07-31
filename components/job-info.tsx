@@ -19,13 +19,13 @@ export default function InfoTable({ job }: any) {
       <View style={styles.row}>
         <Text style={styles.label}>Airport</Text>
         <View style={styles.valueContainer}>
-          <Text style={styles.value}>{cropTextForDevice(job.airport?.name)}</Text>
+          <Text style={styles.value}>{cropTextForDevice(job.airport?.name, 30)}</Text>
         </View>
       </View>
       <View style={styles.row}>
         <Text style={styles.label}>FBO</Text>
         <View style={styles.valueContainer}>
-          <Text style={styles.value}>{cropTextForDevice(job.fbo?.name)}</Text>
+          <Text style={styles.value}>{cropTextForDevice(job.fbo?.name, 30)}</Text>
         </View>
       </View>
       <View style={styles.row}>

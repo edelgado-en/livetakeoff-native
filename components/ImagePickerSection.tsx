@@ -70,7 +70,7 @@ const ImagePickerSection: React.FC<Props> = ({ images, setImages }) => {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 4,

@@ -29,6 +29,7 @@ const { width: screenWidth } = Dimensions.get('window');
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 import { cropTextForDevice } from '../../../utils/textUtils';
+import { set } from 'date-fns';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -36,6 +37,7 @@ export default function JobDetailsScreen() {
   const { width } = useWindowDimensions();
   const { currentUser } = useContext(AuthContext);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isCancelModalVisible, setCancelModalVisible] = useState(false);
   const inputRef = useRef<PaperTextInput>(null);
   const [newComment, setNewComment] = useState('');
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0);
@@ -43,10 +45,12 @@ export default function JobDetailsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
+  
   const [photos, setPhotos] = useState([]);
   const [images, setImages] = useState<string[]>([]);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
+
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const isTablet = width >= 768;
 
@@ -226,7 +230,32 @@ const getStatusLabel = (status: string) => {
     } finally {
         setImageUploadLoading(false);
     }
+  }
 
+  const handleCancelJob = async () => {
+    setCancelLoading(true);
+
+    try {
+        await httpService.patch(`/jobs/${jobId}/`, {status: 'T'});
+        
+        onRefresh();
+
+        Toast.show({
+            type: 'success',
+            text1: 'Job canceled!',
+            position: 'top',
+        });
+    } catch (error) {
+        Toast.show({
+            type: 'error',
+            text1: 'Failed to cancel job',
+            text2: 'Please try again.',
+            position: 'top',
+        });
+    } finally {
+        setCancelLoading(false);
+        setCancelModalVisible(false);
+    }
   }
 
   const pickImages = async () => {
@@ -296,7 +325,7 @@ const getStatusLabel = (status: string) => {
 
                 <View style={styles.jobTitleContainer}>
                     <Text style={styles.tailNumber}>{job.tailNumber}</Text>
-                    <Text style={styles.customerName}>{cropTextForDevice(job.customer.name)}</Text>
+                    <Text style={styles.customerName}>{cropTextForDevice(job.customer.name, 40)}</Text>
                 </View>
 
                 <Text style={[styles.statusPill, getStatusStyle(job.status)]}>
@@ -304,24 +333,35 @@ const getStatusLabel = (status: string) => {
                 </Text>
             </View>
 
-            {!currentUser.isCustomer && (
-                <View style={styles.tagContainer}>
-                    {job.tags?.map((tag) => {
-                        const tagStyle = getTagStyle(tag.tag_color);
-                        return (
-                            <View
-                                key={tag.id}
-                                style={[
-                                styles.tag,
-                                { borderColor: tagStyle.borderColor },
-                                ]}
-                            >
-                                <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                                {tag.tag_short_name}
-                                </Text>
-                            </View>
-                        );
-                    })}
+            <View style={styles.tagContainer}>
+                {job.tags?.map((tag) => {
+                    const tagStyle = getTagStyle(tag.tag_color);
+                    return (
+                        <View
+                            key={tag.id}
+                            style={[
+                            styles.tag,
+                            { borderColor: tagStyle.borderColor },
+                            ]}
+                        >
+                            <Text style={[styles.tagText, { color: tagStyle.color }]}>
+                            {tag.tag_short_name}
+                            </Text>
+                        </View>
+                    );
+                })}
+            </View>
+            
+            {currentUser.isCustomer && (job.status === 'U' || job.status === 'A') && (
+                <View style={styles.fullWidthContainer}>
+                    <Button
+                        onPress={() => setCancelModalVisible(true)}
+                        labelStyle={styles.cancelLabel}
+                        mode="text"
+                        contentStyle={{ justifyContent: 'flex-end' }}
+                    >
+                        Cancel Job
+                    </Button>
                 </View>
             )}
 
@@ -527,6 +567,42 @@ const getStatusLabel = (status: string) => {
           </View>
         </View>
         </Modal>
+
+        <Modal
+                isVisible={isCancelModalVisible}
+                onBackdropPress={() => !cancelLoading && setCancelModalVisible(false)}
+                onBackButtonPress={() => !cancelLoading && setCancelModalVisible(false)}
+                >
+                <View style={modalStyles.container}>
+                    {loading ? (
+                        <LottieView
+                            source={require('../../../assets/animations/progress-bar.json')}
+                            autoPlay
+                            loop
+                            style={{ width: 150, height: 150, alignSelf: 'center' }}
+                        />
+                    ) : (
+                    <>
+                        <Text style={modalStyles.title}>Are you sure you want to cancel this job?</Text>
+                        <View style={modalStyles.buttonRow}>
+                            <TouchableOpacity
+                                style={[modalStyles.button, modalStyles.cancelButton]}
+                                onPress={() => setCancelModalVisible(false)}
+                            >
+                                <Text style={modalStyles.cancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[modalStyles.button, modalStyles.deleteButton]}
+                                onPress={handleCancelJob}
+                            >
+                                <Text style={modalStyles.deleteText}>Cancel Job</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                    )}
+                </View>
+                </Modal>
+
     </SafeAreaView>
   );
 }
@@ -561,7 +637,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     overflow: 'hidden',
     top: 2,
-    right: isTablet ? 0 : 4,
+    right: isTablet ? 0 : 6,
   },
   container: {
     paddingTop: 16,
@@ -586,7 +662,6 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 14,
-    fontWeight: '500',
   },
   loading: {
     marginTop: 100,
@@ -743,5 +818,64 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  fullWidthContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 6,
+    marginTop: 2,
+  },
+  cancelLabel: {
+    color: '#EF4444', // Tailwind red-500
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  container: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 30,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#111827',
+    marginBottom: 40,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#6B7280', // Tailwind's gray-500
+    marginTop: -24,
+    marginBottom: 32,
+ },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#E5E7EB',
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+  },
+  cancelText: {
+    color: '#111827',
+    fontWeight: '600',
+  },
+  deleteText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });

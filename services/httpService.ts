@@ -107,6 +107,13 @@ const httpService = {
 
   delete: (url, options = {}) =>
     request(url, { ...options, method: 'DELETE' }),
+
+  patch: (url, data, options = {}) =>
+    request(url, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };
 
 export default httpService;
