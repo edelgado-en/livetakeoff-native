@@ -37,6 +37,10 @@ export default function JobsScreen() {
   const [overdue, setOverdue] = useState(false);
   const [overdueCount, setOverdueCount] = useState(0);
 
+  const pageSize = 50;
+  const [page, setPage] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
+
   const getStatusStyle = (status: string) => {
   switch (status) {
     case 'A':
@@ -108,7 +112,7 @@ const getStatusLabel = (status: string) => {
   useFocusEffect(
     useCallback(() => {
         const timeoutID = setTimeout(() => {
-        fetchJobs();
+            fetchJobs(1, true); 
         }, 500);
 
         return () => clearTimeout(timeoutID);
@@ -116,102 +120,92 @@ const getStatusLabel = (status: string) => {
     }, [token, searchText])
   );
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (pageToFetch = 1, refresh = false) => {
+    if (loading && !refresh) return;
+    
     setLoading(true);
-      try {
-        const response = await httpService.post('/jobs?page=1&size=50', {
-            searchText: searchText,
-            status: "All",
-            sortField: "requestDate",
-            customer: "All",
-            airport: "All",
-            vendor: "All",
-            project_manager: "All",
-            tags: [],
-            airport_type: "All",
+    
+    if (refresh) setRefreshing(true);
+
+    try {
+        const response = await httpService.post(`/jobs?page=${pageToFetch}&size=${pageSize}`, {
+        searchText: searchText,
+        status: 'All',
+        sortField: 'requestDate',
+        customer: 'All',
+        airport: 'All',
+        vendor: 'All',
+        project_manager: 'All',
+        tags: [],
+        airport_type: 'All',
         });
 
-        const jobs: any[] = [];
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        const todayFormattedDate = `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-      const today = new Date();
-      const month = today.getMonth() + 1;
-      const day = today.getDate();
-      const todayFormattedDate = `${month.toString().padStart(2, "0")}/${day
-        .toString()
-        .padStart(2, "0")}`;
+     const processedJobs = response.results.map((job) => {
+      let uniqueUserIds = [];
+      const uniqueUsers = [];
 
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      let totalDueToday = 0;
-      let totalOverdue = 0;
-
-      response.results.forEach((job: any) => {
-        let uniqueUserIds = [];
-        const uniqueUsers = [];
-
-        job.job_service_assignments?.forEach((assignment) => {
-          const userId = assignment.project_manager?.id;
-          if (userId != null) {
-            if (!uniqueUserIds.includes(userId)) {
-              uniqueUserIds.push(userId);
-              uniqueUsers.push(assignment.project_manager);
-            }
-          }
-        });
-
-        job.job_retainer_service_assignments?.forEach((assignment) => {
-          const userId = assignment.project_manager?.id;
-          if (userId != null) {
-            if (!uniqueUserIds.includes(userId)) {
-              uniqueUserIds.push(userId);
-              uniqueUsers.push(assignment.project_manager);
-            }
-          }
-        });
-
-        job.asignees = uniqueUsers;
-
-        if (job.completeBy && job.completeBy.includes(todayFormattedDate)) {
-          job.isDueToday = true;
-          totalDueToday++;
-        }
-
-        if (job.completeByFullDate) {
-          const completeByDate = new Date(job.completeByFullDate);
-          if (completeByDate < yesterday) {
-            job.isOverdue = true;
-            totalOverdue++;
-          }
-        }
-
-        if (!dueToday && !overdue) {
-          jobs.push(job);
-        } else if (dueToday && job.isDueToday) {
-          jobs.push(job);
-        } else if (overdue && job.isOverdue) {
-          jobs.push(job);
+      job.job_service_assignments?.forEach((assignment) => {
+        const userId = assignment.project_manager?.id;
+        if (userId && !uniqueUserIds.includes(userId)) {
+          uniqueUserIds.push(userId);
+          uniqueUsers.push(assignment.project_manager);
         }
       });
 
-        
-        setJobs(jobs || []);
+      job.job_retainer_service_assignments?.forEach((assignment) => {
+        const userId = assignment.project_manager?.id;
+        if (userId && !uniqueUserIds.includes(userId)) {
+          uniqueUserIds.push(userId);
+          uniqueUsers.push(assignment.project_manager);
+        }
+      });
+
+      job.asignees = uniqueUsers;
+      job.isDueToday = job.completeBy?.includes(todayFormattedDate);
+      job.isOverdue = job.completeByFullDate ? new Date(job.completeByFullDate) < yesterday : false;
+
+      return job;
+    });
+
+        const filteredJobs = processedJobs.filter(job => {
+        if (!dueToday && !overdue) return true;
+        if (dueToday && job.isDueToday) return true;
+        if (overdue && job.isOverdue) return true;
+        return false;
+        });
+
+        setJobs(prev => (refresh ? filteredJobs : [...prev, ...filteredJobs]));
         setTotalJobs(response.count || 0);
-      } catch (e) {
-         Toast.show({
-                type: 'error',
-                text1: 'Failed to fetch jobs',
-                text2: 'Please try again.',
-                position: 'top',
-                });
-      } finally {
+        setPage(pageToFetch);
+    } catch (e) {
+        Toast.show({
+        type: 'error',
+        text1: 'Failed to fetch jobs',
+        text2: 'Please try again.',
+        position: 'top',
+        });
+    } finally {
         setLoading(false);
-      }
+        if (refresh) setRefreshing(false);
+    }
     };
 
-    const onRefresh = useCallback(async () => {
-        await fetchJobs();
-    }, []);
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        const totalPages = Math.ceil(totalJobs / pageSize);
+        if (nextPage <= totalPages) {
+            fetchJobs(nextPage);
+        }
+    };
+
+    const onRefresh = useCallback(() => fetchJobs(1, true), []);
 
     const renderItem = useCallback(({ item }) => (
         <TouchableOpacity onPress={() => router.push(`/job-details/${item.id}/`)}>
@@ -406,26 +400,30 @@ const getStatusLabel = (status: string) => {
             maxToRenderPerBatch={10}
             windowSize={5}
             removeClippedSubviews={true}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
             refreshControl={
-                <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             ListFooterComponent={
-                <View style={{ paddingVertical: 10 }}>
+                loading && !refreshing ? (
+                <View style={{ paddingVertical: 20 }}>
+                    <Text style={{ textAlign: 'center', color: '#6B7280' }}>Loading more jobs...</Text>
                 </View>
+                ) : null
             }
             ListEmptyComponent={
                 !loading ? (
-                    () => (
-                        <View style={styles.emptyContainer}>
-                        <MaterialIcons name="info-outline" size={32} color="#9CA3AF" />
-                        <Text style={styles.emptyTextTitle}>No jobs found</Text>
-                        <Text style={styles.emptyText}>Get started by creating a new job.</Text>
-                        </View>
-                    )
+                () => (
+                    <View style={styles.emptyContainer}>
+                    <MaterialIcons name="info-outline" size={32} color="#9CA3AF" />
+                    <Text style={styles.emptyTextTitle}>No jobs found</Text>
+                    <Text style={styles.emptyText}>Get started by creating a new job.</Text>
+                    </View>
+                )
                 ) : null
             }
         />
-       
       </View>
     </SafeAreaView>
   );
