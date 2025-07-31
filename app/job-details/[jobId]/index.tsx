@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity,
      ScrollView, Dimensions, useWindowDimensions,
       RefreshControl, Alert, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useContext, useMemo, useRef } from 'react';
+import { useEffect, useState, useContext, useMemo, useRef, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
@@ -10,6 +10,7 @@ import { Button, IconButton } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { TextInput as PaperTextInput } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -22,6 +23,7 @@ import InfoTable from '../../../components/job-info';
 import ImageGallery from '../../../components/ImageGallery';
 import ServiceGallery from '../../../components/ServiceGallery';
 import JobStatusSteps from '../../../components/JobStatusSteps';
+import PriceBreakdown from '../../../components/PriceBreakdown';
 
 import { AuthContext } from '../../../providers/AuthProvider';
 
@@ -29,7 +31,6 @@ const { width: screenWidth } = Dimensions.get('window');
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 import { cropTextForDevice } from '../../../utils/textUtils';
-import { set } from 'date-fns';
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -51,6 +52,8 @@ export default function JobDetailsScreen() {
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
   const [cancelLoading, setCancelLoading] = useState(false);
+
+  const [priceBreakdown, setPriceBreakdown] = useState(null)
 
   const isTablet = width >= 768;
 
@@ -107,55 +110,72 @@ const getStatusLabel = (status: string) => {
     }
   }, [isModalVisible]);
 
-  useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const response = await httpService.get(`/jobs/${jobId}/`);
-        setJob(response);
-      } catch (err) {
-        console.error('Failed to fetch job', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    useFocusEffect(
+        useCallback(() => {
+            const fetchJob = async () => {
+                try {
+                    const response = await httpService.get(`/jobs/${jobId}/`);
+                    setJob(response);
+                    
+                    setCommentsRefreshKey((prev) => prev + 1);
 
-    fetchJob();
-  }, [jobId]);
+                } catch (err) {
+                    console.error('Failed to fetch job', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-  useEffect(() => {
-    if (!jobId) return;
-    fetchPhotos();
+            fetchJob();
+        }, [jobId])
+    );
 
-  }, [jobId])
+    useFocusEffect(
+        useCallback(() => {
+            if (!jobId) return;
+            fetchPhotos();
+        }, [jobId])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!jobId) return;
+            
+            if (currentUser.canSeePrice) {
+                fetchPriceBreakdown();
+            }
+
+        }, [jobId])
+    );
 
     const saveComment = async () => {
-    if (!newComment.trim()) return;
+        if (!newComment.trim()) return;
+        
+        try {
+            await httpService.post(`/job-comments/${jobId}/`, {
+                comment: newComment,
+                isPublic: true,
+            });
 
-    try {
-      await httpService.post(`/job-comments/${jobId}/`, {
-        comment: newComment,
-        isPublic: true,
-      });
+        setNewComment('');
+        setModalVisible(false);
 
-      setNewComment('');
-      setModalVisible(false);
-
-      setCommentsRefreshKey((prev) => prev + 1);
-    
-      Toast.show({
-      type: 'success',
-      text1: 'Our team has been notified!',
-      position: 'top',
-    });
-
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to post comment',
-        text2: 'Please try again.',
-        position: 'top',
+        setCommentsRefreshKey((prev) => prev + 1);
+        
+        Toast.show({
+            type: 'success',
+            text1: 'Our team has been notified!',
+            position: 'top',
         });
-    }
+
+        } catch (error) {
+        Toast.show({
+            type: 'error',
+            text1: 'Failed to post comment',
+            text2: 'Please try again.',
+            position: 'top',
+            });
+        }
   };
 
   const onRefresh = async () => {
@@ -169,6 +189,15 @@ const getStatusLabel = (status: string) => {
         setPhotos(photosResponse.results || []);
         
         setCommentsRefreshKey((prev) => prev + 1);
+
+        if (currentUser.canSeePrice) {
+            try {
+                const priceResponse = await httpService.get(`/jobs/price-breakdown/${jobId}/`);
+                setPriceBreakdown(priceResponse);
+            } catch (error) {
+                console.error('Failed to fetch price breakdown', error);
+            }
+        }
 
     } catch (error) {
         console.error('Refresh failed:', error);
@@ -187,6 +216,18 @@ const getStatusLabel = (status: string) => {
       console.error('Failed to fetch photos', err);
     }
   }
+
+  const fetchPriceBreakdown = async () => {
+    try {
+        const response = await httpService.get(`/jobs/price-breakdown/${jobId}/`);
+        setPriceBreakdown(response);
+
+        console.log('Price breakdown fetched:', response);
+
+    } catch (error) {
+        console.error('Failed to fetch price breakdown', error);
+    }
+}
 
   const handleUploadPictures = async () => {
     const formData = new FormData()
@@ -529,8 +570,13 @@ const getStatusLabel = (status: string) => {
                     <ImageGallery images={photos}/>                
                     </>
                 )}
-                
             </View>
+
+            {/* Price Breakdown */}
+            {priceBreakdown && currentUser.canSeePrice && (
+                <PriceBreakdown priceBreakdown={priceBreakdown} jobDetails={job} currentUser={currentUser}/>
+            )}
+
         </ScrollView>
         <Modal
         isVisible={isModalVisible}
