@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Modal from 'react-native-modal';
+import { useRouter } from 'expo-router';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { Feather } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
@@ -27,6 +28,7 @@ type Props = {
 
 const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const { currentUser } = useContext(AuthContext);
+  const router = useRouter();
   const [isModalVisible, setModalVisible] = useState(false);
   const inputRef = useRef<PaperTextInput>(null);
   const [newComment, setNewComment] = useState('');
@@ -138,7 +140,7 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingRight: 0 }}
-          ItemSeparatorComponent={() => <View style={{ width: 0 }} />}
+          ItemSeparatorComponent={() => <View style={{ width: 4 }} />}
         />
       ) : (
         <View style={styles.emptyWrapper}>
@@ -149,7 +151,10 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
       )}
 
       {totalComments > 5 && (
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+             style={styles.button}
+             onPress={() => router.push(`/job-details/${jobId}/comments`)}
+             >
           <Text style={styles.buttonText}>See all {totalComments} comments</Text>
           <Feather name="chevron-right" size={18} color="#3B82F6" />
         </TouchableOpacity>
