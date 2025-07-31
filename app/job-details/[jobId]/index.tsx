@@ -574,7 +574,7 @@ const getStatusLabel = (status: string) => {
                 onBackButtonPress={() => !cancelLoading && setCancelModalVisible(false)}
                 >
                 <View style={modalStyles.container}>
-                    {loading ? (
+                    {isCancelModalVisible ? (
                         <LottieView
                             source={require('../../../assets/animations/progress-bar.json')}
                             autoPlay
