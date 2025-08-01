@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useContext } from "react";
+import { useEffect, useState, useCallback, useContext, useRef } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -52,6 +53,7 @@ export default function JobsScreen() {
   // New State for bi-directional scroll
   const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1]));
   const [activeTab, setActiveTab] = useState<"open" | "completed">("open");
+  const skipNextSearchEffect = useRef(false);
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -122,13 +124,45 @@ export default function JobsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const timeoutID = setTimeout(() => {
-        fetchJobs(1, true);
-      }, 500);
-
-      return () => clearTimeout(timeoutID);
-    }, [token, searchText])
+      let didCancel = false;
+      const restoreTab = async () => {
+        const storedTab = await AsyncStorage.getItem("lastActiveTab");
+        const tab =
+          storedTab === "open" || storedTab === "completed"
+            ? storedTab
+            : "open";
+        if (!didCancel) {
+          skipNextSearchEffect.current = true;
+          setActiveTab(tab);
+          setSearchText("");
+          setTotalJobs(0);
+          setJobs([]);
+          setPage(1);
+          setLoadedPages(new Set([1]));
+          fetchJobs(1, true, "down", tab);
+        }
+      };
+      restoreTab();
+      return () => {
+        didCancel = true;
+      };
+    }, [])
   );
+
+  useEffect(() => {
+    if (skipNextSearchEffect.current) {
+      skipNextSearchEffect.current = false;
+      return;
+    }
+
+    const delay = setTimeout(() => {
+      setPage(1);
+      setLoadedPages(new Set([1]));
+      fetchJobs(1, true, "down", activeTab);
+    }, 400); // debounce
+
+    return () => clearTimeout(delay);
+  }, [searchText, activeTab]);
 
   const fetchJobs = async (
     pageToFetch = 1,
@@ -316,10 +350,12 @@ export default function JobsScreen() {
     [activeTab, searchText]
   );
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = async (tab) => {
     if (tab === activeTab) return;
 
+    skipNextSearchEffect.current = true;
     setActiveTab(tab);
+    await AsyncStorage.setItem("lastActiveTab", tab);
     setSearchText("");
     setTotalJobs(0);
     setJobs([]);
