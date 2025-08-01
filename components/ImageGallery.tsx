@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   View,
   FlatList,
@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Text,
-} from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
+} from "react-native";
+import ImageViewing from "react-native-image-viewing";
 
 interface ImageObject {
   id: number;
@@ -85,26 +85,27 @@ const styles = StyleSheet.create({
     width: 180,
     height: 160,
     borderRadius: 5,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   footer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingBottom: 24,
   },
   footerText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyContainer: {
     paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingBottom: 30,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 });
 
