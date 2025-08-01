@@ -552,6 +552,7 @@ export default function JobsScreen() {
           }}
         >
           <TouchableOpacity
+            disabled={loading}
             style={{
               backgroundColor: activeTab === "open" ? "#10B981" : "#FFFFFF",
               borderWidth: activeTab === "open" ? 0 : 1,
@@ -561,6 +562,7 @@ export default function JobsScreen() {
               borderRadius: 24,
               minWidth: 120,
               alignItems: "center",
+              opacity: loading ? 0.6 : 1,
             }}
             onPress={() => handleTabChange("open")}
           >
@@ -576,6 +578,7 @@ export default function JobsScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            disabled={loading}
             style={{
               backgroundColor:
                 activeTab === "completed" ? "#10B981" : "#FFFFFF",
@@ -586,6 +589,7 @@ export default function JobsScreen() {
               borderRadius: 24,
               minWidth: 120,
               alignItems: "center",
+              opacity: loading ? 0.6 : 1,
             }}
             onPress={() => handleTabChange("completed")}
           >
