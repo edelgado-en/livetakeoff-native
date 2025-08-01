@@ -30,8 +30,7 @@
             "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
             "ITSAppUsesNonExemptEncryption": false,
             "UIBackgroundModes": ["remote-notification"],
-            "NSUserTrackingUsageDescription": "This identifier will be used to send you notifications.",
-            "NSUserNotificationUsageDescription": "This app uses notifications to alert you about job updates."
+            "NSUserTrackingUsageDescription": "This identifier will be used to send you notifications."
         }
     },
     "android": {

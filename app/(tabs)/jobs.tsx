@@ -51,6 +51,7 @@ export default function JobsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   // New State for bi-directional scroll
   const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1]));
+  const [activeTab, setActiveTab] = useState<"open" | "completed">("open");
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -132,27 +133,31 @@ export default function JobsScreen() {
   const fetchJobs = async (
     pageToFetch = 1,
     refresh = false,
-    direction = "down"
+    direction = "down",
+    tabOverride = activeTab
   ) => {
     if (loading && !refresh) return;
     setLoading(true);
     if (refresh) setRefreshing(true);
 
     try {
-      const response = await httpService.post(
-        `/jobs?page=${pageToFetch}&size=${pageSize}`,
-        {
-          searchText: searchText,
-          status: "All",
-          sortField: "requestDate",
-          customer: "All",
-          airport: "All",
-          vendor: "All",
-          project_manager: "All",
-          tags: [],
-          airport_type: "All",
-        }
-      );
+      const endpoint =
+        tabOverride === "completed"
+          ? `/jobs/completed?page=${pageToFetch}&size=${pageSize}`
+          : `/jobs?page=${pageToFetch}&size=${pageSize}`;
+
+      const response = await httpService.post(endpoint, {
+        isMobileRequest: true,
+        searchText: searchText,
+        status: "All",
+        sortField: "requestDate",
+        customer: "All",
+        airport: "All",
+        vendor: "All",
+        project_manager: "All",
+        tags: [],
+        airport_type: "All",
+      });
 
       const processedJobs = Array.isArray(response.results)
         ? response.results.map((job) => {
@@ -202,41 +207,71 @@ export default function JobsScreen() {
         return false;
       });
 
-      setJobs((prev) => {
-        // Merge and deduplicate
-        const jobMap = new Map();
+      if (refresh) {
+        setJobs(filteredJobs);
+      } else {
+        setJobs((prev) => {
+          const jobMap = new Map();
 
-        // Add existing
-        for (const job of prev) {
-          jobMap.set(job.id, job);
-        }
+          for (const job of prev) {
+            jobMap.set(job.id, job);
+          }
 
-        // Add new, overwriting if duplicate
-        for (const job of filteredJobs) {
-          jobMap.set(job.id, job);
-        }
+          for (const job of filteredJobs) {
+            jobMap.set(job.id, job);
+          }
 
-        // Get array of merged jobs
-        let mergedJobs = Array.from(jobMap.values());
+          let mergedJobs = Array.from(jobMap.values());
 
-        // Sort DESC by requestDate, NULLS LAST
-        mergedJobs.sort((a, b) => {
-          const dateA = a.requestDate ? new Date(a.requestDate) : null;
-          const dateB = b.requestDate ? new Date(b.requestDate) : null;
+          if (tabOverride === "open") {
+            mergedJobs.sort((a, b) => {
+              const dateA = a.requestDate ? new Date(a.requestDate) : null;
+              const dateB = b.requestDate ? new Date(b.requestDate) : null;
 
-          if (dateA && dateB) return dateB - dateA;
-          if (dateA && !dateB) return -1;
-          if (!dateA && dateB) return 1;
-          return 0;
+              if (dateA && dateB) return dateB - dateA;
+              if (dateA && !dateB) return -1;
+              if (!dateA && dateB) return 1;
+              return 0;
+            });
+          } else {
+            const statusOrder = {
+              U: 1,
+              A: 2,
+              S: 3,
+              W: 4,
+              C: 5,
+              I: 6,
+              N: 7,
+              T: 8,
+            };
+
+            mergedJobs.sort((a, b) => {
+              const aStatus = statusOrder[a.status] || 8;
+              const bStatus = statusOrder[b.status] || 8;
+
+              if (aStatus !== bStatus) return aStatus - bStatus;
+
+              const dateA = a.completion_date
+                ? new Date(a.completion_date)
+                : null;
+              const dateB = b.completion_date
+                ? new Date(b.completion_date)
+                : null;
+
+              if (dateA && dateB) return dateB - dateA;
+              if (dateA && !dateB) return -1;
+              if (!dateA && dateB) return 1;
+              return 0;
+            });
+          }
+
+          if (mergedJobs.length > MAX_JOBS) {
+            mergedJobs = mergedJobs.slice(0, MAX_JOBS);
+          }
+
+          return mergedJobs;
         });
-
-        // Trim to max allowed jobs
-        if (mergedJobs.length > MAX_JOBS) {
-          mergedJobs = mergedJobs.slice(0, MAX_JOBS);
-        }
-
-        return mergedJobs;
-      });
+      }
 
       setTotalJobs(response.count || 0);
       setLoadedPages((prev) => new Set([...prev, pageToFetch]));
@@ -276,7 +311,24 @@ export default function JobsScreen() {
     }
   };
 
-  const onRefresh = useCallback(() => fetchJobs(1, true), []);
+  const onRefresh = useCallback(
+    () => fetchJobs(1, true, "down", activeTab),
+    [activeTab, searchText]
+  );
+
+  const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+
+    setActiveTab(tab);
+    setSearchText("");
+    setTotalJobs(0);
+    setJobs([]);
+    setPage(1);
+    setLoadedPages(new Set([1]));
+
+    // Trigger initial fetch for the selected tab
+    fetchJobs(1, true, "down", tab);
+  };
 
   const renderItem = useCallback(
     ({ item }) => (
@@ -454,6 +506,55 @@ export default function JobsScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 8,
+            paddingHorizontal: 16,
+            marginBottom: 8,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: activeTab === "open" ? "#10B981" : "#F3F4F6",
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+            }}
+            onPress={() => handleTabChange("open")}
+          >
+            <Text
+              style={{
+                color: activeTab === "open" ? "#FFFFFF" : "#374151",
+                fontWeight: "600",
+              }}
+            >
+              Open Jobs
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              backgroundColor:
+                activeTab === "completed" ? "#10B981" : "#F3F4F6",
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+            }}
+            onPress={() => handleTabChange("completed")}
+          >
+            <Text
+              style={{
+                color: activeTab === "completed" ? "#FFFFFF" : "#374151",
+                fontWeight: "600",
+              }}
+            >
+              Completed Jobs
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.searchContainer}>
           <Ionicons
             name="search"
@@ -471,7 +572,10 @@ export default function JobsScreen() {
         </View>
 
         <View style={{ marginBottom: 10, marginLeft: isTablet ? 0 : 8 }}>
-          <Text>{totalJobs} Open Jobs</Text>
+          <Text>
+            {totalJobs.toLocaleString("en-US")}{" "}
+            {activeTab === "open" ? "Open" : "Completed"} Jobs
+          </Text>
         </View>
         <FlatList
           data={jobs}
@@ -723,13 +827,13 @@ const styles = StyleSheet.create({
     minHeight: 300, // optional, to avoid being too small on some tablets
   },
   emptyTextTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "600",
     color: "#111827", // Tailwind's gray-800
-    marginBottom: 4,
+    marginBottom: 2,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#6B7280", // gray-500
   },
   infoText: {
