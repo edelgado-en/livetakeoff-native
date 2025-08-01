@@ -37,9 +37,12 @@ export default function JobsScreen() {
   const [overdue, setOverdue] = useState(false);
   const [overdueCount, setOverdueCount] = useState(0);
 
-  const pageSize = 50;
+  const pageSize = 50; 
+  const MAX_JOBS = 200; 
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  // New State for bi-directional scroll
+  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1]));
 
   const getStatusStyle = (status: string) => {
   switch (status) {
@@ -120,15 +123,13 @@ const getStatusLabel = (status: string) => {
     }, [token, searchText])
   );
 
-  const fetchJobs = async (pageToFetch = 1, refresh = false) => {
-    if (loading && !refresh) return;
-    
-    setLoading(true);
-    
-    if (refresh) setRefreshing(true);
+    const fetchJobs = async (pageToFetch = 1, refresh = false, direction = 'down') => {
+        if (loading && !refresh) return;
+        setLoading(true);
+        if (refresh) setRefreshing(true);
 
-    try {
-        const response = await httpService.post(`/jobs?page=${pageToFetch}&size=${pageSize}`, {
+  try {
+    const response = await httpService.post(`/jobs?page=${pageToFetch}&size=${pageSize}`, {
         searchText: searchText,
         status: 'All',
         sortField: 'requestDate',
@@ -140,68 +141,126 @@ const getStatusLabel = (status: string) => {
         airport_type: 'All',
         });
 
-        const today = new Date();
-        const month = today.getMonth() + 1;
-        const day = today.getDate();
-        const todayFormattedDate = `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+    const processedJobs = Array.isArray(response.results)
+        ? response.results.map((job) => {
+            let uniqueUserIds = [];
+            const uniqueUsers = [];
 
-     const processedJobs = response.results.map((job) => {
-      let uniqueUserIds = [];
-      const uniqueUsers = [];
+            job.job_service_assignments?.forEach((assignment) => {
+                const userId = assignment.project_manager?.id;
+                if (userId && !uniqueUserIds.includes(userId)) {
+                uniqueUserIds.push(userId);
+                uniqueUsers.push(assignment.project_manager);
+                }
+            });
 
-      job.job_service_assignments?.forEach((assignment) => {
-        const userId = assignment.project_manager?.id;
-        if (userId && !uniqueUserIds.includes(userId)) {
-          uniqueUserIds.push(userId);
-          uniqueUsers.push(assignment.project_manager);
-        }
-      });
+            job.job_retainer_service_assignments?.forEach((assignment) => {
+                const userId = assignment.project_manager?.id;
+                if (userId && !uniqueUserIds.includes(userId)) {
+                uniqueUserIds.push(userId);
+                uniqueUsers.push(assignment.project_manager);
+                }
+            });
 
-      job.job_retainer_service_assignments?.forEach((assignment) => {
-        const userId = assignment.project_manager?.id;
-        if (userId && !uniqueUserIds.includes(userId)) {
-          uniqueUserIds.push(userId);
-          uniqueUsers.push(assignment.project_manager);
-        }
-      });
+            job.asignees = uniqueUsers;
 
-      job.asignees = uniqueUsers;
-      job.isDueToday = job.completeBy?.includes(todayFormattedDate);
-      job.isOverdue = job.completeByFullDate ? new Date(job.completeByFullDate) < yesterday : false;
+            const today = new Date();
+            const month = today.getMonth() + 1;
+            const day = today.getDate();
+            const todayFormattedDate = `${month.toString().padStart(2, '0')}/${day
+                .toString()
+                .padStart(2, '0')}`;
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
 
-      return job;
+            job.isDueToday = job.completeBy?.includes(todayFormattedDate);
+            job.isOverdue = job.completeByFullDate
+                ? new Date(job.completeByFullDate) < yesterday
+                : false;
+
+            return job;
+            })
+        : [];
+
+    const filteredJobs = processedJobs.filter(job => {
+      if (!dueToday && !overdue) return true;
+      if (dueToday && job.isDueToday) return true;
+      if (overdue && job.isOverdue) return true;
+      return false;
     });
 
-        const filteredJobs = processedJobs.filter(job => {
-        if (!dueToday && !overdue) return true;
-        if (dueToday && job.isDueToday) return true;
-        if (overdue && job.isOverdue) return true;
-        return false;
+    setJobs(prev => {
+        // Merge and deduplicate
+        const jobMap = new Map();
+
+        // Add existing
+        for (const job of prev) {
+            jobMap.set(job.id, job);
+        }
+
+        // Add new, overwriting if duplicate
+        for (const job of filteredJobs) {
+            jobMap.set(job.id, job);
+        }
+
+        // Get array of merged jobs
+        let mergedJobs = Array.from(jobMap.values());
+
+        // Sort DESC by requestDate, NULLS LAST
+        mergedJobs.sort((a, b) => {
+            const dateA = a.requestDate ? new Date(a.requestDate) : null;
+            const dateB = b.requestDate ? new Date(b.requestDate) : null;
+
+            if (dateA && dateB) return dateB - dateA;
+            if (dateA && !dateB) return -1;
+            if (!dateA && dateB) return 1;
+            return 0;
         });
 
-        setJobs(prev => (refresh ? filteredJobs : [...prev, ...filteredJobs]));
-        setTotalJobs(response.count || 0);
-        setPage(pageToFetch);
-    } catch (e) {
-        Toast.show({
-        type: 'error',
-        text1: 'Failed to fetch jobs',
-        text2: 'Please try again.',
-        position: 'top',
-        });
-    } finally {
-        setLoading(false);
-        if (refresh) setRefreshing(false);
-    }
-    };
+        // Trim to max allowed jobs
+        if (mergedJobs.length > MAX_JOBS) {
+            mergedJobs = mergedJobs.slice(0, MAX_JOBS);
+        }
+
+        return mergedJobs;
+    });
+
+
+    setTotalJobs(response.count || 0);
+    setLoadedPages(prev => new Set([...prev, pageToFetch]));
+    setPage(pageToFetch);
+  } catch (e) {
+    console.log(e)
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to fetch jobs',
+      text2: 'Please try again.',
+      position: 'top',
+    });
+  } finally {
+    setLoading(false);
+    if (refresh) setRefreshing(false);
+  }
+};
 
     const handleLoadMore = () => {
         const nextPage = page + 1;
         const totalPages = Math.ceil(totalJobs / pageSize);
-        if (nextPage <= totalPages) {
-            fetchJobs(nextPage);
+        if (!loadedPages.has(nextPage) && nextPage <= totalPages) {
+            fetchJobs(nextPage, false, 'down');
+        }
+    };
+
+    const handleLoadPrevious = () => {
+        const prevPage = page - 1;
+        if (!loadedPages.has(prevPage) && prevPage > 0) {
+            fetchJobs(prevPage, false, 'up');
+        }
+    };
+
+    const onScroll = ({ nativeEvent }) => {
+        if (nativeEvent.contentOffset.y <= 50) {
+            handleLoadPrevious();
         }
     };
 
@@ -402,6 +461,8 @@ const getStatusLabel = (status: string) => {
             removeClippedSubviews={true}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }

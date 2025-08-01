@@ -222,8 +222,6 @@ const getStatusLabel = (status: string) => {
         const response = await httpService.get(`/jobs/price-breakdown/${jobId}/`);
         setPriceBreakdown(response);
 
-        console.log('Price breakdown fetched:', response);
-
     } catch (error) {
         console.error('Failed to fetch price breakdown', error);
     }
