@@ -512,7 +512,7 @@ export default function JobsScreen() {
             flexDirection: "row",
             gap: 8,
             paddingHorizontal: 4,
-            marginBottom: 8,
+            marginBottom: 10,
           }}
         >
           <TouchableOpacity
