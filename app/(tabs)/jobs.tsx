@@ -511,23 +511,28 @@ export default function JobsScreen() {
           style={{
             flexDirection: "row",
             gap: 8,
-            paddingHorizontal: 16,
+            paddingHorizontal: 4,
             marginBottom: 8,
           }}
         >
           <TouchableOpacity
             style={{
-              backgroundColor: activeTab === "open" ? "#10B981" : "#F3F4F6",
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
+              backgroundColor: activeTab === "open" ? "#10B981" : "#FFFFFF",
+              borderWidth: activeTab === "open" ? 0 : 1,
+              borderColor: "#D1D5DB",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              borderRadius: 24,
+              minWidth: 120,
+              alignItems: "center",
             }}
             onPress={() => handleTabChange("open")}
           >
             <Text
               style={{
                 color: activeTab === "open" ? "#FFFFFF" : "#374151",
-                fontWeight: "600",
+                fontWeight: activeTab === "open" ? "600" : "500",
+                fontSize: 15,
               }}
             >
               Open Jobs
@@ -537,17 +542,22 @@ export default function JobsScreen() {
           <TouchableOpacity
             style={{
               backgroundColor:
-                activeTab === "completed" ? "#10B981" : "#F3F4F6",
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
+                activeTab === "completed" ? "#10B981" : "#FFFFFF",
+              borderWidth: activeTab === "completed" ? 0 : 1,
+              borderColor: "#D1D5DB",
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              borderRadius: 24,
+              minWidth: 120,
+              alignItems: "center",
             }}
             onPress={() => handleTabChange("completed")}
           >
             <Text
               style={{
                 color: activeTab === "completed" ? "#FFFFFF" : "#374151",
-                fontWeight: "600",
+                fontWeight: activeTab === "completed" ? "600" : "500",
+                fontSize: 15,
               }}
             >
               Completed Jobs
