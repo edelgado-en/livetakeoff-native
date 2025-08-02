@@ -47,13 +47,9 @@ export default function JobsScreen() {
   const [overdueCount, setOverdueCount] = useState(0);
 
   const pageSize = 50;
-  const MAX_JOBS = 200;
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
-  // New State for bi-directional scroll
-  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1]));
   const [activeTab, setActiveTab] = useState<"open" | "completed">("open");
-  const skipNextSearchEffect = useRef(false);
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -132,14 +128,11 @@ export default function JobsScreen() {
             ? storedTab
             : "open";
         if (!didCancel) {
-          skipNextSearchEffect.current = true;
           setActiveTab(tab);
           setSearchText("");
           setTotalJobs(0);
           setJobs([]);
-          setPage(1);
-          setLoadedPages(new Set([1]));
-          fetchJobs(1, true, "down", tab);
+          fetchJobs(tab); // explicitly pass tab
         }
       };
       restoreTab();
@@ -150,39 +143,28 @@ export default function JobsScreen() {
   );
 
   useEffect(() => {
-    if (skipNextSearchEffect.current) {
-      skipNextSearchEffect.current = false;
-      return;
-    }
-
     const delay = setTimeout(() => {
-      setPage(1);
-      setLoadedPages(new Set([1]));
-      fetchJobs(1, true, "down", activeTab);
+      fetchJobs();
     }, 400); // debounce
 
     return () => clearTimeout(delay);
   }, [searchText, activeTab]);
 
-  const fetchJobs = async (
-    pageToFetch = 1,
-    refresh = false,
-    direction = "down",
-    tabOverride = activeTab
-  ) => {
-    if (loading && !refresh) return;
+  const fetchJobs = async (tabOverride = null) => {
     setLoading(true);
-    if (refresh) setRefreshing(true);
+    setRefreshing(true);
+
+    const tab = tabOverride || activeTab;
 
     try {
       const endpoint =
-        tabOverride === "completed"
-          ? `/jobs/completed?page=${pageToFetch}&size=${pageSize}`
-          : `/jobs?page=${pageToFetch}&size=${pageSize}`;
+        tab === "completed"
+          ? `/jobs/completed?page=1&size=${pageSize}`
+          : `/jobs?page=1&size=${pageSize}`;
 
       const response = await httpService.post(endpoint, {
         isMobileRequest: true,
-        searchText: searchText,
+        searchText,
         status: "All",
         sortField: "requestDate",
         customer: "All",
@@ -193,46 +175,45 @@ export default function JobsScreen() {
         airport_type: "All",
       });
 
-      const processedJobs = Array.isArray(response.results)
-        ? response.results.map((job) => {
-            let uniqueUserIds = [];
-            const uniqueUsers = [];
+      const processedJobs =
+        response.results?.map((job) => {
+          const uniqueUserIds = [];
+          const uniqueUsers = [];
 
-            job.job_service_assignments?.forEach((assignment) => {
-              const userId = assignment.project_manager?.id;
-              if (userId && !uniqueUserIds.includes(userId)) {
-                uniqueUserIds.push(userId);
-                uniqueUsers.push(assignment.project_manager);
-              }
-            });
+          job.job_service_assignments?.forEach((assignment) => {
+            const userId = assignment.project_manager?.id;
+            if (userId && !uniqueUserIds.includes(userId)) {
+              uniqueUserIds.push(userId);
+              uniqueUsers.push(assignment.project_manager);
+            }
+          });
 
-            job.job_retainer_service_assignments?.forEach((assignment) => {
-              const userId = assignment.project_manager?.id;
-              if (userId && !uniqueUserIds.includes(userId)) {
-                uniqueUserIds.push(userId);
-                uniqueUsers.push(assignment.project_manager);
-              }
-            });
+          job.job_retainer_service_assignments?.forEach((assignment) => {
+            const userId = assignment.project_manager?.id;
+            if (userId && !uniqueUserIds.includes(userId)) {
+              uniqueUserIds.push(userId);
+              uniqueUsers.push(assignment.project_manager);
+            }
+          });
 
-            job.asignees = uniqueUsers;
+          job.asignees = uniqueUsers;
 
-            const today = new Date();
-            const month = today.getMonth() + 1;
-            const day = today.getDate();
-            const todayFormattedDate = `${month
-              .toString()
-              .padStart(2, "0")}/${day.toString().padStart(2, "0")}`;
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
+          const today = new Date();
+          const month = today.getMonth() + 1;
+          const day = today.getDate();
+          const todayFormattedDate = `${month.toString().padStart(2, "0")}/${day
+            .toString()
+            .padStart(2, "0")}`;
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
 
-            job.isDueToday = job.completeBy?.includes(todayFormattedDate);
-            job.isOverdue = job.completeByFullDate
-              ? new Date(job.completeByFullDate) < yesterday
-              : false;
+          job.isDueToday = job.completeBy?.includes(todayFormattedDate);
+          job.isOverdue = job.completeByFullDate
+            ? new Date(job.completeByFullDate) < yesterday
+            : false;
 
-            return job;
-          })
-        : [];
+          return job;
+        }) ?? [];
 
       const filteredJobs = processedJobs.filter((job) => {
         if (!dueToday && !overdue) return true;
@@ -241,75 +222,8 @@ export default function JobsScreen() {
         return false;
       });
 
-      if (refresh) {
-        setJobs(filteredJobs);
-      } else {
-        setJobs((prev) => {
-          const jobMap = new Map();
-
-          for (const job of prev) {
-            jobMap.set(job.id, job);
-          }
-
-          for (const job of filteredJobs) {
-            jobMap.set(job.id, job);
-          }
-
-          let mergedJobs = Array.from(jobMap.values());
-
-          if (tabOverride === "open") {
-            mergedJobs.sort((a, b) => {
-              const dateA = a.requestDate ? new Date(a.requestDate) : null;
-              const dateB = b.requestDate ? new Date(b.requestDate) : null;
-
-              if (dateA && dateB) return dateB - dateA;
-              if (dateA && !dateB) return -1;
-              if (!dateA && dateB) return 1;
-              return 0;
-            });
-          } else {
-            const statusOrder = {
-              U: 1,
-              A: 2,
-              S: 3,
-              W: 4,
-              C: 5,
-              I: 6,
-              N: 7,
-              T: 8,
-            };
-
-            mergedJobs.sort((a, b) => {
-              const aStatus = statusOrder[a.status] || 8;
-              const bStatus = statusOrder[b.status] || 8;
-
-              if (aStatus !== bStatus) return aStatus - bStatus;
-
-              const dateA = a.completion_date
-                ? new Date(a.completion_date)
-                : null;
-              const dateB = b.completion_date
-                ? new Date(b.completion_date)
-                : null;
-
-              if (dateA && dateB) return dateB - dateA;
-              if (dateA && !dateB) return -1;
-              if (!dateA && dateB) return 1;
-              return 0;
-            });
-          }
-
-          if (mergedJobs.length > MAX_JOBS) {
-            mergedJobs = mergedJobs.slice(0, MAX_JOBS);
-          }
-
-          return mergedJobs;
-        });
-      }
-
+      setJobs(filteredJobs);
       setTotalJobs(response.count || 0);
-      setLoadedPages((prev) => new Set([...prev, pageToFetch]));
-      setPage(pageToFetch);
     } catch (e) {
       console.log(e);
       Toast.show({
@@ -320,50 +234,22 @@ export default function JobsScreen() {
       });
     } finally {
       setLoading(false);
-      if (refresh) setRefreshing(false);
+      setRefreshing(false);
     }
   };
 
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    const totalPages = Math.ceil(totalJobs / pageSize);
-    if (!loadedPages.has(nextPage) && nextPage <= totalPages) {
-      fetchJobs(nextPage, false, "down");
-    }
-  };
-
-  const handleLoadPrevious = () => {
-    const prevPage = page - 1;
-    if (!loadedPages.has(prevPage) && prevPage > 0) {
-      fetchJobs(prevPage, false, "up");
-    }
-  };
-
-  const onScroll = ({ nativeEvent }) => {
-    if (nativeEvent.contentOffset.y <= 50) {
-      handleLoadPrevious();
-    }
-  };
-
-  const onRefresh = useCallback(
-    () => fetchJobs(1, true, "down", activeTab),
-    [activeTab, searchText]
-  );
+  const onRefresh = useCallback(() => fetchJobs(), []);
 
   const handleTabChange = async (tab) => {
     if (tab === activeTab) return;
 
-    skipNextSearchEffect.current = true;
     setActiveTab(tab);
     await AsyncStorage.setItem("lastActiveTab", tab);
     setSearchText("");
     setTotalJobs(0);
     setJobs([]);
-    setPage(1);
-    setLoadedPages(new Set([1]));
 
-    // Trigger initial fetch for the selected tab
-    fetchJobs(1, true, "down", tab);
+    fetchJobs(tab); // pass tab explicitly
   };
 
   const renderItem = useCallback(
@@ -635,10 +521,6 @@ export default function JobsScreen() {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
