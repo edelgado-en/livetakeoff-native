@@ -310,60 +310,86 @@ export default function JobsScreen() {
             <Text style={styles.dateText}>{item.fbo.name}</Text>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>Arrival:</Text>
-            {item.on_site ? (
-              <View style={styles.pillRow}>
-                <View style={[styles.pill, styles.pillGreen]}>
-                  <Text style={styles.pillText}>On Site</Text>
-                </View>
-              </View>
-            ) : item.estimatedETA == null ? (
-              <View style={styles.pillRow}>
-                <View style={[styles.pill, styles.pillGray]}>
-                  <Text style={styles.pillText}>TBD</Text>
-                </View>
-              </View>
-            ) : (
-              <Text style={styles.dateText}>{item.arrival_formatted_date}</Text>
-            )}
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>Departure:</Text>
-            {item.estimatedETD == null ? (
-              <View style={styles.pillRow}>
-                <View style={[styles.pill, styles.pillGray]}>
-                  <Text style={styles.pillText}>TBD</Text>
-                </View>
-              </View>
-            ) : (
-              <Text style={styles.dateText}>
-                {item.departure_formatted_date}
-              </Text>
-            )}
-          </View>
-
-          {/* Tags */}
-          {item.tags && item.tags.length > 0 && (
-            <View style={styles.tagContainer}>
-              {item.isDueToday && (
-                <Text style={styles.dueBadge}>DUE TODAY</Text>
-              )}
-              {item.isOverdue && <Text style={styles.dueBadge}>OVERDUE</Text>}
-
-              {item.tags?.map((tag) => {
-                const tagStyle = getTagStyle(tag.tag_color);
-                return (
-                  <View
-                    key={tag.id}
-                    style={[styles.tag, { borderColor: tagStyle.borderColor }]}
-                  >
-                    <Text style={[styles.tagText, { color: tagStyle.color }]}>
-                      {tag.tag_short_name}
-                    </Text>
+          {activeTab === "open" && (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.label}>Arrival:</Text>
+                {item.on_site ? (
+                  <View style={styles.pillRow}>
+                    <View style={[styles.pill, styles.pillGreen]}>
+                      <Text style={styles.pillText}>On Site</Text>
+                    </View>
                   </View>
-                );
-              })}
+                ) : item.estimatedETA == null ? (
+                  <View style={styles.pillRow}>
+                    <View style={[styles.pill, styles.pillGray]}>
+                      <Text style={styles.pillText}>TBD</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={styles.dateText}>
+                    {item.arrival_formatted_date}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.label}>Departure:</Text>
+                {item.estimatedETD == null ? (
+                  <View style={styles.pillRow}>
+                    <View style={[styles.pill, styles.pillGray]}>
+                      <Text style={styles.pillText}>TBD</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={styles.dateText}>
+                    {item.departure_formatted_date}
+                  </Text>
+                )}
+              </View>
+              {item.tags && item.tags.length > 0 && (
+                <View style={styles.tagContainer}>
+                  {item.isDueToday && (
+                    <Text style={styles.dueBadge}>DUE TODAY</Text>
+                  )}
+                  {item.isOverdue && (
+                    <Text style={styles.dueBadge}>OVERDUE</Text>
+                  )}
+
+                  {item.tags?.map((tag) => {
+                    const tagStyle = getTagStyle(tag.tag_color);
+                    return (
+                      <View
+                        key={tag.id}
+                        style={[
+                          styles.tag,
+                          { borderColor: tagStyle.borderColor },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.tagText, { color: tagStyle.color }]}
+                        >
+                          {tag.tag_short_name}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </>
+          )}
+
+          {activeTab === "completed" && (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.label}>Completed:</Text>
+                <Text style={styles.dateText}>{item.completion_date}</Text>
+              </View>
+            </>
+          )}
+
+          {currentUser.canSeePrice && activeTab === "completed" && (
+            <View style={{ position: "absolute", right: 12, bottom: 20 }}>
+              <Text>${item.price.toLocaleString()}</Text>
             </View>
           )}
 
@@ -372,6 +398,7 @@ export default function JobsScreen() {
             currentUser.isAccountManager ||
             currentUser.isInternalCoordinator ||
             currentUser.isMasterPM) &&
+            activeTab === "open" &&
             item.asignees?.length > 0 && (
               <View style={styles.assigneeContainer}>
                 <View style={styles.avatarRow}>
@@ -398,7 +425,7 @@ export default function JobsScreen() {
         </View>
       </TouchableOpacity>
     ),
-    [router]
+    [router, activeTab, currentUser]
   );
 
   const totalPages = Math.ceil(totalJobs / pageSize);
