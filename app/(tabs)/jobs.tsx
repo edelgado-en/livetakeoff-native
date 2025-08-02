@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useContext, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Button } from "react-native-paper";
 import {
   View,
   Text,
@@ -10,6 +11,7 @@ import {
   TextInput,
   RefreshControl,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import LottieView from "lottie-react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -33,7 +35,6 @@ const isTablet = screenWidth >= 768; // adjust as needed for your breakpoint
 export default function JobsScreen() {
   useRegisterPushTokenOnce();
 
-  const { token } = useAuth();
   const { currentUser } = useContext(AuthContext);
   const router = useRouter();
   const [jobs, setJobs] = useState<any[]>([]);
@@ -132,7 +133,8 @@ export default function JobsScreen() {
           setSearchText("");
           setTotalJobs(0);
           setJobs([]);
-          fetchJobs(tab); // explicitly pass tab
+          setPage(1);
+          fetchJobs(tab, 1); // explicitly pass tab and page
         }
       };
       restoreTab();
@@ -144,23 +146,25 @@ export default function JobsScreen() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchJobs();
+      setPage(1);
+      fetchJobs(activeTab, 1);
     }, 400); // debounce
 
     return () => clearTimeout(delay);
   }, [searchText, activeTab]);
 
-  const fetchJobs = async (tabOverride = null) => {
+  const fetchJobs = async (tabOverride = null, pageOverride = null) => {
     setLoading(true);
     setRefreshing(true);
 
     const tab = tabOverride || activeTab;
+    const currentPage = pageOverride || page;
 
     try {
       const endpoint =
         tab === "completed"
-          ? `/jobs/completed?page=1&size=${pageSize}`
-          : `/jobs?page=1&size=${pageSize}`;
+          ? `/jobs/completed?page=${currentPage}&size=${pageSize}`
+          : `/jobs?page=${currentPage}&size=${pageSize}`;
 
       const response = await httpService.post(endpoint, {
         isMobileRequest: true,
@@ -248,8 +252,9 @@ export default function JobsScreen() {
     setSearchText("");
     setTotalJobs(0);
     setJobs([]);
+    setPage(1);
 
-    fetchJobs(tab); // pass tab explicitly
+    fetchJobs(tab, 1); // pass tab and reset to page 1
   };
 
   const renderItem = useCallback(
@@ -396,7 +401,85 @@ export default function JobsScreen() {
     [router]
   );
 
-  const keyExtractor = useCallback((item) => item.id.toString(), []);
+  const totalPages = Math.ceil(totalJobs / pageSize);
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingVertical: 15,
+          paddingHorizontal: 12,
+          width: "100%",
+        }}
+      >
+        <View style={{ flexDirection: "row", gap: 2 }}>
+          {page > 1 && (
+            <>
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  setPage(1);
+                  fetchJobs(activeTab, 1);
+                }}
+                contentStyle={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                labelStyle={{ color: "#374151" }} // Tailwind gray-700
+                style={{ borderColor: "#D1D5DB", backgroundColor: "#ffffff" }} // Tailwind gray-300 border
+              >
+                First
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  setPage(page - 1);
+                  fetchJobs(activeTab, page - 1);
+                }}
+                contentStyle={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                labelStyle={{ color: "#374151" }}
+                style={{ borderColor: "#D1D5DB", backgroundColor: "#ffffff" }}
+              >
+                Prev
+              </Button>
+            </>
+          )}
+        </View>
+
+        <View style={{ flexDirection: "row", gap: 2 }}>
+          {page < totalPages && (
+            <>
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  setPage(page + 1);
+                  fetchJobs(activeTab, page + 1);
+                }}
+                contentStyle={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                labelStyle={{ color: "#374151" }}
+                style={{ borderColor: "#D1D5DB", backgroundColor: "#ffffff" }}
+              >
+                Next
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  setPage(totalPages);
+                  fetchJobs(activeTab, totalPages);
+                }}
+                contentStyle={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                labelStyle={{ color: "#374151" }}
+                style={{ borderColor: "#D1D5DB", backgroundColor: "#ffffff" }}
+              >
+                Last
+              </Button>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   if (!currentUser || !currentUser.id) {
     // Still loading user — avoid rendering role-based UI
@@ -513,44 +596,30 @@ export default function JobsScreen() {
             {activeTab === "open" ? "Open" : "Completed"} Jobs
           </Text>
         </View>
-        <FlatList
-          data={jobs}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          removeClippedSubviews={true}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListFooterComponent={
-            loading && !refreshing ? (
-              <View style={{ paddingVertical: 20 }}>
-                <Text style={{ textAlign: "center", color: "#6B7280" }}>
-                  Loading more jobs...
-                </Text>
-              </View>
-            ) : null
-          }
-          ListEmptyComponent={
-            !loading
-              ? () => (
-                  <View style={styles.emptyContainer}>
-                    <MaterialIcons
-                      name="info-outline"
-                      size={32}
-                      color="#9CA3AF"
-                    />
-                    <Text style={styles.emptyTextTitle}>No jobs found</Text>
-                    <Text style={styles.emptyText}>
-                      Get started by creating a new job.
-                    </Text>
-                  </View>
-                )
-              : null
-          }
-        />
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <LottieView
+              source={require("../../assets/animations/progress-bar.json")}
+              autoPlay
+              loop
+              style={{ width: 150, height: 150 }}
+            />
+          </View>
+        ) : (
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            contentContainerStyle={{ paddingBottom: 80 }}
+          >
+            {jobs.map((item, index) => (
+              <View key={item.id ?? index}>{renderItem({ item })}</View>
+            ))}
+
+            {renderPagination()}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
