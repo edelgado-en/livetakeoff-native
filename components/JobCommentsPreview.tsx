@@ -18,6 +18,7 @@ import Toast from "react-native-toast-message";
 import { AuthContext } from "../providers/AuthProvider";
 import UserAvatar from "./UserAvatar";
 import httpService from "../services/httpService";
+import { opacity } from "react-native-reanimated/lib/typescript/Colors";
 
 const { width } = Dimensions.get("window");
 
@@ -147,7 +148,7 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
         <TouchableOpacity
           onPress={() => {
             setNewComment("");
-            setModalVisible(true);
+            setTimeout(() => setModalVisible(true), 100);
           }}
           style={styles.addButton}
         >
@@ -191,7 +192,7 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
         backdropOpacity={0.5}
         onBackdropPress={() => setModalVisible(false)}
         onBackButtonPress={() => setModalVisible(false)}
-        useNativeDriver
+        useNativeDriver={false}
         hideModalContentWhileAnimating
       >
         <View style={styles.modalContainer}>
@@ -223,7 +224,14 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.postButton} onPress={saveComment}>
+            <TouchableOpacity
+              disabled={!newComment.trim()}
+              style={[
+                styles.postButton,
+                { opacity: !newComment.trim() ? 0.6 : 1 },
+              ]}
+              onPress={saveComment}
+            >
               <Text style={styles.postText}>Post</Text>
             </TouchableOpacity>
           </View>
