@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  TextInput,
   Alert,
   StyleSheet,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import React, { useState } from "react";
+import { TextInput } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import httpService from "../services/httpService";
@@ -17,6 +17,7 @@ export default function ChangePasswordScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordAgain, setNewPasswordAgain] = useState("");
   const [loading, setLoading] = useState(false);
+  const [secure, setSecure] = useState(true);
   const router = useRouter();
 
   const validatePassword = (password: string) => {
@@ -72,14 +73,24 @@ export default function ChangePasswordScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>Change Password</Text>
+        <Text style={styles.title}>Create New Password</Text>
 
-        <Text style={styles.label}>New Password</Text>
         <TextInput
-          style={styles.input}
-          secureTextEntry
+          label="New Password"
           value={newPassword}
           onChangeText={setNewPassword}
+          autoCapitalize="none"
+          secureTextEntry={secure}
+          mode="outlined"
+          activeOutlineColor="#3B82F6" // Tailwind blue-500
+          outlineColor="#D1D5DB" // Tailwind gray-300
+          style={{ marginVertical: 5 }}
+          right={
+            <TextInput.Icon
+              icon={secure ? "eye-off" : "eye"}
+              onPress={() => setSecure(!secure)}
+            />
+          }
         />
         <Text style={styles.hintText}>
           Your password must contain at least 8 characters.
@@ -88,15 +99,18 @@ export default function ChangePasswordScreen() {
           Your password can’t be entirely numeric.
         </Text>
 
-        <Text style={[styles.label, { marginTop: 20 }]}>
-          Confirm New Password
-        </Text>
         <TextInput
-          style={styles.input}
-          secureTextEntry
+          label="Confirm New Password"
           value={newPasswordAgain}
           onChangeText={setNewPasswordAgain}
+          autoCapitalize="none"
+          secureTextEntry={secure}
+          mode="outlined"
+          activeOutlineColor="#3B82F6" // Tailwind blue-500
+          outlineColor="#D1D5DB" // Tailwind gray-300
+          style={{ marginVertical: 5, marginTop: 20 }}
         />
+        <Text style={styles.hintText}>Both passwords must match.</Text>
 
         <TouchableOpacity
           style={[styles.button, loading && { opacity: 0.6 }]}
@@ -171,7 +185,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   hintText: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#6B7280", // Tailwind gray-500
     marginTop: 8,
   },
