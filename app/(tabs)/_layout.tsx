@@ -1,8 +1,20 @@
 import { Tabs } from "expo-router";
+import { useContext } from "react";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, Platform } from "react-native";
 
+import { AuthContext } from "../../providers/AuthProvider";
+
 export default function TabsLayout() {
+  const { currentUser } = useContext(AuthContext);
+
+  const canCreateJob =
+    currentUser?.isAdmin ||
+    currentUser?.isSuperUser ||
+    currentUser?.isAccountManager ||
+    currentUser?.isCustomer ||
+    currentUser?.isInternalCoordinator;
+
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +32,6 @@ export default function TabsLayout() {
         tabBarShowLabel: false,
       }}
     >
-      {/* 1. HOME TAB */}
       <Tabs.Screen
         name="jobs"
         options={{
@@ -33,12 +44,13 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2. CREATE JOB TAB */}
       <Tabs.Screen
         name="create"
         options={{
-          headerShown: true, // optional: show back button
+          headerShown: true,
           title: "New Job",
+          // 👇 hide tab bar button when access is not allowed
+          tabBarButton: canCreateJob ? undefined : () => null,
           tabBarIcon: ({ color }) => (
             <View style={styles.tabIcon}>
               <MaterialIcons name="work-outline" size={26} color={color} />
@@ -48,7 +60,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 3. MORE TAB */}
       <Tabs.Screen
         name="more"
         options={{
