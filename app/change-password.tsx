@@ -64,7 +64,9 @@ export default function ChangePasswordScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backIcon}

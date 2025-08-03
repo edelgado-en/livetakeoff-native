@@ -26,7 +26,7 @@ export default function MoreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <ScrollView style={[styles.container, { marginTop: 20 }]}>
         <Text style={styles.title}>Hi, {currentUser.first_name}</Text>
         <Text>{currentUser.email}</Text>
@@ -34,7 +34,7 @@ export default function MoreScreen() {
         <View style={styles.section}>
           <TouchableOpacity
             style={styles.card}
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push("/user-profile")}
           >
             <View style={styles.cardContent}>
               <MaterialIcons name="person-outline" size={22} color="#6B7280" />
@@ -82,6 +82,10 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F3F4F6", // Tailwind gray-100
+  },
   container: {
     flex: 1,
     backgroundColor: "#F3F4F6", // Tailwind gray-100
