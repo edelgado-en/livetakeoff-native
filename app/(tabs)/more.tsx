@@ -13,6 +13,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { AuthContext } from "../../providers/AuthProvider";
 import { MaterialIcons } from "@expo/vector-icons";
 
+const getCurrentYear = () => new Date().getFullYear();
+
 export default function MoreScreen() {
   const { logout } = useAuth();
   const { currentUser } = useContext(AuthContext);
@@ -61,6 +63,17 @@ export default function MoreScreen() {
           <Text style={styles.versionText}>
             Version {Constants.expoConfig?.version} (Build{" "}
             {Constants.expoConfig?.ios?.buildNumber})
+          </Text>
+          <Text
+            style={{
+              marginTop: 8,
+              textAlign: "center",
+              fontSize: 14,
+              lineHeight: 24,
+              color: "#6B7280",
+            }}
+          >
+            © {getCurrentYear()} Livetakeoff. All rights reserved.
           </Text>
         </View>
       </ScrollView>
@@ -129,5 +142,6 @@ const styles = StyleSheet.create({
   },
   versionText: {
     color: "#6B7280",
+    fontSize: 14,
   },
 });
