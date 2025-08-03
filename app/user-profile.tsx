@@ -7,7 +7,8 @@ import {
   ScrollView,
   SafeAreaView,
 } from "react-native";
-import React, { useState, useContext } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useState, useContext, useCallback } from "react";
 import { TextInput } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ import UserAvatar from "../components/UserAvatar";
 import { AuthContext } from "../providers/AuthProvider";
 
 export default function ChangePasswordScreen() {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState(currentUser.email);
   const [phoneNumber, setPhoneNumber] = useState(
@@ -26,6 +27,36 @@ export default function ChangePasswordScreen() {
   const [firstName, setFirstName] = useState(currentUser.first_name);
   const [lastName, setLastName] = useState(currentUser.last_name);
   const router = useRouter();
+
+  const handleUpdateUser = async () => {
+    const request = {
+      email,
+      phone_number: phoneNumber,
+      first_name: firstName,
+      last_name: lastName,
+    };
+
+    setLoading(true);
+
+    if (!email || !firstName || !lastName) {
+      Alert.alert("Validation Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      await httpService.patch("/users/me", request);
+      const response = await httpService.get("/users/me");
+
+      setCurrentUser(response);
+
+      Alert.alert("Success", "Profile updated!.");
+      router.back();
+    } catch (error) {
+      Alert.alert("Error", "Failed to update profile.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -96,6 +127,16 @@ export default function ChangePasswordScreen() {
           outlineColor="#D1D5DB" // Tailwind gray-300
           style={{ marginVertical: 10 }}
         />
+
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleUpdateUser}
+          disabled={loading || !firstName || !lastName || !email}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Saving..." : "Complete"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -122,5 +163,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
     marginBottom: 24,
+  },
+  button: {
+    backgroundColor: "#10B981",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 30,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

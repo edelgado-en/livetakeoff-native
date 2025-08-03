@@ -51,11 +51,7 @@ export default function ChangePasswordScreen() {
       Alert.alert("Success", "Your password has been changed.");
       router.back();
     } catch (error: any) {
-      console.error(error);
-      Alert.alert(
-        "Error",
-        error?.response?.data?.detail || "Failed to change password."
-      );
+      Alert.alert("Error", "Failed to change password.");
     } finally {
       setLoading(false);
     }
