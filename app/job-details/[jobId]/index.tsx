@@ -307,6 +307,30 @@ export default function JobDetailsScreen() {
     }
   };
 
+  const handleConfirmJob = async () => {
+    setLoading(true);
+    try {
+      await httpService.patch(`/jobs/${jobId}/`, { status: "A" });
+
+      onRefresh();
+
+      Toast.show({
+        type: "success",
+        text1: "Job confirm!",
+        position: "top",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Failed to confirm job",
+        text2: "Please try again.",
+        position: "top",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -400,7 +424,7 @@ export default function JobDetailsScreen() {
 
         {currentUser.isCustomer &&
           (job.status === "U" || job.status === "A") && (
-            <View style={styles.fullWidthContainer}>
+            <View style={[styles.fullWidthContainer, { marginBottom: 6 }]}>
               <Button
                 onPress={() => setCancelModalVisible(true)}
                 labelStyle={styles.cancelLabel}
@@ -409,6 +433,33 @@ export default function JobDetailsScreen() {
               >
                 Cancel Job
               </Button>
+              {job.status === "U" && currentUser.canConfirmJobs && (
+                <TouchableOpacity
+                  onPress={handleConfirmJob}
+                  style={{
+                    backgroundColor: "#ffffff",
+                    borderWidth: 1,
+                    borderColor: "#D1D5DB", // Tailwind gray-300
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    marginLeft: 6,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      color: "#3B82F6",
+                      fontWeight: "500",
+                      marginLeft: 4,
+                    }}
+                  >
+                    Confirm Job
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -720,7 +771,7 @@ export default function JobDetailsScreen() {
         onBackButtonPress={() => !cancelLoading && setCancelModalVisible(false)}
       >
         <View style={modalStyles.container}>
-          {isCancelModalVisible ? (
+          {cancelLoading ? (
             <LottieView
               source={require("../../../assets/animations/progress-bar.json")}
               autoPlay
@@ -975,8 +1026,20 @@ const styles = StyleSheet.create({
   },
   cancelLabel: {
     color: "#EF4444", // Tailwind red-500
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "500",
+  },
+  confirmLabel: {
+    color: "#111827", // Tailwind gray-900 (black-ish)
+    fontWeight: "500",
+    fontSize: 14,
+  },
+  boutlinedButton: {
+    backgroundColor: "#fff",
+    borderColor: "#D1D5DB", // Tailwind gray-300
+    borderWidth: 1,
+    flex: 1,
+    borderRadius: 8,
   },
 });
 

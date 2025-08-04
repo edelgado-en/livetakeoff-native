@@ -18,7 +18,6 @@ import Toast from "react-native-toast-message";
 import { AuthContext } from "../providers/AuthProvider";
 import UserAvatar from "./UserAvatar";
 import httpService from "../services/httpService";
-import { opacity } from "react-native-reanimated/lib/typescript/Colors";
 
 const { width } = Dimensions.get("window");
 
