@@ -388,7 +388,7 @@ export default function JobsScreen() {
 
           {currentUser.canSeePrice && activeTab === "completed" && (
             <View style={{ position: "absolute", right: 12, bottom: 20 }}>
-              <Text>${item.price.toLocaleString()}</Text>
+              <Text>${item.price?.toLocaleString()}</Text>
             </View>
           )}
 
@@ -538,67 +538,73 @@ export default function JobsScreen() {
           )}
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 8,
-            paddingHorizontal: 4,
-            marginBottom: 10,
-          }}
-        >
-          <TouchableOpacity
-            disabled={loading}
+        {(currentUser?.isAdmin ||
+          currentUser?.isSuperUser ||
+          currentUser?.isAccountManager ||
+          currentUser?.isCustomer ||
+          currentUser?.isInternalCoordinator) && (
+          <View
             style={{
-              backgroundColor: activeTab === "open" ? "#10B981" : "#FFFFFF",
-              borderWidth: activeTab === "open" ? 0 : 1,
-              borderColor: "#D1D5DB",
-              paddingVertical: 10,
-              paddingHorizontal: 16,
-              borderRadius: 24,
-              minWidth: 120,
-              alignItems: "center",
-              opacity: loading ? 0.6 : 1,
+              flexDirection: "row",
+              gap: 8,
+              paddingHorizontal: 4,
+              marginBottom: 10,
             }}
-            onPress={() => handleTabChange("open")}
           >
-            <Text
+            <TouchableOpacity
+              disabled={loading}
               style={{
-                color: activeTab === "open" ? "#FFFFFF" : "#374151",
-                fontWeight: activeTab === "open" ? "600" : "500",
-                fontSize: 15,
+                backgroundColor: activeTab === "open" ? "#10B981" : "#FFFFFF",
+                borderWidth: activeTab === "open" ? 0 : 1,
+                borderColor: "#D1D5DB",
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                borderRadius: 24,
+                minWidth: 120,
+                alignItems: "center",
+                opacity: loading ? 0.6 : 1,
               }}
+              onPress={() => handleTabChange("open")}
             >
-              Open Jobs
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={{
+                  color: activeTab === "open" ? "#FFFFFF" : "#374151",
+                  fontWeight: activeTab === "open" ? "600" : "500",
+                  fontSize: 15,
+                }}
+              >
+                Open Jobs
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            disabled={loading}
-            style={{
-              backgroundColor:
-                activeTab === "completed" ? "#10B981" : "#FFFFFF",
-              borderWidth: activeTab === "completed" ? 0 : 1,
-              borderColor: "#D1D5DB",
-              paddingVertical: 10,
-              paddingHorizontal: 16,
-              borderRadius: 24,
-              minWidth: 120,
-              alignItems: "center",
-              opacity: loading ? 0.6 : 1,
-            }}
-            onPress={() => handleTabChange("completed")}
-          >
-            <Text
+            <TouchableOpacity
+              disabled={loading}
               style={{
-                color: activeTab === "completed" ? "#FFFFFF" : "#374151",
-                fontWeight: activeTab === "completed" ? "600" : "500",
-                fontSize: 15,
+                backgroundColor:
+                  activeTab === "completed" ? "#10B981" : "#FFFFFF",
+                borderWidth: activeTab === "completed" ? 0 : 1,
+                borderColor: "#D1D5DB",
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                borderRadius: 24,
+                minWidth: 120,
+                alignItems: "center",
+                opacity: loading ? 0.6 : 1,
               }}
+              onPress={() => handleTabChange("completed")}
             >
-              Completed Jobs
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <Text
+                style={{
+                  color: activeTab === "completed" ? "#FFFFFF" : "#374151",
+                  fontWeight: activeTab === "completed" ? "600" : "500",
+                  fontSize: 15,
+                }}
+              >
+                Completed Jobs
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.searchContainer}>
           <Ionicons
@@ -622,6 +628,16 @@ export default function JobsScreen() {
             {activeTab === "open" ? "Open" : "Completed"} Jobs
           </Text>
         </View>
+
+        {!loading && jobs.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="document-outline" size={64} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>No jobs found</Text>
+            <Text style={styles.emptySubtitle}>
+              Get started by creating a new job.
+            </Text>
+          </View>
+        )}
 
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -964,5 +980,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff", // or 'rgba(255,255,255,0.9)' for overlay effect
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#111827", // Tailwind gray-900
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: "#6B7280", // Tailwind gray-500
+    textAlign: "center",
   },
 });
