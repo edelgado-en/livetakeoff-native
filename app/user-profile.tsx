@@ -58,6 +58,8 @@ export default function ChangePasswordScreen() {
     }
   };
 
+  if (!currentUser) return null;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>

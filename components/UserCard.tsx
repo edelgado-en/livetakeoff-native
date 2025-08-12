@@ -1,5 +1,11 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 
 interface Props {
   currentUser: {
@@ -35,13 +41,15 @@ const UserCard: React.FC<Props> = ({ currentUser }) => {
   };
 
   const getRole = () => {
-    if (currentUser.is_staff || currentUser.is_super_user) return 'Admin';
-    if (currentUser.is_project_manager) return 'P. Manager';
-    if (currentUser.is_account_manager) return 'A. Manager';
-    if (currentUser.is_internal_coordinator) return 'Coordinator';
-    if (currentUser.customer_name) return 'Customer';
-    return '';
+    if (currentUser.is_staff || currentUser.is_super_user) return "Admin";
+    if (currentUser.is_project_manager) return "P. Manager";
+    if (currentUser.is_account_manager) return "A. Manager";
+    if (currentUser.is_internal_coordinator) return "Coordinator";
+    if (currentUser.customer_name) return "Customer";
+    return "";
   };
+
+  if (!currentUser) return null;
 
   return (
     <View style={styles.container}>
@@ -51,27 +59,27 @@ const UserCard: React.FC<Props> = ({ currentUser }) => {
           {currentUser.first_name} {currentUser.last_name}
         </Text>
         <Text style={styles.email}>
-          {currentUser.email || 'No email specified'}
+          {currentUser.email || "No email specified"}
         </Text>
       </View>
       {!!getRole() && (
         <View style={getBadgeStyle()}>
-            <Text style={styles.badgeText}>{getRole()}</Text>
+          <Text style={styles.badgeText}>{getRole()}</Text>
         </View>
-        )}
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 20,
-    marginBottom:16,
+    marginBottom: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
     gap: 16,
   },
   avatar: {
@@ -84,45 +92,45 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
   },
   email: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 9999,
     fontSize: 12,
-    alignSelf: 'flex-start',
-    overflow: 'hidden',
+    alignSelf: "flex-start",
+    overflow: "hidden",
   },
   admin: {
-    backgroundColor: '#D1FAE5',
-    color: '#065F46',
+    backgroundColor: "#D1FAE5",
+    color: "#065F46",
   },
   accountManager: {
-    backgroundColor: '#DBEAFE',
-    color: '#1E40AF',
+    backgroundColor: "#DBEAFE",
+    color: "#1E40AF",
   },
   projectManager: {
-    backgroundColor: '#EDE9FE',
-    color: '#5B21B6',
+    backgroundColor: "#EDE9FE",
+    color: "#5B21B6",
   },
   coordinator: {
-    backgroundColor: '#FFEDD5',
-    color: '#9A3412',
+    backgroundColor: "#FFEDD5",
+    color: "#9A3412",
   },
   customer: {
-    backgroundColor: '#E0F2FE',
-    color: '#0369A1',
+    backgroundColor: "#E0F2FE",
+    color: "#0369A1",
   },
   badgeText: {
-  fontSize: 12,
-  fontWeight: '500',
-},
+    fontSize: 12,
+    fontWeight: "500",
+  },
 });
 
 export default UserCard;

@@ -316,7 +316,7 @@ export default function JobDetailsScreen() {
 
       Toast.show({
         type: "success",
-        text1: "Job confirm!",
+        text1: "Job confirmed!",
         position: "top",
       });
     } catch (error) {
@@ -363,6 +363,8 @@ export default function JobDetailsScreen() {
       ),
     }));
   };
+
+  if (!currentUser) return null;
 
   if (loading || !job) {
     return (

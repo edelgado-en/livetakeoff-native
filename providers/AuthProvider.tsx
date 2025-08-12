@@ -4,6 +4,7 @@ import * as SecureStore from "expo-secure-store";
 export const AuthContext = createContext({
   token: null,
   currentUser: null,
+  authIsBootstrapping: false,
   setCurrentUser: (_user: any) => {},
   login: async (_email: string, _password: string): Promise<any> => {
     return null;
@@ -14,7 +15,7 @@ export const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authIsBootstrapping, setAuthIsBootstrapping] = useState(true);
 
   useEffect(() => {
     const loadToken = async () => {
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         setToken(stored);
         await fetchCurrentUser(stored);
       }
-      setLoading(false);
+      setAuthIsBootstrapping(false);
     };
     loadToken();
   }, []);
@@ -75,11 +76,19 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.deleteItemAsync("accessToken");
     await SecureStore.deleteItemAsync("refreshToken");
     setToken(null);
+    setCurrentUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ token, currentUser, setCurrentUser, login, logout }}
+      value={{
+        token,
+        currentUser,
+        setCurrentUser,
+        login,
+        logout,
+        authIsBootstrapping,
+      }}
     >
       {children}
     </AuthContext.Provider>

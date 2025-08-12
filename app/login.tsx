@@ -59,6 +59,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
+        keyboardShouldPersistTaps="always"
         contentContainerStyle={[
           styles.content,
           { paddingBottom: insets.bottom + 100 },
@@ -128,17 +129,14 @@ export default function LoginScreen() {
 
       {/* Footer Terms and Privacy */}
       <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
-        <Text style={styles.footerText}>
-          By logging in, you agree to our{" "}
-          <Text
-            style={styles.link}
-            onPress={() =>
-              Linking.openURL("https://www.livetakeoff.com/privacy-policy")
-            }
-          >
-            Terms and Conditions and Privacy Policy
-          </Text>
-          .
+        <Text style={styles.footerText}>By logging in, you agree to our</Text>
+        <Text
+          style={[styles.footerText, styles.link]}
+          onPress={() =>
+            Linking.openURL("https://www.livetakeoff.com/privacy-policy")
+          }
+        >
+          Terms and Conditions and Privacy Policy
         </Text>
       </View>
     </SafeAreaView>

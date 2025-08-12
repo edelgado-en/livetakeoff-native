@@ -810,6 +810,8 @@ export default function CreateJobScreen() {
     );
   }
 
+  if (!currentUser) return null;
+
   return (
     <SafeAreaView style={styles.safe}>
       <Portal>

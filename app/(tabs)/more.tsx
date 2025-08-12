@@ -22,8 +22,9 @@ export default function MoreScreen() {
 
   const handleLogout = async () => {
     logout();
-    router.replace("/login");
   };
+
+  if (!currentUser) return null;
 
   return (
     <SafeAreaView style={styles.safeArea}>

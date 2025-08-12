@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Switch,
   Platform,
-  ScrollView
-} from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { MaterialIcons } from '@expo/vector-icons';
+  ScrollView,
+} from "react-native";
+import { Calendar } from "react-native-calendars";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   label: string;
@@ -25,7 +25,9 @@ const generateTimeOptions = () => {
   const options = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let min = 0; min < 60; min += 15) {
-      const label = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+      const label = `${hour.toString().padStart(2, "0")}:${min
+        .toString()
+        .padStart(2, "0")}`;
       options.push(label);
     }
   }
@@ -42,26 +44,26 @@ const DatePicker: React.FC<Props> = ({
 }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState('12:00');
+  const [selectedTime, setSelectedTime] = useState("12:00");
 
   const openPicker = () => {
     if (!onSiteValue) {
       setPickerVisible(true);
       if (value) {
-        const isoDate = value.toISOString().split('T')[0];
+        const isoDate = value.toISOString().split("T")[0];
         const time = value.toTimeString().slice(0, 5);
         setSelectedDate(isoDate);
         setSelectedTime(time);
       } else {
-        setSelectedDate(new Date().toISOString().split('T')[0]);
-        setSelectedTime('12:00');
+        setSelectedDate(new Date().toISOString().split("T")[0]);
+        setSelectedTime("12:00");
       }
     }
   };
 
   const handleConfirm = () => {
     if (selectedDate) {
-      const [hour, minute] = selectedTime.split(':').map(Number);
+      const [hour, minute] = selectedTime.split(":").map(Number);
       const date = new Date(selectedDate);
       date.setHours(hour);
       date.setMinutes(minute);
@@ -76,13 +78,13 @@ const DatePicker: React.FC<Props> = ({
   };
 
   const formatDateTime = (date?: Date | null) => {
-    if (!date) return '';
+    if (!date) return "";
     return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: false,
     });
   };
@@ -97,12 +99,12 @@ const DatePicker: React.FC<Props> = ({
             onPress={openPicker}
             style={[
               styles.input,
-              onSiteValue && { backgroundColor: '#F3F4F6' },
+              onSiteValue && { backgroundColor: "#F3F4F6" },
             ]}
           >
             <Text style={value ? styles.inputText : styles.placeholder}>
               {onSiteValue
-                ? 'On site — no time required'
+                ? "On site — no time required"
                 : formatDateTime(value)}
             </Text>
           </Pressable>
@@ -124,8 +126,8 @@ const DatePicker: React.FC<Props> = ({
             <Switch
               value={onSiteValue}
               onValueChange={handleToggleOnSite}
-              thumbColor={onSiteValue ? '#EF4444' : '#f4f3f4'}
-              trackColor={{ false: '#D1D5DB', true: '#FCA5A5' }}
+              thumbColor={onSiteValue ? "#EF4444" : "#f4f3f4"}
+              trackColor={{ false: "#D1D5DB", true: "#FCA5A5" }}
             />
           </View>
         )}
@@ -142,18 +144,18 @@ const DatePicker: React.FC<Props> = ({
             <Calendar
               onDayPress={(day) => setSelectedDate(day.dateString)}
               markedDates={{
-                [selectedDate || '']: {
+                [selectedDate || ""]: {
                   selected: true,
-                  selectedColor: '#EF4444',
+                  selectedColor: "#EF4444",
                 },
               }}
               theme={{
-                backgroundColor: '#1F2937',
-                calendarBackground: '#1F2937',
-                dayTextColor: '#FFFFFF',
-                monthTextColor: '#FFFFFF',
-                selectedDayBackgroundColor: '#EF4444',
-                selectedDayTextColor: '#FFFFFF',
+                backgroundColor: "#1F2937",
+                calendarBackground: "#1F2937",
+                dayTextColor: "#FFFFFF",
+                monthTextColor: "#FFFFFF",
+                selectedDayBackgroundColor: "#EF4444",
+                selectedDayTextColor: "#FFFFFF",
               }}
             />
 
@@ -204,98 +206,100 @@ const DatePicker: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: { marginTop: 30 },
   label: {
-    position: 'absolute',
+    position: "absolute",
     top: -10,
     left: 12,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingHorizontal: 4,
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     zIndex: 1,
   },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  inputWrapper: { flex: 1, position: 'relative' },
+  row: { flexDirection: "row", alignItems: "center" },
+  inputWrapper: { flex: 1, position: "relative" },
   input: {
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderWidth: 1,
     borderRadius: 6,
     paddingLeft: 12,
     paddingRight: 36,
-    justifyContent: 'center',
-    backgroundColor: 'white',
+    justifyContent: "center",
+    backgroundColor: "white",
   },
   inputText: {
     fontSize: 16,
-    color: '#111827',
+    color: "#111827",
   },
   placeholder: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   clearIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     top: 14,
     zIndex: 2,
   },
   toggleInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginLeft: 12,
   },
   toggleLabel: {
     marginRight: 6,
     fontSize: 14,
-    color: '#374151',
+    color: "#374151",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#111827',
+    backgroundColor: "#111827",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 20,
   },
   modalLabel: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
     marginBottom: 8,
   },
   timeOption: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#374151',
+    backgroundColor: "#374151",
     borderRadius: 8,
     marginHorizontal: 4,
   },
   timeOptionSelected: {
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
   },
   timeText: {
-    color: '#D1D5DB',
+    color: "#D1D5DB",
     fontSize: 14,
   },
   timeTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 16,
+    marginBottom: 40,
+    paddingHorizontal: 20,
   },
   cancel: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     fontSize: 16,
   },
   confirm: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

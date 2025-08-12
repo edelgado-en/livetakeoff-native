@@ -112,6 +112,8 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
     );
   };
 
+  if (!currentUser) return null;
+
   return (
     <View>
       <View

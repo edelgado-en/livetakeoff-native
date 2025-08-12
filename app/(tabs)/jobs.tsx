@@ -521,6 +521,8 @@ export default function JobsScreen() {
     );
   }
 
+  if (!currentUser) return null;
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>

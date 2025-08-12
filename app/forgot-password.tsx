@@ -10,6 +10,7 @@ import {
   ScrollView,
   Linking,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import LottieView from "lottie-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -94,6 +95,15 @@ export default function ForgotPasswordScreen() {
             { paddingBottom: insets.bottom + 100 },
           ]}
         >
+          <View style={styles.formContainer}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.replace("/login")}
+            >
+              <Ionicons name="arrow-back" size={20} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
+
           <Image
             source={require("../assets/logo_2618936_web.png")}
             style={styles.logo}
@@ -259,5 +269,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff", // or 'rgba(255,255,255,0.9)' for overlay effect
+  },
+  backButton: {
+    borderRadius: 9999,
+    borderColor: "#D1D5DB",
+    borderWidth: 1,
+    backgroundColor: "#fff",
+    padding: 8,
+  },
+  formContainer: {
+    width: "90%", // same as your form
+    maxWidth: 400,
+    alignSelf: "center",
+    alignItems: "flex-start", // aligns back button left inside centered container
   },
 });
