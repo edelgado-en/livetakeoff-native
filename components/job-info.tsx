@@ -15,6 +15,14 @@ export default function InfoTable({ job }: any) {
     <View style={styles.container}>
       {/* Always-visible fields */}
       <View style={styles.row}>
+        <Text style={styles.label}>Aircraft</Text>
+        <View style={styles.valueContainer}>
+          <Text style={styles.value}>
+            {job.aircraftType?.name || "Not specified"}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.row}>
         <Text style={styles.label}>Airport</Text>
         <View style={styles.valueContainer}>
           <Text style={styles.value}>
@@ -58,14 +66,7 @@ export default function InfoTable({ job }: any) {
               </Text>
             </View>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Aircraft</Text>
-            <View style={styles.valueContainer}>
-              <Text style={styles.value}>
-                {job.aircraftType?.name || "Not specified"}
-              </Text>
-            </View>
-          </View>
+
           <View style={styles.row}>
             <Text style={styles.label}>Customer PO</Text>
             <View style={styles.valueContainer}>
