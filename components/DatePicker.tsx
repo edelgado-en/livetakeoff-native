@@ -6,7 +6,6 @@ import {
   Modal,
   StyleSheet,
   Switch,
-  Platform,
   ScrollView,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
@@ -21,19 +20,6 @@ type Props = {
   onToggleOnSite?: (val: boolean) => void;
 };
 
-const generateTimeOptions = () => {
-  const options = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let min = 0; min < 60; min += 15) {
-      const label = `${hour.toString().padStart(2, "0")}:${min
-        .toString()
-        .padStart(2, "0")}`;
-      options.push(label);
-    }
-  }
-  return options;
-};
-
 const DatePicker: React.FC<Props> = ({
   label,
   value,
@@ -44,29 +30,33 @@ const DatePicker: React.FC<Props> = ({
 }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState("12:00");
+  const [selectedHour, setSelectedHour] = useState(12);
+  const [selectedMinute, setSelectedMinute] = useState(0);
 
   const openPicker = () => {
     if (!onSiteValue) {
       setPickerVisible(true);
       if (value) {
         const isoDate = value.toISOString().split("T")[0];
-        const time = value.toTimeString().slice(0, 5);
         setSelectedDate(isoDate);
-        setSelectedTime(time);
+        setSelectedHour(value.getHours());
+        setSelectedMinute(value.getMinutes());
       } else {
-        setSelectedDate(new Date().toISOString().split("T")[0]);
-        setSelectedTime("12:00");
+        const now = new Date();
+        setSelectedDate(now.toISOString().split("T")[0]);
+        setSelectedHour(12);
+        setSelectedMinute(0);
       }
     }
   };
 
   const handleConfirm = () => {
     if (selectedDate) {
-      const [hour, minute] = selectedTime.split(":").map(Number);
       const date = new Date(selectedDate);
-      date.setHours(hour);
-      date.setMinutes(minute);
+      date.setHours(selectedHour);
+      date.setMinutes(selectedMinute);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
       onChange(date);
     }
     setPickerVisible(false);
@@ -85,7 +75,7 @@ const DatePicker: React.FC<Props> = ({
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: false,
+      hour12: false, // 24h format
     });
   };
 
@@ -160,32 +150,70 @@ const DatePicker: React.FC<Props> = ({
             />
 
             <View style={{ marginTop: 16 }}>
-              <Text style={styles.modalLabel}>Select Time</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingVertical: 10 }}
-              >
-                {generateTimeOptions().map((time) => (
-                  <Pressable
-                    key={time}
-                    onPress={() => setSelectedTime(time)}
-                    style={[
-                      styles.timeOption,
-                      time === selectedTime && styles.timeOptionSelected,
-                    ]}
-                  >
-                    <Text
+              <Text style={styles.modalLabel}>Select Time (24-hour)</Text>
+              <View style={styles.hmRow}>
+                <View style={styles.headerColumn}>
+                  <Text style={styles.hmText}>Hour</Text>
+                </View>
+                <View style={styles.headerColumn}>
+                  <Text style={styles.hmText}>Minute</Text>
+                </View>
+              </View>
+              <View style={styles.hmRow}>
+                {/* Hours 00–23 */}
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingVertical: 8 }}
+                  style={styles.hmColumn}
+                >
+                  {[...Array(24).keys()].map((h) => (
+                    <Pressable
+                      key={`h-${h}`}
+                      onPress={() => setSelectedHour(h)}
                       style={[
-                        styles.timeText,
-                        time === selectedTime && styles.timeTextSelected,
+                        styles.hmItem,
+                        selectedHour === h && styles.hmItemSelected,
                       ]}
                     >
-                      {time}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
+                      <Text
+                        style={[
+                          styles.hmText,
+                          selectedHour === h && styles.hmTextSelected,
+                        ]}
+                      >
+                        {String(h).padStart(2, "0")}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+
+                {/* Minutes 00–59 */}
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingVertical: 8 }}
+                  style={styles.hmColumn}
+                >
+                  {[...Array(60).keys()].map((m) => (
+                    <Pressable
+                      key={`m-${m}`}
+                      onPress={() => setSelectedMinute(m)}
+                      style={[
+                        styles.hmItem,
+                        selectedMinute === m && styles.hmItemSelected,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.hmText,
+                          selectedMinute === m && styles.hmTextSelected,
+                        ]}
+                      >
+                        {String(m).padStart(2, "0")}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
             </View>
 
             <View style={styles.modalButtons}>
@@ -267,21 +295,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
   },
-  timeOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: "#374151",
-    borderRadius: 8,
-    marginHorizontal: 4,
+  hmRow: {
+    flexDirection: "row",
+    gap: 12,
   },
-  timeOptionSelected: {
+  hmColumn: {
+    flex: 1,
+    maxHeight: 200,
+    backgroundColor: "#1F2937",
+    borderRadius: 8,
+  },
+  headerColumn: {
+    flex: 1,
+    maxHeight: 200,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  hmItem: {
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#374151",
+    marginHorizontal: 8,
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  hmItemSelected: {
     backgroundColor: "#EF4444",
   },
-  timeText: {
+  hmText: {
     color: "#D1D5DB",
-    fontSize: 14,
+    fontSize: 16,
   },
-  timeTextSelected: {
+  hmTextSelected: {
     color: "#FFFFFF",
     fontWeight: "bold",
   },
