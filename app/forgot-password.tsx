@@ -121,7 +121,7 @@ export default function ForgotPasswordScreen() {
               activeOutlineColor="#3B82F6" // Tailwind blue-500
               outlineColor="#D1D5DB" // Tailwind gray-300
               autoCapitalize="none"
-              style={{ marginVertical: 5 }}
+              style={{ marginVertical: 5, backgroundColor: "white" }}
             />
             <TextInput
               label="Email"
@@ -131,7 +131,11 @@ export default function ForgotPasswordScreen() {
               mode="outlined"
               activeOutlineColor="#3B82F6" // Tailwind blue-500
               outlineColor="#D1D5DB" // Tailwind gray-300
-              style={{ marginVertical: 5, marginBottom: 20 }}
+              style={{
+                marginVertical: 5,
+                marginBottom: 20,
+                backgroundColor: "white",
+              }}
             />
             <TouchableOpacity
               style={styles.button}

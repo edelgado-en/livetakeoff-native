@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Dimensions,
   ScrollView,
+  Alert,
 } from "react-native";
 import LottieView from "lottie-react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -161,7 +162,7 @@ export default function JobsScreen() {
 
     try {
       const endpoint =
-        tab === "completed"
+        tab === "completed" && !currentUser?.isProjectManager
           ? `/jobs/completed?page=${currentPage}&size=${pageSize}`
           : `/jobs?page=${currentPage}&size=${pageSize}`;
 
@@ -228,13 +229,7 @@ export default function JobsScreen() {
       setJobs(filteredJobs);
       setTotalJobs(response.count || 0);
     } catch (e) {
-      console.log(e);
-      Toast.show({
-        type: "error",
-        text1: "Failed to fetch jobs",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to fetch jobs. Please try again.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -632,13 +627,26 @@ export default function JobsScreen() {
         </View>
 
         {!loading && jobs.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>No jobs found</Text>
-            <Text style={styles.emptySubtitle}>
-              Get started by creating a new job.
-            </Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.emptyScroll}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                // progressViewOffset={80} // optional: drop spinner lower under a header
+              />
+            }
+            alwaysBounceVertical
+            overScrollMode="always"
+          >
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-outline" size={64} color="#9CA3AF" />
+              <Text style={styles.emptyTitle}>No jobs found</Text>
+              <Text style={styles.emptySubtitle}>
+                Get started by creating a new job.
+              </Text>
+            </View>
+          </ScrollView>
         )}
 
         {loading ? (
@@ -734,6 +742,12 @@ const styles = StyleSheet.create({
   nameContainer: {
     position: "relative",
     top: 10,
+  },
+  emptyScroll: {
+    flexGrow: 1, // fill height so pull gesture works
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
   },
   name: {
     fontSize: 14,

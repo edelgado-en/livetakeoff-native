@@ -8,7 +8,7 @@ import {
   Inter_500Medium,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
-import { Text, View } from "react-native";
+import { Text, View, Platform } from "react-native";
 import {
   Provider as PaperProvider,
   ActivityIndicator,
@@ -100,7 +100,15 @@ export default function Layout() {
           <AuthProvider>
             <AuthGate />
             <StatusBar style="auto" />
-            <Toast config={toastConfig} />
+            {/* <Toast
+                config={toastConfig}
+                position="top"
+                autoHide={true}
+                visibilityTime={2500}
+                topOffset={12}
+                onShow={() => console.log("[toast] show")}
+                onHide={() => console.log("[toast] hide")}
+                /> */}
           </AuthProvider>
         </PaperProvider>
       </SafeAreaProvider>

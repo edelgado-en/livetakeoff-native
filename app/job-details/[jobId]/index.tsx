@@ -19,16 +19,21 @@ import {
   useRef,
   useCallback,
 } from "react";
+
+import SimpleMessage from "../../../components/NotificationMessage";
+
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LottieView from "lottie-react-native";
 import { Button, IconButton } from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
-import Modal from "react-native-modal";
+import { Modal } from "react-native";
 import { TextInput as PaperTextInput } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import UserAvatar from "../../../components/UserAvatar";
 
@@ -53,11 +58,22 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { currentUser } = useContext(AuthContext);
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [isCancelModalVisible, setCancelModalVisible] = useState(false);
+  const [isReturnJobModalVisible, setReturnJobModalVisible] = useState(false);
+  const [isCompleteJobModalVisible, setCompleteJobModalVisible] =
+    useState(false);
+
+  const [showNotificationMessage, setShowNotificationMessage] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationType, setNotificationType] = useState("success"); // "success" | "error" | "info"
+
   const inputRef = useRef<PaperTextInput>(null);
   const [newComment, setNewComment] = useState("");
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0);
+
+  const [returnJobComment, setReturnJobComment] = useState("");
 
   const [refreshing, setRefreshing] = useState(false);
   const [job, setJob] = useState<any>(null);
@@ -69,7 +85,19 @@ export default function JobDetailsScreen() {
 
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  const [returnJobLoading, setReturnJobLoading] = useState(false);
+
+  const [completeJobLoading, setCompleteJobLoading] = useState(false);
+
   const [priceBreakdown, setPriceBreakdown] = useState(null);
+
+  const [isVendorAccepted, setIsVendorAccepted] = useState(false);
+
+  const [photosCount, setPhotosCount] = useState(0);
+  const [numberOfPeople, setNumberOfPeople] = useState(0);
+  const [hoursWorked, setHoursWorked] = useState(0);
+  const [minutesWorked, setMinutesWorked] = useState(0);
+  const [otherPMsWorkingOnIt, setOtherPMsWorkingOnIt] = useState(false);
 
   const isTablet = width >= 768;
 
@@ -131,6 +159,15 @@ export default function JobDetailsScreen() {
       const fetchJob = async () => {
         try {
           const response = await httpService.get(`/jobs/${jobId}/`);
+
+          const vendorAcceptedTag = response.tags.find(
+            (tag) => tag.tag_name === "Vendor Accepted"
+          );
+
+          if (vendorAcceptedTag) {
+            setIsVendorAccepted(true);
+          }
+
           setJob(response);
 
           setCommentsRefreshKey((prev) => prev + 1);
@@ -163,6 +200,7 @@ export default function JobDetailsScreen() {
   );
 
   const saveComment = async () => {
+    console.log("Saving comment:", newComment);
     if (!newComment.trim()) return;
 
     try {
@@ -176,23 +214,20 @@ export default function JobDetailsScreen() {
 
       setCommentsRefreshKey((prev) => prev + 1);
 
-      Toast.show({
-        type: "success",
-        text1: "Our team has been notified!",
-        position: "top",
-      });
+      setShowNotificationMessage(true);
+      setNotificationMessage("Comment posted!");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to post comment",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to post comment. Please try again.");
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
+    setLoading(true);
 
     try {
       const response = await httpService.get(`/jobs/${jobId}/`);
@@ -217,6 +252,7 @@ export default function JobDetailsScreen() {
       console.error("Refresh failed:", error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -240,7 +276,6 @@ export default function JobDetailsScreen() {
 
   const handleUploadPictures = async () => {
     const formData = new FormData();
-    formData.append("is_customer", true);
 
     // Convert each image URI into a blob and append
     for (const uri of images) {
@@ -262,22 +297,126 @@ export default function JobDetailsScreen() {
 
       setImages([]);
 
-      Toast.show({
-        type: "success",
-        text1: "Pictures uploaded!",
-        position: "top",
-      });
-
       fetchPhotos();
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to upload pictures",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to upload pictures. Please try again.");
     } finally {
       setImageUploadLoading(false);
+    }
+  };
+
+  const canCompleteJob = async () => {
+    setCompleteJobModalVisible(true);
+
+    try {
+      const response = await httpService.get(`/jobs/can-complete/${jobId}/`);
+
+      setOtherPMsWorkingOnIt(response.other_pms_working_on_it);
+      setPhotosCount(response.photos_count);
+      setHoursWorked(response.hours);
+      setMinutesWorked(response.minutes);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Failed to verify if job can be completed. Please try again."
+      );
+    }
+  };
+
+  const handleAcceptJob = async () => {
+    try {
+      await httpService.get(`/jobs/accept/${jobId}/`);
+
+      setShowNotificationMessage(true);
+      setNotificationMessage("Job Accepted!");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
+
+      setIsVendorAccepted(true);
+
+      onRefresh();
+    } catch (err) {
+      Alert.alert("Error", "Failed to accept job. Please try again.");
+    }
+  };
+
+  const handleStartJob = async () => {
+    try {
+      await httpService.patch(`/jobs/${jobId}/`, { status: "W" });
+
+      setShowNotificationMessage(true);
+      setNotificationMessage("Job Started!");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
+
+      onRefresh();
+    } catch (error) {
+      Alert.alert("Error", "Failed to start job. Please try again.");
+    }
+  };
+
+  const handleCompleteJob = async () => {
+    // validate number of people is specified and is a positive number
+    if (numberOfPeople <= 0) {
+      Alert.alert("Error", "Please specify valid number of people.");
+      return;
+    }
+
+    //validate that hoursWorked and minutesWorked are not both zero
+    if (hoursWorked === 0 && minutesWorked === 0) {
+      Alert.alert("Error", "Please specify hours or minutes worked.");
+      return;
+    }
+
+    setCompleteJobLoading(true);
+
+    const totalMinutes = hoursWorked * 60 + minutesWorked;
+    const totalHours = totalMinutes / 60;
+    const laborTime = totalHours * numberOfPeople;
+
+    const request = {
+      status: "C",
+      hours_worked: hoursWorked,
+      minutes_worked: minutesWorked,
+      number_of_workers: numberOfPeople,
+      labor_time: laborTime,
+    };
+
+    try {
+      httpService.patch(`/jobs/${jobId}/`, request);
+
+      router.push("/jobs");
+    } catch (error) {
+      Alert.alert("Error", "Failed to complete job. Please try again.");
+    } finally {
+      setCompleteJobLoading(false);
+      setCompleteJobModalVisible(false);
+    }
+  };
+
+  const handleReturnJob = async () => {
+    setReturnJobLoading(true);
+
+    const data = {
+      comment: returnJobComment,
+    };
+
+    try {
+      await httpService.post(`/jobs/return/${jobId}/`, data);
+
+      onRefresh();
+
+      router.push("/jobs");
+    } catch (error) {
+      Alert.alert("Error", "Failed to return job. Please try again.");
+    } finally {
+      setReturnJobLoading(false);
+      setReturnJobModalVisible(false);
+      setReturnJobComment("");
     }
   };
 
@@ -289,18 +428,14 @@ export default function JobDetailsScreen() {
 
       onRefresh();
 
-      Toast.show({
-        type: "success",
-        text1: "Job canceled!",
-        position: "top",
-      });
+      setShowNotificationMessage(true);
+      setNotificationMessage("Job Canceled!");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to cancel job",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to cancel job. Please try again.");
     } finally {
       setCancelLoading(false);
       setCancelModalVisible(false);
@@ -314,18 +449,14 @@ export default function JobDetailsScreen() {
 
       onRefresh();
 
-      Toast.show({
-        type: "success",
-        text1: "Job confirmed!",
-        position: "top",
-      });
+      setShowNotificationMessage(true);
+      setNotificationMessage("Job Confirmed!");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to confirm job",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to confirm job. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -364,6 +495,31 @@ export default function JobDetailsScreen() {
     }));
   };
 
+  const handleSetNumberOfPeople = (value) => {
+    //it can only be a positive number
+    if (value >= 0) {
+      setNumberOfPeople(value);
+    }
+  };
+
+  const handleSetHoursWorked = (value) => {
+    //it can only be a positive number
+    if (value >= 0) {
+      //value can only be an integer
+      value = Math.floor(value);
+
+      setHoursWorked(value);
+    }
+  };
+
+  const handleSetMinutesWorked = (value) => {
+    //it can only be a positive number
+    if (value >= 0 && value < 60) {
+      value = Math.floor(value);
+      setMinutesWorked(value);
+    }
+  };
+
   if (!currentUser) return null;
 
   if (loading || !job) {
@@ -381,6 +537,12 @@ export default function JobDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <SimpleMessage
+        visible={showNotificationMessage}
+        text={notificationMessage}
+        type={notificationType}
+        position="top" // or "bottom"
+      />
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={
@@ -464,6 +626,97 @@ export default function JobDetailsScreen() {
               )}
             </View>
           )}
+
+        {!currentUser.isCustomer && (
+          <>
+            {job.status === "U" && (
+              <View style={[styles.fullWidthContainer, { marginBottom: 6 }]}>
+                <Button
+                  onPress={handleConfirmJob}
+                  labelStyle={styles.primaryButton}
+                  mode="text"
+                  contentStyle={{ justifyContent: "flex-end" }}
+                >
+                  Confirm Job
+                </Button>
+              </View>
+            )}
+
+            {job.status === "S" && (
+              <View style={[styles.fullWidthContainer, { marginBottom: 6 }]}>
+                {currentUser.isProjectManager && (
+                  <>
+                    <Button
+                      onPress={() => setReturnJobModalVisible(true)}
+                      labelStyle={styles.secondaryButton}
+                      mode="text"
+                      contentStyle={{ justifyContent: "flex-end" }}
+                    >
+                      <Text style={styles.buttonText}>Return Job</Text>
+                    </Button>
+                    {currentUser.canAcceptJobs && (
+                      <>
+                        {isVendorAccepted ? (
+                          <Button
+                            onPress={handleStartJob}
+                            labelStyle={styles.primaryButton}
+                            mode="text"
+                            contentStyle={{ justifyContent: "flex-end" }}
+                          >
+                            Start Job
+                          </Button>
+                        ) : (
+                          <Button
+                            onPress={handleAcceptJob}
+                            labelStyle={styles.primaryButton}
+                            mode="text"
+                          >
+                            Accept Job
+                          </Button>
+                        )}
+                      </>
+                    )}
+
+                    {!currentUser.canAcceptJobs && (
+                      <Button
+                        onPress={handleStartJob}
+                        labelStyle={styles.primaryButton}
+                        mode="text"
+                        contentStyle={{ justifyContent: "flex-end" }}
+                      >
+                        Start Job
+                      </Button>
+                    )}
+                  </>
+                )}
+
+                {!currentUser.isProjectManager && (
+                  <Button
+                    onPress={handleStartJob}
+                    labelStyle={styles.primaryButton}
+                    mode="text"
+                    contentStyle={{ justifyContent: "flex-end" }}
+                  >
+                    Start Job
+                  </Button>
+                )}
+              </View>
+            )}
+
+            {job.status === "W" && (
+              <View style={[styles.fullWidthContainer, { marginBottom: 6 }]}>
+                <Button
+                  onPress={() => canCompleteJob()}
+                  labelStyle={styles.primaryButton}
+                  mode="text"
+                  contentStyle={{ justifyContent: "flex-end" }}
+                >
+                  Complete Job
+                </Button>
+              </View>
+            )}
+          </>
+        )}
 
         {/* Job Info */}
         {isTablet ? (
@@ -723,85 +976,306 @@ export default function JobDetailsScreen() {
           />
         )}
       </ScrollView>
-      <Modal
-        isVisible={isModalVisible}
-        backdropOpacity={0.5}
-        onBackdropPress={() => setModalVisible(false)}
-        onBackButtonPress={() => setModalVisible(false)}
-        useNativeDriver
-        hideModalContentWhileAnimating
-      >
-        <View style={styles.modalContainer}>
-          <View
-            style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}
-          >
-            <UserAvatar
-              avatar={currentUser.avatar}
-              initials={currentUser.initials}
-            />
-            <View style={{ flex: 1 }}>
-              <PaperTextInput
-                ref={inputRef}
-                label="Tell us what would you like to change..."
-                value={newComment}
-                onChangeText={setNewComment}
-                mode="outlined"
-                multiline
-                numberOfLines={5}
-                style={styles.textarea}
-                theme={{ colors: { outline: "#D1D5DB" } }}
-              />
-            </View>
-          </View>
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.postButton} onPress={saveComment}>
-              <Text style={styles.postText}>Post</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
+      {/* Add Comment modal */}
       <Modal
-        isVisible={isCancelModalVisible}
-        onBackdropPress={() => !cancelLoading && setCancelModalVisible(false)}
-        onBackButtonPress={() => !cancelLoading && setCancelModalVisible(false)}
+        visible={isModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={modalStyles.container}>
-          {cancelLoading ? (
-            <LottieView
-              source={require("../../../assets/animations/progress-bar.json")}
-              autoPlay
-              loop
-              style={{ width: 150, height: 150, alignSelf: "center" }}
-            />
-          ) : (
-            <>
-              <Text style={modalStyles.title}>
-                Are you sure you want to cancel this job?
-              </Text>
-              <View style={modalStyles.buttonRow}>
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={styles.modalContainer}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 12,
+                }}
+              >
+                <UserAvatar
+                  avatar={currentUser.avatar}
+                  initials={currentUser.initials}
+                />
+                <View style={{ flex: 1 }}>
+                  <PaperTextInput
+                    ref={inputRef}
+                    label="Tell us what would you like to change..."
+                    value={newComment}
+                    onChangeText={setNewComment}
+                    mode="outlined"
+                    multiline
+                    numberOfLines={5}
+                    style={styles.textarea}
+                    theme={{ colors: { outline: "#D1D5DB" } }}
+                  />
+                </View>
+              </View>
+              <View style={styles.modalActions}>
                 <TouchableOpacity
-                  style={[modalStyles.button, modalStyles.cancelButton]}
-                  onPress={() => setCancelModalVisible(false)}
+                  style={styles.cancelButton}
+                  onPress={() => setModalVisible(false)}
                 >
-                  <Text style={modalStyles.cancelText}>Cancel</Text>
+                  <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[modalStyles.button, modalStyles.deleteButton]}
-                  onPress={handleCancelJob}
+                  style={styles.postButton}
+                  onPress={saveComment}
                 >
-                  <Text style={modalStyles.deleteText}>Cancel Job</Text>
+                  <Text style={styles.postText}>Post</Text>
                 </TouchableOpacity>
               </View>
-            </>
-          )}
-        </View>
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+
+      {/* Cancel Job Modal */}
+      <Modal
+        visible={isCancelModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => !cancelLoading && setCancelModalVisible(false)}
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              {cancelLoading ? (
+                <LottieView
+                  source={require("../../../assets/animations/progress-bar.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150, alignSelf: "center" }}
+                />
+              ) : (
+                <>
+                  <Text style={modalStyles.title}>
+                    Are you sure you want to cancel this job?
+                  </Text>
+                  <View style={modalStyles.buttonRow}>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.cancelButton]}
+                      onPress={() => setCancelModalVisible(false)}
+                    >
+                      <Text style={modalStyles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.deleteButton]}
+                      onPress={handleCancelJob}
+                    >
+                      <Text style={modalStyles.deleteText}>Cancel Job</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+
+      {/* Return Job Modal */}
+      <Modal
+        visible={isReturnJobModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() =>
+          !returnJobLoading && setReturnJobModalVisible(false)
+        }
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              {returnJobLoading ? (
+                <LottieView
+                  source={require("../../../assets/animations/progress-bar.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150, alignSelf: "center" }}
+                />
+              ) : (
+                <>
+                  <Text style={modalStyles.title}>
+                    Are you sure you want to return this job?
+                  </Text>
+                  <View>
+                    <PaperTextInput
+                      ref={inputRef}
+                      label="Add an explanation..."
+                      value={returnJobComment}
+                      onChangeText={setReturnJobComment}
+                      mode="outlined"
+                      multiline
+                      numberOfLines={5}
+                      style={[styles.textarea, { backgroundColor: "white" }]}
+                      theme={{ colors: { outline: "#D1D5DB" } }}
+                    />
+                  </View>
+                  <View style={[modalStyles.buttonRow, { marginTop: 20 }]}>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.cancelButton]}
+                      onPress={() => setReturnJobModalVisible(false)}
+                    >
+                      <Text style={modalStyles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.deleteButton]}
+                      disabled={!returnJobComment.trim()}
+                      onPress={handleReturnJob}
+                    >
+                      <Text style={modalStyles.deleteText}>Return Job</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+
+      {/* Complete Job Modal */}
+      <Modal
+        visible={isCompleteJobModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() =>
+          !completeJobLoading && setCompleteJobModalVisible(false)
+        }
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              {completeJobLoading ? (
+                <LottieView
+                  source={require("../../../assets/animations/progress-bar.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150, alignSelf: "center" }}
+                />
+              ) : (
+                <>
+                  <Text style={modalStyles.title}>Complete Job</Text>
+                  <View>
+                    <Text style={modalStyles.subtitle}>
+                      <Text>
+                        Completing a job will complete all services associated
+                        with it.
+                      </Text>
+                      {currentUser.isProjectManager && (
+                        <Text>
+                          You won't have access to the job after it is
+                          completed.
+                        </Text>
+                      )}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={cjStyles.title}>Time Spent</Text>
+
+                    <View style={cjStyles.gridTwo}>
+                      <View style={cjStyles.rowCenter}>
+                        <PaperTextInput
+                          value={hoursWorked.toString()}
+                          onChangeText={handleSetHoursWorked}
+                          style={cjStyles.input}
+                          maxLength={2}
+                        />
+                        <Text style={cjStyles.inlineLabel}>hours</Text>
+                      </View>
+
+                      <View style={cjStyles.rowCenter}>
+                        <PaperTextInput
+                          value={minutesWorked.toString()}
+                          onChangeText={handleSetMinutesWorked}
+                          style={cjStyles.input}
+                          maxLength={2}
+                        />
+                        <Text style={cjStyles.inlineLabel}>minutes</Text>
+                      </View>
+                    </View>
+
+                    <View style={cjStyles.divider} />
+
+                    <Text style={[cjStyles.title, { marginTop: 10 }]}>
+                      How many people worked on this job?
+                    </Text>
+
+                    <View style={cjStyles.centerField}>
+                      <PaperTextInput
+                        value={numberOfPeople.toString()}
+                        onChangeText={handleSetNumberOfPeople}
+                        style={cjStyles.input}
+                        maxLength={2}
+                      />
+                    </View>
+
+                    <View style={cjStyles.divider} />
+
+                    {photosCount === 0 && (
+                      <Text style={cjStyles.warningText}>
+                        There are no closeout photos for this job.
+                      </Text>
+                    )}
+                  </View>
+                  <View style={[modalStyles.buttonRow, { marginTop: 40 }]}>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.cancelButton]}
+                      onPress={() => setCompleteJobModalVisible(false)}
+                    >
+                      <Text style={modalStyles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.deleteButton]}
+                      onPress={handleCompleteJob}
+                    >
+                      <Text style={modalStyles.deleteText}>Complete Job</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
       </Modal>
     </SafeAreaView>
   );
@@ -830,9 +1304,9 @@ const styles = StyleSheet.create({
   },
   statusPill: {
     color: "#fff",
-    fontSize: isTablet ? 18 : 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    fontSize: isTablet ? 16 : 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 6,
     alignSelf: "flex-start",
     overflow: "hidden",
@@ -851,6 +1325,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 4,
     marginLeft: 6,
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   tag: {
     borderWidth: 1,
@@ -959,6 +1437,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
   },
+  modalContainerWide: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    width: "92%", // NEW
+    maxWidth: 520, // NEW
+  },
   textarea: {
     marginBottom: 20,
     width: "100%",
@@ -1022,7 +1507,7 @@ const styles = StyleSheet.create({
   fullWidthContainer: {
     width: "100%",
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     paddingHorizontal: 6,
     marginTop: 2,
   },
@@ -1030,6 +1515,30 @@ const styles = StyleSheet.create({
     color: "#EF4444", // Tailwind red-500
     fontSize: 15,
     fontWeight: "500",
+  },
+  secondaryButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    color: "#111827",
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  primaryButton: {
+    backgroundColor: "#ef4444",
+    borderWidth: 1,
+    fontWeight: "600",
+    fontSize: 15,
+    borderColor: "#ef4444",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    color: "#fff",
   },
   confirmLabel: {
     color: "#111827", // Tailwind gray-900 (black-ish)
@@ -1052,14 +1561,14 @@ const modalStyles = StyleSheet.create({
     padding: 30,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "500",
     textAlign: "center",
     color: "#111827",
     marginBottom: 40,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
     color: "#6B7280", // Tailwind's gray-500
     marginTop: -24,
@@ -1089,5 +1598,58 @@ const modalStyles = StyleSheet.create({
   deleteText: {
     color: "white",
     fontWeight: "600",
+  },
+});
+
+const cjStyles = StyleSheet.create({
+  title: {
+    fontWeight: "500",
+    fontSize: 20, // ~ text-xl
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  gridTwo: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 16, // RN supports gap on modern versions; otherwise use margins
+    marginTop: 12,
+  },
+  rowCenter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  input: {
+    width: 60, // Tailwind w-14 -> 56px
+    borderWidth: 1,
+    borderColor: "#D1D5DB", // gray-300
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 14, // sm
+    backgroundColor: "#FFFFFF",
+  },
+  inlineLabel: {
+    marginTop: 6, // matches the small vertical offset from web
+    alignSelf: "center",
+    color: "#374151",
+    fontSize: 14,
+  },
+  divider: {
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB", // gray-200
+    marginVertical: 16,
+  },
+  centerField: {
+    marginTop: 12,
+    alignItems: "center",
+  },
+  warningText: {
+    fontSize: 18, // text-lg
+    color: "#EF4444", // red-500
+    paddingVertical: 8,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });

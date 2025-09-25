@@ -57,12 +57,6 @@ const request = async (endpoint, options = {}) => {
     if (newToken) {
       response = await makeRequest(newToken);
     } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Session expired',
-        text2: 'Please log in again.',
-      });
-
       await SecureStore.deleteItemAsync('accessToken');
       await SecureStore.deleteItemAsync('refreshToken');
 

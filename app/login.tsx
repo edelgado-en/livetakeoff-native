@@ -80,7 +80,7 @@ export default function LoginScreen() {
             activeOutlineColor="#3B82F6" // Tailwind blue-500
             outlineColor="#D1D5DB" // Tailwind gray-300
             autoCapitalize="none"
-            style={{ marginVertical: 5 }}
+            style={{ marginVertical: 5, backgroundColor: "white" }}
           />
           <TextInput
             label="Password"
@@ -91,7 +91,7 @@ export default function LoginScreen() {
             mode="outlined"
             activeOutlineColor="#3B82F6" // Tailwind blue-500
             outlineColor="#D1D5DB" // Tailwind gray-300
-            style={{ marginVertical: 5 }}
+            style={{ marginVertical: 5, backgroundColor: "white" }}
             right={
               <TextInput.Icon
                 icon={secure ? "eye-off" : "eye"}

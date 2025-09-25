@@ -7,13 +7,21 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  Alert,
 } from "react-native";
-import Modal from "react-native-modal";
+import { Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { TextInput as PaperTextInput } from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
 import { formatDistanceToNow } from "date-fns";
-import Toast from "react-native-toast-message";
+
+import SimpleMessage from "../components/NotificationMessage";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AuthContext } from "../providers/AuthProvider";
 import UserAvatar from "./UserAvatar";
@@ -34,6 +42,10 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([]);
   const [totalComments, setTotalComments] = useState(0);
+
+  const [showNotificationMessage, setShowNotificationMessage] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationType, setNotificationType] = useState("success"); // "success" | "error" | "info"
 
   useEffect(() => {
     fetchComments();
@@ -75,18 +87,15 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
       setModalVisible(false);
       fetchComments();
 
-      Toast.show({
-        type: "success",
-        text1: "Comment added!",
-        position: "top",
-      });
+      setShowNotificationMessage(true);
+      setNotificationMessage("Comment posted!");
+      setNotificationType("success");
+      setTimeout(() => {
+        setShowNotificationMessage(false);
+        setNotificationMessage("");
+      }, 3000);
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: "Failed to post comment",
-        text2: "Please try again.",
-        position: "top",
-      });
+      Alert.alert("Error", "Failed to post comment. Please try again.");
     }
   };
 
@@ -116,6 +125,12 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
 
   return (
     <View>
+      <SimpleMessage
+        visible={showNotificationMessage}
+        text={notificationMessage}
+        type={notificationType}
+        position="top" // or "bottom"
+      />
       <View
         style={{
           flexDirection: "row",
@@ -189,54 +204,92 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
       )}
 
       <Modal
-        isVisible={isModalVisible}
-        backdropOpacity={0.5}
-        onBackdropPress={() => setModalVisible(false)}
-        onBackButtonPress={() => setModalVisible(false)}
-        useNativeDriver={false}
-        hideModalContentWhileAnimating
+        visible={isModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View
-            style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            keyboardShouldPersistTaps="always"
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
-            <UserAvatar
-              avatar={currentUser.avatar}
-              initials={currentUser.initials}
-            />
-            <View style={{ flex: 1 }}>
-              <PaperTextInput
-                ref={inputRef}
-                label="Write your comment..."
-                value={newComment}
-                onChangeText={setNewComment}
-                mode="outlined"
-                multiline
-                numberOfLines={5}
-                style={styles.textarea}
-                theme={{ colors: { outline: "#D1D5DB" } }}
-              />
-            </View>
-          </View>
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
+            {/* Modal content */}
+            <GestureHandlerRootView
+              style={{ width: "100%", alignItems: "center" }}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={!newComment.trim()}
-              style={[
-                styles.postButton,
-                { opacity: !newComment.trim() ? 0.6 : 1 },
-              ]}
-              onPress={saveComment}
-            >
-              <Text style={styles.postText}>Post</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              <View style={styles.modalContainerWide}>
+                {/* --- your existing content unchanged --- */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    gap: 12,
+                  }}
+                >
+                  <UserAvatar
+                    avatar={currentUser.avatar}
+                    initials={currentUser.initials}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <PaperTextInput
+                      ref={inputRef}
+                      label="Write your comment..."
+                      value={newComment}
+                      onChangeText={setNewComment}
+                      mode="outlined"
+                      multiline
+                      numberOfLines={5}
+                      style={styles.textarea}
+                      theme={{ colors: { outline: "#D1D5DB" } }}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    disabled={!newComment.trim()}
+                    style={[
+                      styles.postButton,
+                      { opacity: !newComment.trim() ? 0.6 : 1 },
+                    ]}
+                    onPress={() => {
+                      if (!newComment.trim()) return;
+                      // ★ Ensure one-tap submit even with keyboard up
+                      Keyboard.dismiss();
+                      requestAnimationFrame(() => {
+                        saveComment();
+                      });
+                    }}
+                  >
+                    <Text style={styles.postText}>Post</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </GestureHandlerRootView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -300,6 +353,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: "100%",
     minHeight: 100,
+    backgroundColor: "white",
   },
   modalActions: {
     flexDirection: "row",
@@ -364,6 +418,13 @@ const styles = StyleSheet.create({
     color: "#3B82F6",
     fontWeight: "500",
     marginLeft: 4,
+  },
+  modalContainerWide: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    width: "92%", // NEW
+    maxWidth: 520, // NEW
   },
 });
 

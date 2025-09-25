@@ -902,6 +902,7 @@ export default function CreateJobScreen() {
                     activeOutlineColor="#3B82F6" // Tailwind blue-500
                     outlineColor="#D1D5DB" // Tailwind gray-300
                     autoCapitalize="none"
+                    style={{ backgroundColor: "white" }}
                   />
 
                   {!currentUser.isCustomer && (
@@ -989,7 +990,7 @@ export default function CreateJobScreen() {
                       label="Customer Purchase Order"
                       value={customerPurchaseOrder}
                       onChangeText={(text) => setCustomerPurchaseOrder(text)}
-                      style={{ marginTop: 20 }}
+                      style={{ marginTop: 20, backgroundColor: "white" }}
                       mode="outlined"
                       activeOutlineColor="#3B82F6" // Tailwind blue-500
                       outlineColor="#D1D5DB" // Tailwind gray-300
@@ -1003,7 +1004,7 @@ export default function CreateJobScreen() {
                       value={requestedBy}
                       placeholder="Enter your name and email address"
                       onChangeText={(text) => setRequestedBy(text)}
-                      style={{ marginTop: 20 }}
+                      style={{ marginTop: 20, backgroundColor: "white" }}
                       mode="outlined"
                       activeOutlineColor="#3B82F6" // Tailwind blue-500
                       outlineColor="#D1D5DB" // Tailwind gray-300

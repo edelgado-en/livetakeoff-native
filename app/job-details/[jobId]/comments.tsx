@@ -1,20 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity,
-     ScrollView, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState, useContext, useRef, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import LottieView from 'lottie-react-native';
-import Toast from 'react-native-toast-message';
-import { formatDistanceToNow } from 'date-fns';
-import { TextInput } from 'react-native-paper';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState, useContext, useRef, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import LottieView from "lottie-react-native";
+import Toast from "react-native-toast-message";
+import { formatDistanceToNow } from "date-fns";
+import { TextInput } from "react-native-paper";
 
-import { AuthContext } from '../../../providers/AuthProvider';
-import UserAvatar from '../../../components/UserAvatar';
-import httpService from '../../../services/httpService';
+import { AuthContext } from "../../../providers/AuthProvider";
+import UserAvatar from "../../../components/UserAvatar";
+import httpService from "../../../services/httpService";
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get("window");
 const isTablet = screenWidth >= 768;
 
 export default function JobCommentsScreen() {
@@ -23,7 +32,7 @@ export default function JobCommentsScreen() {
   const router = useRouter();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const scrollViewRef = useRef(null);
 
   useFocusEffect(
@@ -38,12 +47,7 @@ export default function JobCommentsScreen() {
       const response = await httpService.get(`/job-comments/${jobId}/`);
       setComments(response.results || []);
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Unable to load comments',
-        text2: 'Please try again.',
-        position: 'top',
-      });
+      Alert.alert("Error", "Failed to load comments. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -56,15 +60,13 @@ export default function JobCommentsScreen() {
         comment: newComment,
       });
       setComments((prev) => [...prev, response]);
-      setNewComment('');
-      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+      setNewComment("");
+      setTimeout(
+        () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+        100
+      );
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to post comment',
-        text2: 'Please try again.',
-        position: 'top',
-      });
+      Alert.alert("Error", "Failed to post comment. Please try again.");
     }
   };
 
@@ -72,7 +74,7 @@ export default function JobCommentsScreen() {
     return (
       <View style={styles.loadingContainer}>
         <LottieView
-          source={require('../../../assets/animations/progress-bar.json')}
+          source={require("../../../assets/animations/progress-bar.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
@@ -85,8 +87,8 @@ export default function JobCommentsScreen() {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <View style={styles.container}>
           <View style={styles.header}>
@@ -103,20 +105,33 @@ export default function JobCommentsScreen() {
 
           <ScrollView
             ref={scrollViewRef}
-            contentContainerStyle={[styles.commentsContainer, { paddingBottom: 100 }]}
+            contentContainerStyle={[
+              styles.commentsContainer,
+              { paddingBottom: 100 },
+            ]}
             keyboardShouldPersistTaps="handled"
           >
             {comments.length === 0 ? (
-              <Text style={styles.emptyText}>No comments found. Be the first to comment!</Text>
+              <Text style={styles.emptyText}>
+                No comments found. Be the first to comment!
+              </Text>
             ) : (
               comments.map((comment) => (
                 <View key={comment.id} style={styles.commentCard}>
-                  <UserAvatar avatar={comment.author.profile.avatar} initials={'U'} size={isTablet ? 50 : 40} />
+                  <UserAvatar
+                    avatar={comment.author.profile.avatar}
+                    initials={"U"}
+                    size={isTablet ? 50 : 40}
+                  />
                   <View style={styles.commentContent}>
-                    <Text style={styles.author}>{comment.author?.first_name} {comment.author?.last_name}</Text>
+                    <Text style={styles.author}>
+                      {comment.author?.first_name} {comment.author?.last_name}
+                    </Text>
                     <Text style={styles.commentText}>{comment.comment}</Text>
                     <Text style={styles.timestamp}>
-                      {formatDistanceToNow(new Date(comment.created), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(comment.created), {
+                        addSuffix: true,
+                      })}
                     </Text>
                   </View>
                 </View>
@@ -135,7 +150,10 @@ export default function JobCommentsScreen() {
               style={styles.textInput}
             />
             {newComment.trim().length > 0 && (
-              <TouchableOpacity style={styles.postButton} onPress={handlePostComment}>
+              <TouchableOpacity
+                style={styles.postButton}
+                onPress={handlePostComment}
+              >
                 <Text style={styles.postButtonText}>Post</Text>
               </TouchableOpacity>
             )}
@@ -149,7 +167,7 @@ export default function JobCommentsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   container: {
     flex: 1,
@@ -158,20 +176,20 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   backButton: {
     borderRadius: 9999,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderWidth: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 8,
     marginRight: 10,
   },
@@ -180,67 +198,67 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   commentsContainer: {
     paddingTop: 16,
     paddingHorizontal: isTablet ? 16 : 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   commentCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 20,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   commentContent: {
     marginLeft: 6,
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
   },
   author: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
   },
   commentText: {
     fontSize: 15,
-    color: '#111827',
+    color: "#111827",
   },
   timestamp: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 4,
   },
   emptyText: {
-    textAlign: 'center',
-    color: '#9CA3AF',
+    textAlign: "center",
+    color: "#9CA3AF",
     marginTop: 40,
     fontSize: 16,
   },
   inputContainerStatic: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: "#E5E7EB",
   },
   textInput: {
     flex: 1,
     marginRight: 8,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   postButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: "#3B82F6",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 8,
   },
   postButtonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
 });

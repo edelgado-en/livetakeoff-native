@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   FlatList,
   Text,
   TouchableOpacity,
   StyleSheet,
-} from 'react-native';
-import Modal from 'react-native-modal';
-import Toast from 'react-native-toast-message';
-import LottieView from 'lottie-react-native';
-import httpService from '../services/httpService'; // adjust the import path as needed
+  Alert,
+} from "react-native";
+import Modal from "react-native-modal";
+import Toast from "react-native-toast-message";
+import LottieView from "lottie-react-native";
+import httpService from "../services/httpService"; // adjust the import path as needed
 
 type Service = {
   id: number;
@@ -30,7 +31,9 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
   onRemove,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
 
   const handleConfirmDelete = async () => {
@@ -41,20 +44,8 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
     try {
       await httpService.delete(`/jobs/services/${selectedServiceId}/`);
       onRemove?.(selectedServiceId);
-      
-      Toast.show({
-            type: 'success',
-            text1: 'Service removed!',
-            position: 'top',
-          });
-
     } catch (error) {
-      Toast.show({
-              type: 'error',
-              text1: 'Failed to delete service',
-              text2: 'Please try again.',
-              position: 'top',
-              });
+      Alert.alert("Error", "Failed to delete service. Please try again.");
     } finally {
       setLoading(false);
       setIsModalVisible(false);
@@ -97,39 +88,41 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
         isVisible={isModalVisible}
         onBackdropPress={() => !loading && setIsModalVisible(false)}
         onBackButtonPress={() => !loading && setIsModalVisible(false)}
-        >
+      >
         <View style={modalStyles.container}>
-            {loading ? (
-                <LottieView
-                    source={require('../assets/animations/progress-bar.json')}
-                    autoPlay
-                    loop
-                    style={{ width: 150, height: 150, alignSelf: 'center' }}
-                />
-            ) : (
+          {loading ? (
+            <LottieView
+              source={require("../assets/animations/progress-bar.json")}
+              autoPlay
+              loop
+              style={{ width: 150, height: 150, alignSelf: "center" }}
+            />
+          ) : (
             <>
-                <Text style={modalStyles.title}>Are you sure you want to delete this service?</Text>
-                <Text style={modalStyles.subtitle}>
-                    {services.find((s) => s.id === selectedServiceId)?.short_name}
-                </Text>
-                <View style={modalStyles.buttonRow}>
-                    <TouchableOpacity
-                        style={[modalStyles.button, modalStyles.cancelButton]}
-                        onPress={() => setIsModalVisible(false)}
-                    >
-                        <Text style={modalStyles.cancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[modalStyles.button, modalStyles.deleteButton]}
-                        onPress={handleConfirmDelete}
-                    >
-                        <Text style={modalStyles.deleteText}>Delete Service</Text>
-                    </TouchableOpacity>
-                </View>
+              <Text style={modalStyles.title}>
+                Are you sure you want to delete this service?
+              </Text>
+              <Text style={modalStyles.subtitle}>
+                {services.find((s) => s.id === selectedServiceId)?.short_name}
+              </Text>
+              <View style={modalStyles.buttonRow}>
+                <TouchableOpacity
+                  style={[modalStyles.button, modalStyles.cancelButton]}
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Text style={modalStyles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[modalStyles.button, modalStyles.deleteButton]}
+                  onPress={handleConfirmDelete}
+                >
+                  <Text style={modalStyles.deleteText}>Delete Service</Text>
+                </TouchableOpacity>
+              </View>
             </>
-            )}
+          )}
         </View>
-        </Modal>
+      </Modal>
     </>
   );
 };
@@ -143,87 +136,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    justifyContent: 'space-between',
+    borderColor: "#E5E7EB",
+    justifyContent: "space-between",
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-
+    justifyContent: "center",
+    alignItems: "center",
   },
   name: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    textAlign: 'center',
+    fontWeight: "500",
+    color: "#111827",
+    textAlign: "center",
     marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: "#E5E7EB",
     paddingTop: 10,
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   removeText: {
-    color: '#3B82F6',
-    fontWeight: '500',
+    color: "#3B82F6",
+    fontWeight: "500",
     fontSize: 14,
   },
 });
 
 const modalStyles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 30,
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#111827',
+    fontWeight: "600",
+    textAlign: "center",
+    color: "#111827",
     marginBottom: 40,
   },
   subtitle: {
     fontSize: 14,
-    textAlign: 'center',
-    color: '#6B7280', // Tailwind's gray-500
+    textAlign: "center",
+    color: "#6B7280", // Tailwind's gray-500
     marginTop: -24,
     marginBottom: 32,
- },
+  },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 10,
   },
   button: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   deleteButton: {
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
   },
   cancelText: {
-    color: '#111827',
-    fontWeight: '600',
+    color: "#111827",
+    fontWeight: "600",
   },
   deleteText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
 });
 
