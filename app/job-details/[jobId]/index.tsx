@@ -366,12 +366,6 @@ export default function JobDetailsScreen() {
       return;
     }
 
-    //validate that hoursWorked and minutesWorked are not both zero
-    if (hoursWorked === 0 && minutesWorked === 0) {
-      Alert.alert("Error", "Please specify hours or minutes worked.");
-      return;
-    }
-
     setCompleteJobLoading(true);
 
     const totalMinutes = hoursWorked * 60 + minutesWorked;
@@ -471,6 +465,11 @@ export default function JobDetailsScreen() {
 
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
+      if (uris.length + images.length > 25) {
+        Alert.alert("Error", "You can only upload up to 25 pictures.");
+        return;
+      }
+
       setImages((prev) => [...prev, ...uris]);
     }
   };

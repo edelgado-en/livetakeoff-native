@@ -41,6 +41,9 @@ const ImageGallery: React.FC<Props> = ({ images }) => {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No pictures found.</Text>
+        <Text style={[styles.emptyText, { marginTop: 8 }]}>
+          You can only upload up to 25 pictures.
+        </Text>
       </View>
     );
   }
