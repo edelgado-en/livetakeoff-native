@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   FlatList,
@@ -6,17 +6,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
+  Dimensions,
 } from "react-native";
-import Modal from "react-native-modal";
-import Toast from "react-native-toast-message";
+import { Modal } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import LottieView from "lottie-react-native";
 import httpService from "../services/httpService"; // adjust the import path as needed
+
+const { height } = Dimensions.get("window");
 
 type Service = {
   id: number;
   name: string;
   short_name: string;
   short_description: string;
+  description: string;
 };
 
 type ServiceGalleryProps = {
@@ -31,10 +36,22 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
   onRemove,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isScopeModalVisible, setIsScopeModalVisible] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
     null
   );
+  const [selectedScope, setSelectedScope] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const scopeItems = useMemo(() => {
+    const raw = selectedScope ?? "";
+    // Normalize CRLF and also handle literal "\r\n"
+    const normalized = raw.replace(/\\r\\n|\r\n/g, "\n");
+    return normalized
+      .split("\n")
+      .map((s) => s.replace(/^\s*-\s*/, "").trim())
+      .filter(Boolean);
+  }, [selectedScope]);
 
   const handleConfirmDelete = async () => {
     if (selectedServiceId === null) return;
@@ -68,8 +85,16 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
               <Text style={styles.description}>{item.short_description}</Text>
             </View>
 
-            {showRemove && (
-              <View style={styles.footer}>
+            <View style={styles.footer}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedScope(item.description);
+                  setIsScopeModalVisible(true);
+                }}
+              >
+                <Text style={styles.removeText}>Scope</Text>
+              </TouchableOpacity>
+              {showRemove && (
                 <TouchableOpacity
                   onPress={() => {
                     setSelectedServiceId(item.id);
@@ -78,50 +103,115 @@ const ServiceGallery: React.FC<ServiceGalleryProps> = ({
                 >
                   <Text style={styles.removeText}>Remove</Text>
                 </TouchableOpacity>
-              </View>
-            )}
+              )}
+            </View>
           </View>
         )}
       />
 
       <Modal
-        isVisible={isModalVisible}
-        onBackdropPress={() => !loading && setIsModalVisible(false)}
-        onBackButtonPress={() => !loading && setIsModalVisible(false)}
+        visible={isModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => !loading && setIsModalVisible(false)}
       >
-        <View style={modalStyles.container}>
-          {loading ? (
-            <LottieView
-              source={require("../assets/animations/progress-bar.json")}
-              autoPlay
-              loop
-              style={{ width: 150, height: 150, alignSelf: "center" }}
-            />
-          ) : (
-            <>
-              <Text style={modalStyles.title}>
-                Are you sure you want to delete this service?
-              </Text>
-              <Text style={modalStyles.subtitle}>
-                {services.find((s) => s.id === selectedServiceId)?.short_name}
-              </Text>
-              <View style={modalStyles.buttonRow}>
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              {loading ? (
+                <LottieView
+                  source={require("../assets/animations/progress-bar.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150, alignSelf: "center" }}
+                />
+              ) : (
+                <>
+                  <Text style={modalStyles.title}>
+                    Are you sure you want to delete this service?
+                  </Text>
+                  <Text style={[modalStyles.subtitle, { marginTop: 10 }]}>
+                    {
+                      services.find((s) => s.id === selectedServiceId)
+                        ?.short_name
+                    }
+                  </Text>
+                  <View style={modalStyles.buttonRow}>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.cancelButton]}
+                      onPress={() => setIsModalVisible(false)}
+                    >
+                      <Text style={modalStyles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[modalStyles.button, modalStyles.deleteButton]}
+                      onPress={handleConfirmDelete}
+                    >
+                      <Text style={modalStyles.deleteText}>Delete Service</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+
+      <Modal
+        visible={isScopeModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => !loading && setIsScopeModalVisible(false)}
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              <Text style={modalStyles.title}>Scope of Work</Text>
+              <ScrollView
+                style={{ maxHeight: Math.min(height * 0.6, 420) }} // cap to ~60% of screen
+                contentContainerStyle={{ paddingVertical: 8 }}
+                showsVerticalScrollIndicator
+                alwaysBounceVertical
+                overScrollMode="always" // Android
+              >
+                {scopeItems.map((line, i) => (
+                  <View key={i} style={styles.liRow}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.liText}>{line}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={[modalStyles.buttonRow, { marginTop: 20 }]}>
                 <TouchableOpacity
                   style={[modalStyles.button, modalStyles.cancelButton]}
-                  onPress={() => setIsModalVisible(false)}
+                  onPress={() => setIsScopeModalVisible(false)}
                 >
-                  <Text style={modalStyles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[modalStyles.button, modalStyles.deleteButton]}
-                  onPress={handleConfirmDelete}
-                >
-                  <Text style={modalStyles.deleteText}>Delete Service</Text>
+                  <Text style={modalStyles.cancelText}>Close</Text>
                 </TouchableOpacity>
               </View>
-            </>
-          )}
-        </View>
+            </View>
+          </View>
+        </GestureHandlerRootView>
       </Modal>
     </>
   );
@@ -141,6 +231,30 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     justifyContent: "space-between",
   },
+  liRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10, // spacing between bullets
+  },
+  bullet: {
+    marginRight: 8,
+    fontSize: 16,
+    lineHeight: 20,
+    color: "#111827",
+  },
+  liText: {
+    flex: 1,
+    color: "#374151",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  modalContainerWide: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    width: "92%", // NEW
+    maxWidth: 520, // NEW
+  },
   content: {
     flex: 1,
     justifyContent: "center",
@@ -159,6 +273,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   footer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
     paddingTop: 10,
@@ -183,7 +299,7 @@ const modalStyles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     color: "#111827",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 14,

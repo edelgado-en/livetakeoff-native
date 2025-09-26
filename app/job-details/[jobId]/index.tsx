@@ -2,11 +2,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Dimensions,
   useWindowDimensions,
   RefreshControl,
+  TouchableOpacity,
   Alert,
   Image,
 } from "react-native";
@@ -30,7 +30,6 @@ import { Feather } from "@expo/vector-icons";
 import { Modal } from "react-native";
 import { TextInput as PaperTextInput } from "react-native-paper";
 import { useFocusEffect } from "@react-navigation/native";
-import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
