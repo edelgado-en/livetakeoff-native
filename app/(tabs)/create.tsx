@@ -116,6 +116,8 @@ export default function CreateJobScreen() {
   const [exteriorServices, setExteriorServices] = useState([]);
   const [otherServices, setOtherServices] = useState([]);
 
+  const [hideAddonsServices, setHideAddonsServices] = useState(false);
+
   const [interiorRetainerServices, setInteriorRetainerServices] = useState([]);
   const [exteriorRetainerServices, setExteriorRetainerServices] = useState([]);
   const [otherRetainerServices, setOtherRetainerServices] = useState([]);
@@ -520,6 +522,7 @@ export default function CreateJobScreen() {
           setIsRequestPriorityEnabled(
             customerDetails.settings.enable_request_priority
           );
+          setHideAddonsServices(customerDetails.settings.hide_addons_services);
         }
       })
       .catch((error) => {
@@ -599,6 +602,7 @@ export default function CreateJobScreen() {
       if (response.customer_id) {
         getServicesAndRetainers(response.customer_id);
         setIsRequestPriorityEnabled(response.is_enable_request_priority);
+        setHideAddonsServices(response.hide_addons_services);
       }
     } catch (error) {
       console.error("Error fetching job info:", error);
@@ -641,6 +645,7 @@ export default function CreateJobScreen() {
             setIsRequestPriorityEnabled(
               response1.settings.enable_request_priority
             );
+            setHideAddonsServices(response1.settings.hide_addons_services);
           }
         }
       } catch (error) {
@@ -1027,6 +1032,8 @@ export default function CreateJobScreen() {
                     exteriorServices={exteriorServices}
                     otherServices={otherServices}
                     onToggleService={handleServiceChange}
+                    hideAddonsServices={hideAddonsServices}
+                    currentUser={currentUser}
                   />
 
                   <View style={styles.buttonRow}>
