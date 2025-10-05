@@ -20,6 +20,19 @@ type Props = {
   onToggleOnSite?: (val: boolean) => void;
 };
 
+// ---- Local-time helpers (avoid UTC shifts) ----
+const toLocalYMD = (dt: Date) => {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const d = String(dt.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const fromLocalYMDHM = (ymd: string, hour: number, minute: number) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, (m as number) - 1, d as number, hour, minute, 0, 0); // LOCAL
+};
+
 const DatePicker: React.FC<Props> = ({
   label,
   value,
@@ -34,29 +47,27 @@ const DatePicker: React.FC<Props> = ({
   const [selectedMinute, setSelectedMinute] = useState(0);
 
   const openPicker = () => {
-    if (!onSiteValue) {
-      setPickerVisible(true);
-      if (value) {
-        const isoDate = value.toISOString().split("T")[0];
-        setSelectedDate(isoDate);
-        setSelectedHour(value.getHours());
-        setSelectedMinute(value.getMinutes());
-      } else {
-        const now = new Date();
-        setSelectedDate(now.toISOString().split("T")[0]);
-        setSelectedHour(12);
-        setSelectedMinute(0);
-      }
+    if (onSiteValue) return;
+
+    setPickerVisible(true);
+
+    if (value) {
+      // Use LOCAL date parts from the current value
+      setSelectedDate(toLocalYMD(value));
+      setSelectedHour(value.getHours());
+      setSelectedMinute(value.getMinutes());
+    } else {
+      const now = new Date();
+      setSelectedDate(toLocalYMD(now));
+      setSelectedHour(12);
+      setSelectedMinute(0);
     }
   };
 
   const handleConfirm = () => {
     if (selectedDate) {
-      const date = new Date(selectedDate);
-      date.setHours(selectedHour);
-      date.setMinutes(selectedMinute);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
+      // Build a LOCAL date/time to avoid off-by-one day
+      const date = fromLocalYMDHM(selectedDate, selectedHour, selectedMinute);
       onChange(date);
     }
     setPickerVisible(false);
@@ -78,6 +89,17 @@ const DatePicker: React.FC<Props> = ({
       hour12: false, // 24h format
     });
   };
+
+  // Build markedDates only when we have a selectedDate
+  const markedDates =
+    selectedDate != null
+      ? {
+          [selectedDate]: {
+            selected: true,
+            selectedColor: "#EF4444",
+          },
+        }
+      : {};
 
   return (
     <View style={styles.container}>
@@ -132,13 +154,8 @@ const DatePicker: React.FC<Props> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Calendar
-              onDayPress={(day) => setSelectedDate(day.dateString)}
-              markedDates={{
-                [selectedDate || ""]: {
-                  selected: true,
-                  selectedColor: "#EF4444",
-                },
-              }}
+              onDayPress={(day) => setSelectedDate(day.dateString)} // dateString is Y-M-D
+              markedDates={markedDates}
               theme={{
                 backgroundColor: "#1F2937",
                 calendarBackground: "#1F2937",

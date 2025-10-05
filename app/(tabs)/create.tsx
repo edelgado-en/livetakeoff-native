@@ -35,6 +35,8 @@ import ServicesSection from "../../components/ServicesSection";
 import ImagePickerSection from "../../components/ImagePickerSection";
 import PriorityRadioGroup from "../../components/PriorityRadioGroup";
 
+import { formatForDjangoNY } from "../../utils/datetime";
+
 const requestPriorities = [
   {
     id: "N",
@@ -65,6 +67,8 @@ const availableSteps = [
 
 export default function CreateJobScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
   const { currentUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [createJobMessage, setCreateJobMessage] = useState("");
@@ -379,9 +383,14 @@ export default function CreateJobScreen() {
     formData.append("fbo_id", fboSelected.id);
 
     if (estimatedArrivalDate instanceof Date) {
+      console.log(
+        "Estimated Arrival Date:",
+        formatForDjangoNY(estimatedArrivalDate)
+      );
+
       formData.append(
         "estimated_arrival_date",
-        estimatedArrivalDate.toString()
+        formatForDjangoNY(estimatedArrivalDate)
       );
     } else {
       formData.append("estimated_arrival_date", "null");
@@ -390,14 +399,14 @@ export default function CreateJobScreen() {
     if (estimatedDepartureDate instanceof Date) {
       formData.append(
         "estimated_departure_date",
-        estimatedDepartureDate.toString()
+        formatForDjangoNY(estimatedDepartureDate)
       );
     } else {
       formData.append("estimated_departure_date", "null");
     }
 
     if (completeByDate instanceof Date) {
-      formData.append("complete_by_date", completeByDate.toString());
+      formData.append("complete_by_date", formatForDjangoNY(completeByDate));
     } else {
       formData.append("complete_by_date", "null");
     }
@@ -412,9 +421,7 @@ export default function CreateJobScreen() {
     formData.append("priority", selectedPriority.id);
     formData.append("follower_emails", "");
     formData.append("ident", "");
-    //formData.append("enable_flightaware_tracking", false);
 
-    // Convert each image URI into a blob and append
     for (const uri of images) {
       const filename = uri.split("/").pop() || "photo.jpg";
       const match = /\.(\w+)$/.exec(filename || "");
@@ -424,15 +431,13 @@ export default function CreateJobScreen() {
         uri,
         name: filename,
         type,
-      } as any); // React Native's FormData needs this cast
+      } as any);
     }
 
     try {
       await httpService.post("/jobs/create", formData);
 
       setLoading(false);
-
-      const router = useRouter();
 
       router.replace("/job-success");
     } catch (error) {
