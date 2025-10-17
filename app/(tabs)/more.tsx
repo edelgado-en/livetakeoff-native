@@ -54,6 +54,24 @@ export default function MoreScreen() {
             </View>
             <MaterialIcons name="chevron-right" size={24} color="#6B7280" />
           </TouchableOpacity>
+
+          {(currentUser.isInternalCoordinator ||
+            currentUser.isProjectManager) && (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push("/my-airports")}
+            >
+              <View style={styles.cardContent}>
+                <MaterialIcons
+                  name="airplane-ticket"
+                  size={22}
+                  color="#6B7280"
+                />
+                <Text style={styles.cardText}>My Airports</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
