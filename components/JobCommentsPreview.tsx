@@ -15,7 +15,10 @@ import {
 } from "react-native";
 import { Modal } from "react-native";
 import { useRouter } from "expo-router";
-import { TextInput as PaperTextInput } from "react-native-paper";
+import {
+  TextInput as PaperTextInput,
+  Switch as PaperSwitch,
+} from "react-native-paper";
 import { Feather } from "@expo/vector-icons";
 import { formatDistanceToNow } from "date-fns";
 
@@ -42,6 +45,8 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([]);
   const [totalComments, setTotalComments] = useState(0);
+
+  const [isPublic, setIsPublic] = useState(false);
 
   const [showNotificationMessage, setShowNotificationMessage] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -80,7 +85,7 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
     try {
       await httpService.post(`/job-comments/${jobId}/`, {
         comment: newComment,
-        isPublic: true,
+        isPublic: isPublic,
       });
 
       setNewComment("");
@@ -258,6 +263,29 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
                       style={styles.textarea}
                       theme={{ colors: { outline: "#D1D5DB" } }}
                     />
+                    {(currentUser.isAdmin ||
+                      currentUser.isSuperUser ||
+                      currentUser.isAccountManager) && (
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={styles.toggleRow}
+                        onPress={() => setIsPublic((p) => !p)}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.toggleLabel}>
+                            Make comment public
+                          </Text>
+                          <Text style={styles.toggleHelp}>
+                            Public comments are visible to the customer.
+                          </Text>
+                        </View>
+                        <PaperSwitch
+                          value={isPublic}
+                          onValueChange={setIsPublic}
+                          color="#3B82F6"
+                        />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
 
@@ -326,6 +354,22 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: "#6B7280",
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    marginBottom: 32,
+  },
+  toggleLabel: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  toggleHelp: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 2,
   },
   button: {
     flexDirection: "row",
