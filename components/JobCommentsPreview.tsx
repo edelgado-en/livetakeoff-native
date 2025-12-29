@@ -52,6 +52,8 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationType, setNotificationType] = useState("success"); // "success" | "error" | "info"
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     fetchComments();
   }, [jobId, refreshKey]);
@@ -82,6 +84,8 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
   const saveComment = async () => {
     if (!newComment.trim()) return;
 
+    setLoading(true);
+
     try {
       await httpService.post(`/job-comments/${jobId}/`, {
         comment: newComment,
@@ -101,6 +105,8 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
       }, 3000);
     } catch (error) {
       Alert.alert("Error", "Failed to post comment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -297,7 +303,7 @@ const JobCommentsPreview: React.FC<Props> = ({ jobId, refreshKey }) => {
                     <Text style={styles.cancelText}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    disabled={!newComment.trim()}
+                    disabled={!newComment.trim() || loading}
                     style={[
                       styles.postButton,
                       { opacity: !newComment.trim() ? 0.6 : 1 },
