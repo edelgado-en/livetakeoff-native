@@ -995,17 +995,15 @@ export default function CreateJobScreen() {
                     />
                   )}
 
-                  {!currentUser.isCustomer && (
-                    <TextInput
-                      label="Customer Purchase Order"
-                      value={customerPurchaseOrder}
-                      onChangeText={(text) => setCustomerPurchaseOrder(text)}
-                      style={{ marginTop: 20, backgroundColor: "white" }}
-                      mode="outlined"
-                      activeOutlineColor="#3B82F6" // Tailwind blue-500
-                      outlineColor="#D1D5DB" // Tailwind gray-300
-                    />
-                  )}
+                  <TextInput
+                    label="Customer Purchase Order"
+                    value={customerPurchaseOrder}
+                    onChangeText={(text) => setCustomerPurchaseOrder(text)}
+                    style={{ marginTop: 20, backgroundColor: "white" }}
+                    mode="outlined"
+                    activeOutlineColor="#3B82F6" // Tailwind blue-500
+                    outlineColor="#D1D5DB" // Tailwind gray-300
+                  />
 
                   {(!currentUser.isCustomer ||
                     currentUser.promptRequestedBy) && (
