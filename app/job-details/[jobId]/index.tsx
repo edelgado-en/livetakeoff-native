@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -1384,185 +1386,184 @@ export default function JobDetailsScreen() {
           ]}
         />
         <GestureHandlerRootView
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-          <View style={styles.modalContainerWide}>
-            <View style={modalStyles.container}>
-              {startJobLoading ? (
-                <LottieView
-                  source={require("../../../assets/animations/progress-bar.json")}
-                  autoPlay
-                  loop
-                  style={{ width: 150, height: 150, alignSelf: "center" }}
-                />
-              ) : (
-                <>
-                  {/* Title */}
-                  <Text style={modalStyles.title}>
-                    Initial Inspection / Walkthrough
-                  </Text>
+          <KeyboardAvoidingView
+            behavior={Platform.select({ ios: "padding", android: undefined })}
+            style={{ width: "92%", maxWidth: 520 }}
+            keyboardVerticalOffset={Platform.select({ ios: 24, android: 0 })}
+          >
+            <View style={[modalStyles.sheet]}>
+              <View style={modalStyles.headerPad}>
+                <Text style={modalStyles.title}>
+                  Initial Inspection / Walkthrough
+                </Text>
+              </View>
 
-                  {/* Acknowledgment (card) */}
-                  <View style={modalStyles.sectionCard}>
-                    <View style={modalStyles.sectionHeader}>
-                      <Text style={modalStyles.sectionHeaderText}>
-                        Acknowledgment
-                      </Text>
-                    </View>
-                    <View style={modalStyles.sectionBody}>
-                      <Text style={modalStyles.sectionBodyText}>
-                        Initial inspection completed and all pre-existing issues
-                        documented in LiveTakeoff with photos and notes (if
-                        any).
-                      </Text>
-                    </View>
+              {/* Scrollable content */}
+              <ScrollView
+                style={modalStyles.body}
+                contentContainerStyle={{ paddingBottom: 16 }}
+                bounces={false}
+                showsVerticalScrollIndicator
+              >
+                {/* Acknowledgment */}
+                <View style={modalStyles.sectionCard}>
+                  <View style={modalStyles.sectionHeader}>
+                    <Text style={modalStyles.sectionHeaderText}>
+                      Acknowledgment
+                    </Text>
                   </View>
+                  <View style={modalStyles.sectionBody}>
+                    <Text style={modalStyles.sectionBodyText}>
+                      Initial inspection completed and all pre-existing issues
+                      documented in LiveTakeoff with photos and notes (if any).
+                    </Text>
+                  </View>
+                </View>
 
-                  {/* Checklist (collapsible) */}
-                  <View style={modalStyles.sectionCard}>
-                    <TouchableOpacity
-                      style={[
-                        modalStyles.sectionHeader,
-                        modalStyles.sectionHeaderRow,
-                      ]}
-                      activeOpacity={0.7}
-                      onPress={() => setShowChecklist((v) => !v)}
-                      accessibilityRole="button"
-                      accessibilityState={{ expanded: showChecklist }}
-                    >
-                      <Text style={modalStyles.sectionHeaderText}>
-                        Review Checklist
-                      </Text>
-                      <Ionicons
-                        name="chevron-down"
-                        size={18}
-                        color="#6B7280"
-                        style={{
-                          transform: [
-                            { rotate: showChecklist ? "180deg" : "0deg" },
-                          ],
-                        }}
-                      />
-                    </TouchableOpacity>
+                {/* Checklist (collapsible) */}
+                <View style={modalStyles.sectionCard}>
+                  <TouchableOpacity
+                    style={[
+                      modalStyles.sectionHeader,
+                      modalStyles.sectionHeaderRow,
+                    ]}
+                    activeOpacity={0.7}
+                    onPress={() => setShowChecklist((v) => !v)}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: showChecklist }}
+                  >
+                    <Text style={modalStyles.sectionHeaderText}>
+                      Review Checklist
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={18}
+                      color="#6B7280"
+                      style={{
+                        transform: [
+                          { rotate: showChecklist ? "180deg" : "0deg" },
+                        ],
+                      }}
+                    />
+                  </TouchableOpacity>
 
-                    {showChecklist && (
-                      <View
-                        style={[modalStyles.sectionBody, { paddingTop: 12 }]}
+                  {showChecklist && (
+                    <View style={[modalStyles.sectionBody, { paddingTop: 12 }]}>
+                      <ScrollView
+                        style={modalStyles.checklistScroll}
+                        contentContainerStyle={{ paddingRight: 4 }}
+                        bounces={false}
+                        showsVerticalScrollIndicator
                       >
-                        <ScrollView
-                          style={modalStyles.checklistScroll}
-                          contentContainerStyle={{ paddingRight: 4 }}
-                          bounces={false}
-                          showsVerticalScrollIndicator
-                        >
-                          {globalInspectionChecklist.length === 0 ? (
-                            <Text style={modalStyles.muted}>
-                              No items found.
-                            </Text>
-                          ) : (
-                            globalInspectionChecklist.map((item, idx) => (
-                              <View
-                                key={`${idx}-${item}`}
-                                style={modalStyles.bulletRow}
-                              >
-                                <View style={modalStyles.bulletDot} />
-                                <Text style={modalStyles.bulletText}>
-                                  {item}
-                                </Text>
-                              </View>
-                            ))
-                          )}
-                        </ScrollView>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Performed By */}
-                  <View style={modalStyles.sectionCard}>
-                    <View style={modalStyles.sectionHeader}>
-                      <Text style={modalStyles.sectionHeaderText}>
-                        Inspection Performed By
-                      </Text>
+                        {globalInspectionChecklist.length === 0 ? (
+                          <Text style={modalStyles.muted}>No items found.</Text>
+                        ) : (
+                          globalInspectionChecklist.map((item, idx) => (
+                            <View
+                              key={`${idx}-${item}`}
+                              style={modalStyles.bulletRow}
+                            >
+                              <View style={modalStyles.bulletDot} />
+                              <Text style={modalStyles.bulletText}>{item}</Text>
+                            </View>
+                          ))
+                        )}
+                      </ScrollView>
                     </View>
-                    <View style={modalStyles.sectionBody}>
-                      <Text style={modalStyles.smallLabel}>
-                        Full name (required)
-                      </Text>
-                      <PaperTextInput
-                        value={inspectionPerformedBy}
-                        onChangeText={setInspectionPerformedBy}
-                        placeholder="e.g., John Smith"
-                        mode="outlined"
-                        style={[
-                          styles.textarea,
-                          { minHeight: 44, marginBottom: 0 },
-                        ]}
-                        theme={{ colors: { outline: "#D1D5DB" } }}
-                      />
-                    </View>
-                  </View>
+                  )}
+                </View>
 
-                  {/* Optional Comment */}
-                  <View style={modalStyles.sectionCard}>
-                    <View
+                {/* Performed By */}
+                <View style={modalStyles.sectionCard}>
+                  <View style={modalStyles.sectionHeader}>
+                    <Text style={modalStyles.sectionHeaderText}>
+                      Inspection Performed By
+                    </Text>
+                  </View>
+                  <View style={modalStyles.sectionBody}>
+                    <Text style={modalStyles.smallLabel}>
+                      Full name (required)
+                    </Text>
+                    <PaperTextInput
+                      value={inspectionPerformedBy}
+                      onChangeText={setInspectionPerformedBy}
+                      placeholder="e.g., John Smith"
+                      mode="outlined"
                       style={[
-                        modalStyles.sectionHeader,
-                        modalStyles.sectionHeaderRow,
+                        styles.textarea,
+                        { minHeight: 44, marginBottom: 0 },
                       ]}
-                    >
-                      <Text style={modalStyles.sectionHeaderText}>
-                        Report Any Issues (Optional)
-                      </Text>
-                      <Text style={modalStyles.hint}>Add notes if needed</Text>
-                    </View>
-                    <View style={modalStyles.sectionBody}>
-                      <PaperTextInput
-                        label="Add an explanation..."
-                        value={inspectionComment}
-                        onChangeText={setInspectionComment}
-                        mode="outlined"
-                        multiline
-                        numberOfLines={4}
-                        style={[styles.textarea, { backgroundColor: "white" }]}
-                        theme={{ colors: { outline: "#D1D5DB" } }}
-                      />
-                    </View>
+                      theme={{ colors: { outline: "#D1D5DB" } }}
+                      autoComplete="name"
+                      returnKeyType="done"
+                    />
                   </View>
+                </View>
 
-                  {/* Footer buttons (stacked for mobile) */}
-                  <View style={modalStyles.footerStack}>
-                    <TouchableOpacity
-                      style={[modalStyles.stackButton, modalStyles.stackCancel]}
-                      onPress={() => setInitialInspectionModalVisible(false)}
-                    >
-                      <Text style={modalStyles.stackCancelText}>Cancel</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        modalStyles.stackButton,
-                        modalStyles.stackPrimary,
-                      ]}
-                      onPress={handleNothingToReport}
-                    >
-                      <Text style={modalStyles.stackPrimaryText}>
-                        Nothing to Report
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[modalStyles.stackButton, modalStyles.stackDanger]}
-                      onPress={handlePreExistingConditionToReport}
-                    >
-                      <Text style={modalStyles.stackDangerText}>
-                        Report Pre-existing Condition
-                      </Text>
-                    </TouchableOpacity>
+                {/* Optional Comment */}
+                <View style={modalStyles.sectionCard}>
+                  <View
+                    style={[
+                      modalStyles.sectionHeader,
+                      modalStyles.sectionHeaderRow,
+                    ]}
+                  >
+                    <Text style={modalStyles.sectionHeaderText}>
+                      Report Any Issues (Optional)
+                    </Text>
+                    <Text style={modalStyles.hint}>Add notes if needed</Text>
                   </View>
-                </>
-              )}
+                  <View style={modalStyles.sectionBody}>
+                    <PaperTextInput
+                      label="Add an explanation..."
+                      value={inspectionComment}
+                      onChangeText={setInspectionComment}
+                      mode="outlined"
+                      multiline
+                      numberOfLines={4}
+                      style={[styles.textarea, { backgroundColor: "white" }]}
+                      theme={{ colors: { outline: "#D1D5DB" } }}
+                      returnKeyType="done"
+                    />
+                  </View>
+                </View>
+              </ScrollView>
+
+              {/* Fixed footer buttons (always visible) */}
+              <View style={modalStyles.footerStack}>
+                <TouchableOpacity
+                  style={[modalStyles.stackButton, modalStyles.stackCancel]}
+                  onPress={() => setInitialInspectionModalVisible(false)}
+                >
+                  <Text style={modalStyles.stackCancelText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[modalStyles.stackButton, modalStyles.stackPrimary]}
+                  onPress={handleNothingToReport}
+                >
+                  <Text style={modalStyles.stackPrimaryText}>
+                    Nothing to Report
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[modalStyles.stackButton, modalStyles.stackDanger]}
+                  onPress={handlePreExistingConditionToReport}
+                >
+                  <Text style={modalStyles.stackDangerText}>
+                    Report Pre-existing Condition
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </GestureHandlerRootView>
       </Modal>
     </SafeAreaView>
@@ -1847,6 +1848,22 @@ const modalStyles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 12,
     padding: 30,
+  },
+  sheet: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12, // room for footer shadow/spacing
+    maxHeight: Math.min(Dimensions.get("window").height * 0.85, 720),
+    // 85% of screen height, capped for large phones/tablets
+  },
+  headerPad: {
+    paddingBottom: 8,
+  },
+  body: {
+    flexGrow: 0,
+    // ScrollView gets bounded by sheet maxHeight; content scrolls if too tall
   },
   title: {
     fontSize: 20,
