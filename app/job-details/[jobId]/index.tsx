@@ -51,6 +51,7 @@ const { width: screenWidth } = Dimensions.get("window");
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 import { cropTextForDevice } from "../../../utils/textUtils";
+import { set } from "date-fns";
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -63,6 +64,20 @@ export default function JobDetailsScreen() {
   const [isReturnJobModalVisible, setReturnJobModalVisible] = useState(false);
   const [isCompleteJobModalVisible, setCompleteJobModalVisible] =
     useState(false);
+
+  const [isInitialInspectionModalVisible, setInitialInspectionModalVisible] =
+    useState(false);
+
+  const [
+    isInspectionChecklistModalVisible,
+    setInspectionChecklistModalVisible,
+  ] = useState(false);
+  const [inspectionComment, setInspectionComment] = useState("");
+  const [inspectionPerformedBy, setInspectionPerformedBy] = useState("");
+  const [globalInspectionChecklist, setGlobalInspectionChecklist] = useState(
+    []
+  );
+  const [showChecklist, setShowChecklist] = useState(false);
 
   const [showNotificationMessage, setShowNotificationMessage] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -87,6 +102,8 @@ export default function JobDetailsScreen() {
   const [returnJobLoading, setReturnJobLoading] = useState(false);
 
   const [completeJobLoading, setCompleteJobLoading] = useState(false);
+
+  const [startJobLoading, setStartJobLoading] = useState(false);
 
   const [priceBreakdown, setPriceBreakdown] = useState(null);
 
@@ -341,9 +358,54 @@ export default function JobDetailsScreen() {
     }
   };
 
-  const handleStartJob = async () => {
+  const handleNothingToReport = () => {
+    if (inspectionPerformedBy.trim() === "") {
+      Alert.alert(
+        "Please enter the name of the person performing the inspection."
+      );
+      return;
+    }
+    handleStartJob(null);
+  };
+
+  const handlePreExistingConditionToReport = async () => {
+    if (inspectionPerformedBy.trim() === "") {
+      Alert.alert(
+        "Please enter the name of the person performing the inspection."
+      );
+      return;
+    }
+    if (inspectionComment.trim() === "") {
+      Alert.alert("Please enter a comment to report pre-existing condition.");
+      return;
+    }
+
     try {
-      await httpService.patch(`/jobs/${jobId}/`, { status: "W" });
+      const response = await httpService.post(`/job-comments/${jobId}/`, {
+        comment: inspectionComment,
+        isPublic: true,
+        sendEmail: true,
+      });
+
+      handleStartJob(response.id);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Failed to report pre-existing condition. Please try again."
+      );
+      return;
+    }
+  };
+
+  const handleStartJob = async (commentId: number | null) => {
+    setStartJobLoading(true);
+
+    try {
+      await httpService.patch(`/jobs/${jobId}/`, {
+        status: "W",
+        inspection_performed_by: inspectionPerformedBy,
+        initial_issue_comment_id: commentId,
+      });
 
       setShowNotificationMessage(true);
       setNotificationMessage("Job Started!");
@@ -355,6 +417,9 @@ export default function JobDetailsScreen() {
       onRefresh();
     } catch (error) {
       Alert.alert("Error", "Failed to start job. Please try again.");
+    } finally {
+      setStartJobLoading(false);
+      setInitialInspectionModalVisible(false);
     }
   };
 
@@ -452,6 +517,31 @@ export default function JobDetailsScreen() {
       Alert.alert("Error", "Failed to confirm job. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleInitialInspectionModal = () => {
+    setInitialInspectionModalVisible(!isInitialInspectionModalVisible);
+  };
+
+  const handleOpenInitialInspectionModal = async () => {
+    setInitialInspectionModalVisible(true);
+    setInspectionPerformedBy("");
+    setInspectionComment("");
+
+    try {
+      const response = await httpService.post(`/global-inspection-checklist`, {
+        inspection_type: "I",
+      });
+
+      const items = response.results
+        .flatMap((item) => (item.item_description || "").split(/\r?\n/))
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      setGlobalInspectionChecklist(items);
+    } catch {
+      Alert.alert("Unable to fetch global inspection checklist.");
     }
   };
 
@@ -656,7 +746,7 @@ export default function JobDetailsScreen() {
                       <>
                         {isVendorAccepted ? (
                           <Button
-                            onPress={handleStartJob}
+                            onPress={handleOpenInitialInspectionModal}
                             labelStyle={styles.primaryButton}
                             mode="text"
                             contentStyle={{ justifyContent: "flex-end" }}
@@ -677,7 +767,7 @@ export default function JobDetailsScreen() {
 
                     {!currentUser.canAcceptJobs && (
                       <Button
-                        onPress={handleStartJob}
+                        onPress={handleOpenInitialInspectionModal}
                         labelStyle={styles.primaryButton}
                         mode="text"
                         contentStyle={{ justifyContent: "flex-end" }}
@@ -690,7 +780,7 @@ export default function JobDetailsScreen() {
 
                 {!currentUser.isProjectManager && (
                   <Button
-                    onPress={handleStartJob}
+                    onPress={handleOpenInitialInspectionModal}
                     labelStyle={styles.primaryButton}
                     mode="text"
                     contentStyle={{ justifyContent: "flex-end" }}
@@ -1275,6 +1365,206 @@ export default function JobDetailsScreen() {
           </View>
         </GestureHandlerRootView>
       </Modal>
+
+      {/* Initial Inspection Job Modal */}
+      <Modal
+        visible={isInitialInspectionModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() =>
+          !startJobLoading && setInitialInspectionModalVisible(false)
+        }
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              {startJobLoading ? (
+                <LottieView
+                  source={require("../../../assets/animations/progress-bar.json")}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150, alignSelf: "center" }}
+                />
+              ) : (
+                <>
+                  {/* Title */}
+                  <Text style={modalStyles.title}>
+                    Initial Inspection / Walkthrough
+                  </Text>
+
+                  {/* Acknowledgment (card) */}
+                  <View style={modalStyles.sectionCard}>
+                    <View style={modalStyles.sectionHeader}>
+                      <Text style={modalStyles.sectionHeaderText}>
+                        Acknowledgment
+                      </Text>
+                    </View>
+                    <View style={modalStyles.sectionBody}>
+                      <Text style={modalStyles.sectionBodyText}>
+                        Initial inspection completed and all pre-existing issues
+                        documented in LiveTakeoff with photos and notes (if
+                        any).
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Checklist (collapsible) */}
+                  <View style={modalStyles.sectionCard}>
+                    <TouchableOpacity
+                      style={[
+                        modalStyles.sectionHeader,
+                        modalStyles.sectionHeaderRow,
+                      ]}
+                      activeOpacity={0.7}
+                      onPress={() => setShowChecklist((v) => !v)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: showChecklist }}
+                    >
+                      <Text style={modalStyles.sectionHeaderText}>
+                        Review Checklist
+                      </Text>
+                      <Ionicons
+                        name="chevron-down"
+                        size={18}
+                        color="#6B7280"
+                        style={{
+                          transform: [
+                            { rotate: showChecklist ? "180deg" : "0deg" },
+                          ],
+                        }}
+                      />
+                    </TouchableOpacity>
+
+                    {showChecklist && (
+                      <View
+                        style={[modalStyles.sectionBody, { paddingTop: 12 }]}
+                      >
+                        <ScrollView
+                          style={modalStyles.checklistScroll}
+                          contentContainerStyle={{ paddingRight: 4 }}
+                          bounces={false}
+                          showsVerticalScrollIndicator
+                        >
+                          {globalInspectionChecklist.length === 0 ? (
+                            <Text style={modalStyles.muted}>
+                              No items found.
+                            </Text>
+                          ) : (
+                            globalInspectionChecklist.map((item, idx) => (
+                              <View
+                                key={`${idx}-${item}`}
+                                style={modalStyles.bulletRow}
+                              >
+                                <View style={modalStyles.bulletDot} />
+                                <Text style={modalStyles.bulletText}>
+                                  {item}
+                                </Text>
+                              </View>
+                            ))
+                          )}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Performed By */}
+                  <View style={modalStyles.sectionCard}>
+                    <View style={modalStyles.sectionHeader}>
+                      <Text style={modalStyles.sectionHeaderText}>
+                        Inspection Performed By
+                      </Text>
+                    </View>
+                    <View style={modalStyles.sectionBody}>
+                      <Text style={modalStyles.smallLabel}>
+                        Full name (required)
+                      </Text>
+                      <PaperTextInput
+                        value={inspectionPerformedBy}
+                        onChangeText={setInspectionPerformedBy}
+                        placeholder="e.g., John Smith"
+                        mode="outlined"
+                        style={[
+                          styles.textarea,
+                          { minHeight: 44, marginBottom: 0 },
+                        ]}
+                        theme={{ colors: { outline: "#D1D5DB" } }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Optional Comment */}
+                  <View style={modalStyles.sectionCard}>
+                    <View
+                      style={[
+                        modalStyles.sectionHeader,
+                        modalStyles.sectionHeaderRow,
+                      ]}
+                    >
+                      <Text style={modalStyles.sectionHeaderText}>
+                        Report Any Issues (Optional)
+                      </Text>
+                      <Text style={modalStyles.hint}>Add notes if needed</Text>
+                    </View>
+                    <View style={modalStyles.sectionBody}>
+                      <PaperTextInput
+                        label="Add an explanation..."
+                        value={inspectionComment}
+                        onChangeText={setInspectionComment}
+                        mode="outlined"
+                        multiline
+                        numberOfLines={4}
+                        style={[styles.textarea, { backgroundColor: "white" }]}
+                        theme={{ colors: { outline: "#D1D5DB" } }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Footer buttons (stacked for mobile) */}
+                  <View style={modalStyles.footerStack}>
+                    <TouchableOpacity
+                      style={[modalStyles.stackButton, modalStyles.stackCancel]}
+                      onPress={() => setInitialInspectionModalVisible(false)}
+                    >
+                      <Text style={modalStyles.stackCancelText}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        modalStyles.stackButton,
+                        modalStyles.stackPrimary,
+                      ]}
+                      onPress={handleNothingToReport}
+                    >
+                      <Text style={modalStyles.stackPrimaryText}>
+                        Nothing to Report
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[modalStyles.stackButton, modalStyles.stackDanger]}
+                      onPress={handlePreExistingConditionToReport}
+                    >
+                      <Text style={modalStyles.stackDangerText}>
+                        Report Pre-existing Condition
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1563,7 +1853,7 @@ const modalStyles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
     color: "#111827",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 16,
@@ -1596,6 +1886,110 @@ const modalStyles = StyleSheet.create({
   deleteText: {
     color: "white",
     fontWeight: "600",
+  },
+  sectionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    marginBottom: 16,
+    overflow: "hidden",
+  },
+  sectionHeader: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionHeaderText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#374151",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  sectionBody: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  sectionBodyText: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 20,
+  },
+  checklistScroll: {
+    maxHeight: 224, // ~ max-h-56
+  },
+  bulletRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  bulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#6B7280",
+    marginTop: 7,
+    marginRight: 8,
+  },
+  bulletText: {
+    color: "#374151",
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  smallLabel: {
+    fontSize: 12,
+    color: "#4B5563",
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  hint: {
+    fontSize: 11,
+    color: "#9CA3AF",
+  },
+
+  // stacked footer buttons
+  footerStack: {
+    marginTop: 10,
+    gap: 10,
+  },
+  stackButton: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stackCancel: {
+    backgroundColor: "#E5E7EB",
+  },
+  stackCancelText: {
+    color: "#111827",
+    fontWeight: "600",
+  },
+  stackPrimary: {
+    backgroundColor: "#EF4444",
+  },
+  stackPrimaryText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  stackDanger: {
+    backgroundColor: "#B91C1C",
+  },
+  stackDangerText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  muted: {
+    fontSize: 13,
+    color: "#6B7280",
   },
 });
 
