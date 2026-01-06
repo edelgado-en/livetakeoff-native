@@ -108,6 +108,28 @@ export default function InfoTable({ job }: any) {
             </View>
           </View>
 
+          <View style={styles.row}>
+            <Text style={styles.label}>Initial Inspection</Text>
+            <View style={styles.valueContainer}>
+              <Text style={styles.valueLight}>
+                {job.inspection?.initial_inspection_done_by
+                  ? job.inspection?.initial_inspection_done_by
+                  : "Not specified"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Final Inspection</Text>
+            <View style={styles.valueContainer}>
+              <Text style={styles.valueLight}>
+                {job.inspection?.final_inspection_done_by
+                  ? job.inspection?.final_inspection_done_by
+                  : "Not specified"}
+              </Text>
+            </View>
+          </View>
+
           {job.is_publicly_confirmed && (
             <View style={styles.row}>
               <Text style={styles.label}>Confirmed By</Text>

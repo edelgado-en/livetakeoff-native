@@ -399,6 +399,56 @@ export default function JobDetailsScreen() {
     }
   };
 
+  const handleCompleteNothingToReport = () => {
+    if (!inspectionPerformedBy.trim()) {
+      Alert.alert("Validation", "Please enter who performed the inspection.");
+      return;
+    }
+
+    // validate number of people is specified and is a positive number
+    if (numberOfPeople <= 0) {
+      Alert.alert("Error", "Please specify valid number of people.");
+      return;
+    }
+
+    // No extra comment needed; just complete
+    handleCompleteJob(null);
+  };
+
+  const handleReportConcern = async () => {
+    if (!inspectionPerformedBy.trim()) {
+      Alert.alert("Validation", "Please enter who performed the inspection.");
+      return;
+    }
+    if (!inspectionComment.trim()) {
+      Alert.alert(
+        "Validation",
+        "Please add a brief note describing the issue."
+      );
+      return;
+    }
+
+    // validate number of people is specified and is a positive number
+    if (numberOfPeople <= 0) {
+      Alert.alert("Error", "Please specify valid number of people.");
+      return;
+    }
+
+    try {
+      // Post the concern as a public job comment
+      const response = await httpService.post(`/job-comments/${jobId}/`, {
+        comment: inspectionComment,
+        isPublic: true,
+        sendEmail: true,
+      });
+
+      handleCompleteJob(response.id);
+    } catch (e) {
+      Alert.alert("Error", "Failed to post your concern. You can try again.");
+      return;
+    }
+  };
+
   const handleStartJob = async (commentId: number | null) => {
     setStartJobLoading(true);
 
@@ -425,13 +475,7 @@ export default function JobDetailsScreen() {
     }
   };
 
-  const handleCompleteJob = async () => {
-    // validate number of people is specified and is a positive number
-    if (numberOfPeople <= 0) {
-      Alert.alert("Error", "Please specify valid number of people.");
-      return;
-    }
-
+  const handleCompleteJob = async (commentId: number | null) => {
     setCompleteJobLoading(true);
 
     const totalMinutes = hoursWorked * 60 + minutesWorked;
@@ -444,6 +488,8 @@ export default function JobDetailsScreen() {
       minutes_worked: minutesWorked,
       number_of_workers: numberOfPeople,
       labor_time: laborTime,
+      final_inspection_done_by: inspectionPerformedBy,
+      final_concern_comment_id: commentId,
     };
 
     try {
@@ -520,10 +566,6 @@ export default function JobDetailsScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleToggleInitialInspectionModal = () => {
-    setInitialInspectionModalVisible(!isInitialInspectionModalVisible);
   };
 
   const handleOpenInitialInspectionModal = async () => {
@@ -1259,6 +1301,28 @@ export default function JobDetailsScreen() {
         transparent
         animationType="fade"
         statusBarTranslucent
+        onShow={() => {
+          // Fetch FINAL inspection checklist when modal opens
+          (async () => {
+            try {
+              const response = await httpService.post(
+                `/global-inspection-checklist`,
+                {
+                  inspection_type: "F", // Final inspection
+                }
+              );
+              const items = response.results
+                .flatMap((it: any) =>
+                  (it.item_description || "").split(/\r?\n/)
+                )
+                .map((s: string) => s.trim())
+                .filter((s: string) => s.length > 0);
+              setGlobalInspectionChecklist(items);
+            } catch {
+              // keep UX smooth
+            }
+          })();
+        }}
         onRequestClose={() =>
           !completeJobLoading && setCompleteJobModalVisible(false)
         }
@@ -1270,11 +1334,28 @@ export default function JobDetailsScreen() {
             { backgroundColor: "rgba(0,0,0,0.5)" },
           ]}
         />
+
         <GestureHandlerRootView
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <View style={styles.modalContainerWide}>
-            <View style={modalStyles.container}>
+          <KeyboardAvoidingView
+            behavior={Platform.select({ ios: "padding", android: undefined })}
+            style={{ width: "92%", maxWidth: 520 }}
+            keyboardVerticalOffset={Platform.select({ ios: 24, android: 0 })}
+          >
+            <View style={[modalStyles.sheet]}>
+              {/* Header */}
+              <View style={modalStyles.headerPad}>
+                <Text style={modalStyles.title}>Complete Job</Text>
+                <Text style={[modalStyles.subtitle, { marginTop: -8 }]}>
+                  Completing a job will complete all services associated with
+                  it.
+                  {currentUser.isProjectManager
+                    ? " You won't have access to the job after it is completed."
+                    : ""}
+                </Text>
+              </View>
+
               {completeJobLoading ? (
                 <LottieView
                   source={require("../../../assets/animations/progress-bar.json")}
@@ -1284,24 +1365,156 @@ export default function JobDetailsScreen() {
                 />
               ) : (
                 <>
-                  <Text style={modalStyles.title}>Complete Job</Text>
-                  <View>
-                    <Text style={modalStyles.subtitle}>
-                      <Text>
-                        Completing a job will complete all services associated
-                        with it.
-                      </Text>
-                      {currentUser.isProjectManager && (
-                        <Text>
-                          You won't have access to the job after it is
-                          completed.
+                  {/* Scrollable content */}
+                  <ScrollView
+                    style={modalStyles.body}
+                    contentContainerStyle={{ paddingBottom: 16 }}
+                    bounces={false}
+                    showsVerticalScrollIndicator
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {/* Acknowledgment */}
+                    <View style={modalStyles.sectionCard}>
+                      <View style={modalStyles.sectionHeader}>
+                        <Text style={modalStyles.sectionHeaderText}>
+                          Acknowledgment
                         </Text>
-                      )}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={cjStyles.title}>Time Spent</Text>
+                      </View>
+                      <View style={modalStyles.sectionBody}>
+                        <Text style={modalStyles.sectionBodyText}>
+                          Final inspection completed and any discrepancies
+                          reported immediately through LiveTakeoff.
+                        </Text>
+                      </View>
+                    </View>
 
+                    {/* Checklist (collapsible) */}
+                    <View style={modalStyles.sectionCard}>
+                      <TouchableOpacity
+                        style={[
+                          modalStyles.sectionHeader,
+                          modalStyles.sectionHeaderRow,
+                        ]}
+                        activeOpacity={0.7}
+                        onPress={() => setShowChecklist((v) => !v)}
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: showChecklist }}
+                      >
+                        <Text style={modalStyles.sectionHeaderText}>
+                          Review Checklist
+                        </Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={18}
+                          color="#6B7280"
+                          style={{
+                            transform: [
+                              { rotate: showChecklist ? "180deg" : "0deg" },
+                            ],
+                          }}
+                        />
+                      </TouchableOpacity>
+
+                      {showChecklist && (
+                        <View
+                          style={[modalStyles.sectionBody, { paddingTop: 12 }]}
+                        >
+                          <ScrollView
+                            style={modalStyles.checklistScroll}
+                            contentContainerStyle={{ paddingRight: 4 }}
+                            bounces={false}
+                            showsVerticalScrollIndicator
+                          >
+                            {globalInspectionChecklist.length === 0 ? (
+                              <Text style={modalStyles.muted}>
+                                No items found.
+                              </Text>
+                            ) : (
+                              globalInspectionChecklist.map((item, idx) => (
+                                <View
+                                  key={`${idx}-${item}`}
+                                  style={modalStyles.bulletRow}
+                                >
+                                  <Text style={modalStyles.bulletText}>
+                                    {item}
+                                  </Text>
+                                </View>
+                              ))
+                            )}
+                          </ScrollView>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Performed By */}
+                    <View style={modalStyles.sectionCard}>
+                      <View style={modalStyles.sectionHeader}>
+                        <Text style={modalStyles.sectionHeaderText}>
+                          Inspection Performed By
+                        </Text>
+                      </View>
+                      <View style={modalStyles.sectionBody}>
+                        <Text style={modalStyles.smallLabel}>
+                          Full name (required)
+                        </Text>
+                        <PaperTextInput
+                          value={inspectionPerformedBy}
+                          onChangeText={setInspectionPerformedBy}
+                          placeholder="e.g., John Smith"
+                          mode="outlined"
+                          style={[
+                            styles.textarea,
+                            { minHeight: 44, marginBottom: 0 },
+                          ]}
+                          theme={{ colors: { outline: "#D1D5DB" } }}
+                          autoComplete="name"
+                          returnKeyType="done"
+                        />
+                      </View>
+                    </View>
+
+                    {/* Optional Comment */}
+                    <View style={modalStyles.sectionCard}>
+                      <View
+                        style={[
+                          modalStyles.sectionHeader,
+                          modalStyles.sectionHeaderRow,
+                        ]}
+                      >
+                        <Text style={modalStyles.sectionHeaderText}>
+                          Report Any Issues (Optional)
+                        </Text>
+                        <Text style={modalStyles.hint}>
+                          Add notes if needed
+                        </Text>
+                      </View>
+                      <View style={modalStyles.sectionBody}>
+                        <PaperTextInput
+                          label="Add an explanation..."
+                          value={inspectionComment}
+                          onChangeText={setInspectionComment}
+                          mode="outlined"
+                          multiline
+                          numberOfLines={4}
+                          style={[
+                            styles.textarea,
+                            { backgroundColor: "white" },
+                          ]}
+                          theme={{ colors: { outline: "#D1D5DB" } }}
+                          returnKeyType="done"
+                        />
+                      </View>
+                    </View>
+
+                    {/* Divider */}
+                    <View style={cjStyles.divider} />
+
+                    {/* Time Spent */}
+                    <Text
+                      style={[modalStyles.sectionTitle, { marginBottom: 12 }]}
+                    >
+                      Time Spent
+                    </Text>
                     <View style={cjStyles.gridTwo}>
                       <View style={cjStyles.rowCenter}>
                         <PaperTextInput
@@ -1309,16 +1522,17 @@ export default function JobDetailsScreen() {
                           onChangeText={handleSetHoursWorked}
                           style={cjStyles.input}
                           maxLength={2}
+                          keyboardType="number-pad"
                         />
                         <Text style={cjStyles.inlineLabel}>hours</Text>
                       </View>
-
                       <View style={cjStyles.rowCenter}>
                         <PaperTextInput
                           value={minutesWorked.toString()}
                           onChangeText={handleSetMinutesWorked}
                           style={cjStyles.input}
                           maxLength={2}
+                          keyboardType="number-pad"
                         />
                         <Text style={cjStyles.inlineLabel}>minutes</Text>
                       </View>
@@ -1326,16 +1540,19 @@ export default function JobDetailsScreen() {
 
                     <View style={cjStyles.divider} />
 
-                    <Text style={[cjStyles.title, { marginTop: 10 }]}>
+                    {/* People count */}
+                    <Text
+                      style={[modalStyles.sectionTitle, { marginBottom: 10 }]}
+                    >
                       How many people worked on this job?
                     </Text>
-
                     <View style={cjStyles.centerField}>
                       <PaperTextInput
                         value={numberOfPeople.toString()}
                         onChangeText={handleSetNumberOfPeople}
                         style={cjStyles.input}
                         maxLength={2}
+                        keyboardType="number-pad"
                       />
                     </View>
 
@@ -1346,25 +1563,42 @@ export default function JobDetailsScreen() {
                         There are no closeout photos for this job.
                       </Text>
                     )}
-                  </View>
-                  <View style={[modalStyles.buttonRow, { marginTop: 40 }]}>
+                  </ScrollView>
+
+                  {/* Fixed stacked footer (matches Initial Inspection) */}
+                  <View style={modalStyles.footerStack}>
                     <TouchableOpacity
-                      style={[modalStyles.button, modalStyles.cancelButton]}
+                      style={[modalStyles.stackButton, modalStyles.stackCancel]}
                       onPress={() => setCompleteJobModalVisible(false)}
                     >
-                      <Text style={modalStyles.cancelText}>Cancel</Text>
+                      <Text style={modalStyles.stackCancelText}>Cancel</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
-                      style={[modalStyles.button, modalStyles.deleteButton]}
-                      onPress={handleCompleteJob}
+                      style={[
+                        modalStyles.stackButton,
+                        modalStyles.stackPrimary,
+                      ]}
+                      onPress={handleCompleteNothingToReport}
                     >
-                      <Text style={modalStyles.deleteText}>Complete Job</Text>
+                      <Text style={modalStyles.stackPrimaryText}>
+                        Nothing to Report
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[modalStyles.stackButton, modalStyles.stackDanger]}
+                      onPress={handleReportConcern}
+                    >
+                      <Text style={modalStyles.stackDangerText}>
+                        Report Concern or Incident
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </>
               )}
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </GestureHandlerRootView>
       </Modal>
 
@@ -1469,7 +1703,6 @@ export default function JobDetailsScreen() {
                               key={`${idx}-${item}`}
                               style={modalStyles.bulletRow}
                             >
-                              <View style={modalStyles.bulletDot} />
                               <Text style={modalStyles.bulletText}>{item}</Text>
                             </View>
                           ))
