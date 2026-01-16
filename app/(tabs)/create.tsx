@@ -15,10 +15,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  Pressable,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Svg, Path } from "react-native-svg";
 import { TextInput, Snackbar, Portal } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,6 +83,8 @@ export default function CreateJobScreen() {
   const [tailNumber, setTailNumber] = useState("");
 
   const [customers, setCustomers] = useState([]);
+
+  const [serviceActivities, setServiceActivities] = useState([]);
 
   const [aircraftTypes, setAircraftTypes] = useState([]);
   const [airports, setAirports] = useState([]);
@@ -184,6 +187,7 @@ export default function CreateJobScreen() {
         setCommentHeight(100);
         setIsRequestPriorityEnabled(false);
         setTags([]);
+        setServiceActivities([]);
       };
     }, [])
   );
@@ -653,6 +657,29 @@ export default function CreateJobScreen() {
             setHideAddonsServices(response1.settings.hide_addons_services);
           }
         }
+
+        const response2 = await httpService.post("/tail-service-history", {
+          tail_number: tailNumber,
+        });
+
+        //iterate through response2.data.results and remove duplicates entry.
+        //A duplicate entry has the same service name and the same purchase order number
+        const uniqueServiceActivities = [];
+
+        for (let i = 0; i < response2.results.length; i++) {
+          const serviceActivity = response2.results[i];
+          const found = uniqueServiceActivities.some(
+            (el) =>
+              el.service_name === serviceActivity.service_name &&
+              el.purchase_order === serviceActivity.purchase_order
+          );
+
+          if (!found) {
+            uniqueServiceActivities.push(serviceActivity);
+          }
+        }
+
+        setServiceActivities(uniqueServiceActivities);
       } catch (error) {
         console.error("Error fetching tail lookups:", error);
       }
@@ -819,6 +846,38 @@ export default function CreateJobScreen() {
       </View>
     );
   }
+
+  const renderServiceActivity = ({ item }: any) => (
+    <View style={styles.itemContainer}>
+      {/* Top row: date + PO link */}
+      <View style={styles.rowBetween}>
+        <Text style={styles.timestamp}>{item.timestamp}</Text>
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.push(`/job-details/${item.job_id}/`)}
+          style={styles.linkButton}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.linkText}>{item.purchase_order}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Service name */}
+      <Text style={styles.serviceName}>{item.service_name}</Text>
+
+      {/* Meta row */}
+      <View style={styles.metaRow}>
+        <View style={styles.airportPill}>
+          <Text style={styles.airportPillText}>{item.airport_name}</Text>
+        </View>
+
+        <Text style={styles.fboText}>{item.fbo_name}</Text>
+
+        <Text style={styles.tailText}>{item.tail_number}</Text>
+      </View>
+    </View>
+  );
 
   if (!currentUser) return null;
 
@@ -1025,6 +1084,26 @@ export default function CreateJobScreen() {
                   >
                     <Text style={styles.buttonText}>Next</Text>
                   </TouchableOpacity>
+
+                  {serviceActivities?.length > 0 && (
+                    <View style={styles.card}>
+                      <View style={styles.cardHeader}>
+                        <Text style={styles.cardHeaderText}>
+                          Found {serviceActivities.length} previous services
+                        </Text>
+                      </View>
+
+                      <FlatList
+                        data={serviceActivities}
+                        keyExtractor={(item) => String(item.id)}
+                        renderItem={renderServiceActivity}
+                        ItemSeparatorComponent={() => (
+                          <View style={styles.separator} />
+                        )}
+                        contentContainerStyle={styles.listContent}
+                      />
+                    </View>
+                  )}
                 </>
               )}
 
@@ -1303,5 +1382,101 @@ const styles = StyleSheet.create({
 
   cancelButtonText: {
     color: "#374151", // gray-700
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB", // gray-200
+    marginVertical: 16,
+    // subtle shadow (iOS) + elevation (Android)
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+  },
+  cardHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6", // gray-100
+  },
+  cardHeaderText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827", // gray-900
+  },
+  rowBetween: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timestamp: {
+    color: "#6B7280", // gray-500
+  },
+  linkButton: {
+    borderRadius: 8,
+  },
+  linkText: {
+    color: "#0284C7", // sky-600
+    fontWeight: "600",
+  },
+  serviceName: {
+    color: "#111827", // gray-900
+    fontWeight: "600",
+    marginTop: 8,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  airportPill: {
+    backgroundColor: "#F3F4F6", // gray-100
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  airportPillText: {
+    color: "#374151", // gray-700
+  },
+  fboText: {
+    color: "#6B7280", // gray-500
+  },
+  tailText: {
+    color: "#6B7280", // gray-500
+    fontStyle: "italic",
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#D1D5DB", // gray-100
+  },
+
+  // give each row a subtle container edge so it reads as a "card"
+  itemContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+  },
+
+  // spacer + a faint divider line centered with side margins
+  separatorContainer: {
+    height: 12,
+    backgroundColor: "transparent",
+    justifyContent: "center",
+  },
+  separatorLine: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#E5E7EB", // gray-200
+    marginHorizontal: 12,
+    borderRadius: 999,
+  },
+
+  // (optional) extra bottom padding so last item breathes
+  listContent: {
+    paddingBottom: 12,
   },
 });

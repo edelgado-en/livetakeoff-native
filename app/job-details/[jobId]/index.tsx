@@ -11,6 +11,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -117,6 +118,8 @@ export default function JobDetailsScreen() {
   const [minutesWorked, setMinutesWorked] = useState(0);
   const [otherPMsWorkingOnIt, setOtherPMsWorkingOnIt] = useState(false);
 
+  const [serviceActivities, setServiceActivities] = useState([]);
+
   const isTablet = width >= 768;
 
   const getStatusStyle = (status: string) => {
@@ -189,6 +192,29 @@ export default function JobDetailsScreen() {
           setJob(response);
 
           setCommentsRefreshKey((prev) => prev + 1);
+
+          const response2 = await httpService.post("/tail-service-history", {
+            tail_number: response.tailNumber,
+          });
+
+          //iterate through response2.data.results and remove duplicates entry.
+          //A duplicate entry has the same service name and the same purchase order number
+          const uniqueServiceActivities = [];
+
+          for (let i = 0; i < response2.results.length; i++) {
+            const serviceActivity = response2.results[i];
+            const found = uniqueServiceActivities.some(
+              (el) =>
+                el.service_name === serviceActivity.service_name &&
+                el.purchase_order === serviceActivity.purchase_order
+            );
+
+            if (!found) {
+              uniqueServiceActivities.push(serviceActivity);
+            }
+          }
+
+          setServiceActivities(uniqueServiceActivities);
         } catch (err) {
           console.error("Failed to fetch job", err);
         } finally {
@@ -652,6 +678,38 @@ export default function JobDetailsScreen() {
     }
   };
 
+  const renderServiceActivity = ({ item }: any) => (
+    <View style={styles.itemContainer}>
+      {/* Top row: date + PO link */}
+      <View style={styles.rowBetween}>
+        <Text style={styles.timestamp}>{item.timestamp}</Text>
+
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.push(`/job-details/${item.job_id}/`)}
+          style={styles.linkButton}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.linkText}>{item.purchase_order}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Service name */}
+      <Text style={styles.serviceName}>{item.service_name}</Text>
+
+      {/* Meta row */}
+      <View style={styles.metaRow}>
+        <View style={styles.airportPill}>
+          <Text style={styles.airportPillText}>{item.airport_name}</Text>
+        </View>
+
+        <Text style={styles.fboText}>{item.fbo_name}</Text>
+
+        <Text style={styles.tailText}>{item.tail_number}</Text>
+      </View>
+    </View>
+  );
+
   if (!currentUser) return null;
 
   if (loading || !job) {
@@ -1106,6 +1164,27 @@ export default function JobDetailsScreen() {
             jobDetails={job}
             currentUser={currentUser}
           />
+        )}
+
+        {serviceActivities?.length > 0 && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardHeaderText}>
+                Found {serviceActivities.length} previous services
+              </Text>
+            </View>
+
+            <FlatList
+              data={serviceActivities}
+              keyExtractor={(item) => String(item.id)}
+              renderItem={renderServiceActivity}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              contentContainerStyle={styles.listContent}
+              scrollEnabled={false} // <- disables inner scrolling
+              nestedScrollEnabled // helps Android nested gestures
+              removeClippedSubviews={false} // safer when nested
+            />
+          </View>
         )}
       </ScrollView>
 
@@ -1905,6 +1984,41 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontWeight: "500",
   },
+  cardHeader: {
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6", // gray-100
+  },
+  cardHeaderText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#111827", // gray-900
+  },
+  rowBetween: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timestamp: {
+    color: "#6B7280", // gray-500
+  },
+  linkButton: {
+    borderRadius: 8,
+  },
+  linkText: {
+    color: "#0284C7", // sky-600
+    fontWeight: "600",
+  },
+  serviceName: {
+    color: "#111827", // gray-900
+    fontWeight: "600",
+    marginTop: 8,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#D1D5DB", // gray-100
+  },
   card: {
     backgroundColor: "#fff",
     padding: 16,
@@ -2073,6 +2187,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     borderRadius: 8,
+  },
+
+  // give each row a subtle container edge so it reads as a "card"
+  itemContainer: {
+    paddingHorizontal: 6,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+  },
+
+  // spacer + a faint divider line centered with side margins
+  separatorContainer: {
+    height: 12,
+    backgroundColor: "transparent",
+    justifyContent: "center",
+  },
+  separatorLine: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#E5E7EB", // gray-200
+    marginHorizontal: 12,
+    borderRadius: 999,
+  },
+
+  // (optional) extra bottom padding so last item breathes
+  listContent: {
+    paddingBottom: 12,
   },
 });
 
