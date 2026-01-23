@@ -54,7 +54,6 @@ const { width: screenWidth } = Dimensions.get("window");
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 import { cropTextForDevice } from "../../../utils/textUtils";
-import { set } from "date-fns";
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -69,6 +68,9 @@ export default function JobDetailsScreen() {
     useState(false);
 
   const [isInitialInspectionModalVisible, setInitialInspectionModalVisible] =
+    useState(false);
+
+  const [isTailDetailsModalVisible, setTailDetailsModalVisible] =
     useState(false);
 
   const [
@@ -119,6 +121,8 @@ export default function JobDetailsScreen() {
   const [otherPMsWorkingOnIt, setOtherPMsWorkingOnIt] = useState(false);
 
   const [serviceActivities, setServiceActivities] = useState([]);
+
+  const [tailDetails, setTailDetails] = useState(null);
 
   const isTablet = width >= 768;
 
@@ -215,6 +219,16 @@ export default function JobDetailsScreen() {
           }
 
           setServiceActivities(uniqueServiceActivities);
+
+          try {
+            const response3 = await httpService.post("/tail-note-lookup", {
+              jobId: jobId,
+            });
+
+            setTailDetails(response3);
+          } catch (err) {
+            setTailDetails(null);
+          }
         } catch (err) {
           console.error("Failed to fetch job", err);
         } finally {
@@ -749,7 +763,27 @@ export default function JobDetailsScreen() {
           </TouchableOpacity>
 
           <View style={styles.jobTitleContainer}>
-            <Text style={styles.tailNumber}>{job.tailNumber}</Text>
+            <Text style={styles.tailNumber}>
+              {job.tailNumber}
+              {tailDetails && (
+                <TouchableOpacity
+                  onPress={() => setTailDetailsModalVisible(true)}
+                >
+                  <Text
+                    style={{
+                      marginLeft: 10,
+                      position: "relative",
+                      top: 4,
+                      color: "#3B82F6",
+                      fontSize: 17,
+                      fontWeight: "700",
+                    }}
+                  >
+                    Key Location
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </Text>
             <Text style={styles.customerName}>
               {cropTextForDevice(job.customer.name, 40)}
             </Text>
@@ -1300,6 +1334,47 @@ export default function JobDetailsScreen() {
                   </View>
                 </>
               )}
+            </View>
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
+
+      {/* Tails Details Modal */}
+      <Modal
+        visible={isTailDetailsModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setTailDetailsModalVisible(false)}
+      >
+        {/* Backdrop */}
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.5)" },
+          ]}
+        />
+        <GestureHandlerRootView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={styles.modalContainerWide}>
+            <View style={modalStyles.container}>
+              <Text style={modalStyles.title}>
+                Key Location for {tailDetails?.tailNumber}
+              </Text>
+              <View>
+                <Text style={[modalStyles.bodyText, { marginVertical: 20 }]}>
+                  {tailDetails?.notes}
+                </Text>
+              </View>
+              <View style={[modalStyles.buttonRow, { marginTop: 20 }]}>
+                <TouchableOpacity
+                  style={[modalStyles.button, modalStyles.cancelButton]}
+                  onPress={() => setTailDetailsModalVisible(false)}
+                >
+                  <Text style={modalStyles.cancelText}>Close</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </GestureHandlerRootView>
