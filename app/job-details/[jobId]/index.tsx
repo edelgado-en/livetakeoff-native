@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Linking,
   KeyboardAvoidingView,
   Platform,
   FlatList,
@@ -54,6 +55,17 @@ const { width: screenWidth } = Dimensions.get("window");
 const isTablet = screenWidth >= 768; // Tailwind's md breakpoint
 
 import { cropTextForDevice } from "../../../utils/textUtils";
+
+type DocType = "I" | "O" | "W";
+
+type DocumentItem = {
+  id: string | number;
+  name: string;
+  file: string; // Cloudinary delivery URL
+  file_type: DocType;
+  created_at?: string | Date;
+  expiration_date?: string | Date;
+};
 
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
@@ -690,6 +702,15 @@ export default function JobDetailsScreen() {
       value = Math.floor(value);
       setMinutesWorked(value);
     }
+  };
+
+  const downloadFile = (item: DocumentItem) => {
+    const fileUrl =
+      "https://res.cloudinary.com/datidxeqm/" + item.file + "?dl=true";
+
+    Linking.openURL(fileUrl).catch(() => {
+      Alert.alert("Error", "Failed to open the document.");
+    });
   };
 
   const renderServiceActivity = ({ item }: any) => (
@@ -1367,6 +1388,34 @@ export default function JobDetailsScreen() {
                   {tailDetails?.notes}
                 </Text>
               </View>
+              {tailDetails?.files?.length > 0 && (
+                <Text style={modalStyles.subtitle}>Documents</Text>
+              )}
+
+              {tailDetails?.files?.map((item) => (
+                <View key={item.id} style={styles.card}>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.row}>
+                      <Text
+                        style={styles.name}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.name}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.actionsCol}>
+                    <TouchableOpacity
+                      style={styles.actionBtn}
+                      onPress={() => downloadFile(item)}
+                    >
+                      <Text style={styles.actionText}>Open</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+
               <View style={[modalStyles.buttonRow, { marginTop: 20 }]}>
                 <TouchableOpacity
                   style={[modalStyles.button, modalStyles.cancelButton]}
@@ -1977,6 +2026,23 @@ const getTagStyle = (color: string) => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
+  },
+  actionsCol: {
+    marginLeft: 12,
+    alignItems: "flex-end",
+  },
+  actionBtn: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  actionText: {
+    color: "#2563EB",
+    fontWeight: "600",
+    fontSize: 13,
   },
   statusPill: {
     color: "#fff",
