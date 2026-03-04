@@ -92,7 +92,7 @@ export default function JobDetailsScreen() {
   const [inspectionComment, setInspectionComment] = useState("");
   const [inspectionPerformedBy, setInspectionPerformedBy] = useState("");
   const [globalInspectionChecklist, setGlobalInspectionChecklist] = useState(
-    []
+    [],
   );
   const [showChecklist, setShowChecklist] = useState(false);
 
@@ -197,8 +197,11 @@ export default function JobDetailsScreen() {
         try {
           const response = await httpService.get(`/jobs/${jobId}/`);
 
-          const vendorAcceptedTag = response.tags.find(
-            (tag) => tag.tag_name === "Vendor Accepted"
+          //check if Vendor Accepted or Accepted tag exists in response.tags. If yes, set isVendorAccepted to true
+          const vendorAcceptedTag = response.tags?.find(
+            (tag) =>
+              tag.tag_short_name === "Vendor Accepted" ||
+              tag.tag_short_name === "Accepted",
           );
 
           if (vendorAcceptedTag) {
@@ -222,7 +225,7 @@ export default function JobDetailsScreen() {
             const found = uniqueServiceActivities.some(
               (el) =>
                 el.service_name === serviceActivity.service_name &&
-                el.purchase_order === serviceActivity.purchase_order
+                el.purchase_order === serviceActivity.purchase_order,
             );
 
             if (!found) {
@@ -249,14 +252,14 @@ export default function JobDetailsScreen() {
       };
 
       fetchJob();
-    }, [jobId])
+    }, [jobId]),
   );
 
   useFocusEffect(
     useCallback(() => {
       if (!jobId) return;
       fetchPhotos();
-    }, [jobId])
+    }, [jobId]),
   );
 
   useFocusEffect(
@@ -266,7 +269,7 @@ export default function JobDetailsScreen() {
       if (currentUser.canSeePrice) {
         fetchPriceBreakdown();
       }
-    }, [jobId])
+    }, [jobId]),
   );
 
   const saveComment = async () => {
@@ -311,7 +314,7 @@ export default function JobDetailsScreen() {
       if (currentUser.canSeePrice) {
         try {
           const priceResponse = await httpService.get(
-            `/jobs/price-breakdown/${jobId}/`
+            `/jobs/price-breakdown/${jobId}/`,
           );
           setPriceBreakdown(priceResponse);
         } catch (error) {
@@ -388,7 +391,7 @@ export default function JobDetailsScreen() {
     } catch (error) {
       Alert.alert(
         "Error",
-        "Failed to verify if job can be completed. Please try again."
+        "Failed to verify if job can be completed. Please try again.",
       );
     }
   };
@@ -415,7 +418,7 @@ export default function JobDetailsScreen() {
   const handleNothingToReport = () => {
     if (inspectionPerformedBy.trim() === "") {
       Alert.alert(
-        "Please enter the name of the person performing the inspection."
+        "Please enter the name of the person performing the inspection.",
       );
       return;
     }
@@ -425,7 +428,7 @@ export default function JobDetailsScreen() {
   const handlePreExistingConditionToReport = async () => {
     if (inspectionPerformedBy.trim() === "") {
       Alert.alert(
-        "Please enter the name of the person performing the inspection."
+        "Please enter the name of the person performing the inspection.",
       );
       return;
     }
@@ -445,7 +448,7 @@ export default function JobDetailsScreen() {
     } catch (error) {
       Alert.alert(
         "Error",
-        "Failed to report pre-existing condition. Please try again."
+        "Failed to report pre-existing condition. Please try again.",
       );
       return;
     }
@@ -475,7 +478,7 @@ export default function JobDetailsScreen() {
     if (!inspectionComment.trim()) {
       Alert.alert(
         "Validation",
-        "Please add a brief note describing the issue."
+        "Please add a brief note describing the issue.",
       );
       return;
     }
@@ -674,7 +677,7 @@ export default function JobDetailsScreen() {
     setJob((prev) => ({
       ...prev,
       service_assignments: prev.service_assignments.filter(
-        (service) => service.id !== id
+        (service) => service.id !== id,
       ),
     }));
   };
@@ -1512,11 +1515,11 @@ export default function JobDetailsScreen() {
                 `/global-inspection-checklist`,
                 {
                   inspection_type: "F", // Final inspection
-                }
+                },
               );
               const items = response.results
                 .flatMap((it: any) =>
-                  (it.item_description || "").split(/\r?\n/)
+                  (it.item_description || "").split(/\r?\n/),
                 )
                 .map((s: string) => s.trim())
                 .filter((s: string) => s.length > 0);
