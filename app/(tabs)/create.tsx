@@ -106,7 +106,7 @@ export default function CreateJobScreen() {
   const [fboSearchTerm, setFboSearchTerm] = useState("");
 
   const [selectedPriority, setSelectedPriority] = useState(
-    requestPriorities[0]
+    requestPriorities[0],
   );
 
   const [customerPurchaseOrder, setCustomerPurchaseOrder] = useState("");
@@ -177,7 +177,7 @@ export default function CreateJobScreen() {
             ...step,
             status: step.id === 1 ? "current" : "upcoming",
             selected: step.id === 1,
-          }))
+          })),
         );
         setCreateJobMessage("");
         setShowSnackbar(false);
@@ -189,7 +189,7 @@ export default function CreateJobScreen() {
         setTags([]);
         setServiceActivities([]);
       };
-    }, [])
+    }, []),
   );
 
   useFocusEffect(
@@ -201,7 +201,7 @@ export default function CreateJobScreen() {
       return () => {
         clearTimeout(timeoutID);
       };
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function CreateJobScreen() {
       return () => {
         clearTimeout(timeoutID);
       };
-    }, [customerSearchTerm])
+    }, [customerSearchTerm]),
   );
 
   useEffect(() => {
@@ -250,7 +250,7 @@ export default function CreateJobScreen() {
       return () => {
         clearTimeout(timeoutID);
       };
-    }, [aircraftSearchTerm])
+    }, [aircraftSearchTerm]),
   );
 
   useFocusEffect(
@@ -268,7 +268,7 @@ export default function CreateJobScreen() {
       return () => {
         clearTimeout(timeoutID);
       };
-    }, [airportSearchTerm])
+    }, [airportSearchTerm]),
   );
 
   useFocusEffect(
@@ -281,7 +281,7 @@ export default function CreateJobScreen() {
       return () => {
         clearTimeout(timeoutID);
       };
-    }, [fboSearchTerm])
+    }, [fboSearchTerm]),
   );
 
   const searchCustomers = async () => {
@@ -300,7 +300,7 @@ export default function CreateJobScreen() {
     try {
       const response = await httpService.post(
         "/aircraft-types?page=1&size=50",
-        { name: aircraftSearchTerm }
+        { name: aircraftSearchTerm },
       );
 
       setAircraftTypes(response.results);
@@ -359,13 +359,13 @@ export default function CreateJobScreen() {
 
     let selectedServices = [];
     selectedServices = selectedServices.concat(
-      interiorServices.filter((service) => service.selected === true)
+      interiorServices.filter((service) => service.selected === true),
     );
     selectedServices = selectedServices.concat(
-      exteriorServices.filter((service) => service.selected === true)
+      exteriorServices.filter((service) => service.selected === true),
     );
     selectedServices = selectedServices.concat(
-      otherServices.filter((service) => service.selected === true)
+      otherServices.filter((service) => service.selected === true),
     );
 
     let selectedCustomer = customerSelected;
@@ -389,12 +389,12 @@ export default function CreateJobScreen() {
     if (estimatedArrivalDate instanceof Date) {
       console.log(
         "Estimated Arrival Date:",
-        formatForDjangoNY(estimatedArrivalDate)
+        formatForDjangoNY(estimatedArrivalDate),
       );
 
       formData.append(
         "estimated_arrival_date",
-        formatForDjangoNY(estimatedArrivalDate)
+        formatForDjangoNY(estimatedArrivalDate),
       );
     } else {
       formData.append("estimated_arrival_date", "null");
@@ -403,7 +403,7 @@ export default function CreateJobScreen() {
     if (estimatedDepartureDate instanceof Date) {
       formData.append(
         "estimated_departure_date",
-        formatForDjangoNY(estimatedDepartureDate)
+        formatForDjangoNY(estimatedDepartureDate),
       );
     } else {
       formData.append("estimated_departure_date", "null");
@@ -425,6 +425,7 @@ export default function CreateJobScreen() {
     formData.append("priority", selectedPriority.id);
     formData.append("follower_emails", "");
     formData.append("ident", "");
+    formData.append("origin", "M");
 
     for (const uri of images) {
       const filename = uri.split("/").pop() || "photo.jpg";
@@ -449,7 +450,7 @@ export default function CreateJobScreen() {
       Alert.alert(
         "Error",
         "There was an error creating the job. Please try again later.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     }
   };
@@ -458,7 +459,7 @@ export default function CreateJobScreen() {
     try {
       const response = await httpService.post(
         "/airports/customer-fees",
-        request
+        request,
       );
       setAirportFees(response);
     } catch (err) {
@@ -478,7 +479,7 @@ export default function CreateJobScreen() {
   const getServicesAndRetainers = async (customerId: Number) => {
     try {
       const response = await httpService.get(
-        `/customers/retainers-services/${customerId}/`
+        `/customers/retainers-services/${customerId}/`,
       );
 
       const interior: any[] = [];
@@ -529,7 +530,7 @@ export default function CreateJobScreen() {
       .then((customerDetails) => {
         if (customerDetails) {
           setIsRequestPriorityEnabled(
-            customerDetails.settings.enable_request_priority
+            customerDetails.settings.enable_request_priority,
           );
           setHideAddonsServices(customerDetails.settings.hide_addons_services);
         }
@@ -622,7 +623,7 @@ export default function CreateJobScreen() {
     if (tailNumber?.length > 2) {
       try {
         const response = await httpService.get(
-          `/tail-aircraft-lookup/${tailNumber}/`
+          `/tail-aircraft-lookup/${tailNumber}/`,
         );
 
         if (response) {
@@ -648,11 +649,11 @@ export default function CreateJobScreen() {
             setCustomerSearchTerm(response.customer_name);
 
             const response1 = await httpService.get(
-              `/customers/${response.customer_id}/`
+              `/customers/${response.customer_id}/`,
             );
 
             setIsRequestPriorityEnabled(
-              response1.settings.enable_request_priority
+              response1.settings.enable_request_priority,
             );
             setHideAddonsServices(response1.settings.hide_addons_services);
           }
@@ -671,7 +672,7 @@ export default function CreateJobScreen() {
           const found = uniqueServiceActivities.some(
             (el) =>
               el.service_name === serviceActivity.service_name &&
-              el.purchase_order === serviceActivity.purchase_order
+              el.purchase_order === serviceActivity.purchase_order,
           );
 
           if (!found) {
@@ -746,15 +747,15 @@ export default function CreateJobScreen() {
       let selectedServices = [];
 
       selectedServices = selectedServices.concat(
-        interiorServices.filter((service) => service.selected === true)
+        interiorServices.filter((service) => service.selected === true),
       );
 
       selectedServices = selectedServices.concat(
-        exteriorServices.filter((service) => service.selected === true)
+        exteriorServices.filter((service) => service.selected === true),
       );
 
       selectedServices = selectedServices.concat(
-        otherServices.filter((service) => service.selected === true)
+        otherServices.filter((service) => service.selected === true),
       );
 
       if (selectedServices.length === 0) {

@@ -67,6 +67,206 @@ type DocumentItem = {
   expiration_date?: string | Date;
 };
 
+type FlightInfo = {
+  status?: string;
+  progress_percent?: number;
+  arrival_delay?: number;
+  origin?: {
+    code?: string;
+    city?: string;
+    timezone?: string;
+  };
+  destination?: {
+    code?: string;
+    city?: string;
+    timezone?: string;
+  };
+  local_scheduled_off?: string;
+  local_estimated_off?: string;
+  local_scheduled_on?: string;
+  local_estimated_on?: string;
+};
+
+const getFlightStatusStyle = (status?: string) => {
+  switch (status) {
+    case "Scheduled":
+      return {
+        borderColor: "#2563EB",
+        color: "#2563EB",
+        backgroundColor: "#EFF6FF",
+      };
+    case "Arrived":
+      return {
+        borderColor: "#059669",
+        color: "#059669",
+        backgroundColor: "#ECFDF5",
+      };
+    case "En Route":
+      return {
+        borderColor: "#D97706",
+        color: "#D97706",
+        backgroundColor: "#FFFBEB",
+      };
+    default:
+      return {
+        borderColor: "#CBD5E1",
+        color: "#475569",
+        backgroundColor: "#F8FAFC",
+      };
+  }
+};
+
+const FlightInfoSection = ({
+  flights,
+  isTablet,
+}: {
+  flights: FlightInfo[];
+  isTablet: boolean;
+}) => {
+  if (!flights?.length) return null;
+
+  const safeText = (value?: string | null) => value || "Not specified";
+
+  return (
+    <View style={flightStyles.card}>
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "500",
+          color: "#111827",
+          marginBottom: 12,
+        }}
+      >
+        Flights
+      </Text>
+
+      {flights.map((flight, index) => {
+        const progress = Math.max(
+          0,
+          Math.min(100, Number(flight.progress_percent || 0)),
+        );
+        const statusStyle = getFlightStatusStyle(flight.status);
+
+        return (
+          <View
+            key={`${flight.origin?.code || "origin"}-${flight.destination?.code || "destination"}-${index}`}
+            style={[
+              flightStyles.flightCard,
+              index === flights.length - 1 && { marginBottom: 0 },
+            ]}
+          >
+            <View style={flightStyles.topRow}>
+              <Text style={flightStyles.routeLabel}>Route</Text>
+              <View style={[flightStyles.statusPill, statusStyle]}>
+                <Text
+                  style={[
+                    flightStyles.statusText,
+                    { color: statusStyle.color },
+                  ]}
+                >
+                  {flight.status || "Unknown"}
+                </Text>
+              </View>
+            </View>
+
+            <View style={flightStyles.routeRow}>
+              <Text style={flightStyles.airportCode}>
+                {safeText(flight.origin?.code)}
+              </Text>
+
+              <View style={flightStyles.progressWrap}>
+                <View style={flightStyles.progressTrack}>
+                  <View
+                    style={[
+                      flightStyles.progressFill,
+                      { width: `${progress}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={flightStyles.progressText}>
+                  {progress}% complete
+                </Text>
+              </View>
+
+              <Text style={flightStyles.airportCode}>
+                {safeText(flight.destination?.code)}
+              </Text>
+            </View>
+
+            <View
+              style={[
+                flightStyles.detailsGrid,
+                isTablet && flightStyles.detailsGridTablet,
+              ]}
+            >
+              <View style={flightStyles.detailBox}>
+                <Text style={flightStyles.sectionTitle}>Departure</Text>
+                <Text style={flightStyles.cityText}>
+                  {safeText(flight.origin?.city)}
+                </Text>
+                <Text style={flightStyles.timezoneText}>
+                  {safeText(flight.origin?.timezone)}
+                </Text>
+
+                <View style={flightStyles.timeRow}>
+                  <View style={flightStyles.timeCol}>
+                    <Text style={flightStyles.timeLabel}>Scheduled</Text>
+                    <Text style={flightStyles.timeValue}>
+                      {safeText(flight.local_scheduled_off)}
+                    </Text>
+                  </View>
+
+                  <View style={flightStyles.timeCol}>
+                    <Text style={flightStyles.timeLabel}>Est. Takeoff</Text>
+                    <Text style={flightStyles.timeValue}>
+                      {safeText(flight.local_estimated_off)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={flightStyles.detailBox}>
+                <View style={flightStyles.arrivalHeader}>
+                  <Text style={flightStyles.sectionTitle}>Arrival</Text>
+
+                  {Number(flight.arrival_delay || 0) > 0 && (
+                    <View style={flightStyles.delayPill}>
+                      <Text style={flightStyles.delayText}>Delayed</Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={flightStyles.cityText}>
+                  {safeText(flight.destination?.city)}
+                </Text>
+                <Text style={flightStyles.timezoneText}>
+                  {safeText(flight.destination?.timezone)}
+                </Text>
+
+                <View style={flightStyles.timeRow}>
+                  <View style={flightStyles.timeCol}>
+                    <Text style={flightStyles.timeLabel}>Scheduled</Text>
+                    <Text style={flightStyles.timeValue}>
+                      {safeText(flight.local_scheduled_on)}
+                    </Text>
+                  </View>
+
+                  <View style={flightStyles.timeCol}>
+                    <Text style={flightStyles.timeLabel}>Est. Landing</Text>
+                    <Text style={flightStyles.timeValue}>
+                      {safeText(flight.local_estimated_on)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
 export default function JobDetailsScreen() {
   const { jobId } = useLocalSearchParams();
   const router = useRouter();
@@ -136,6 +336,8 @@ export default function JobDetailsScreen() {
 
   const [tailDetails, setTailDetails] = useState(null);
 
+  const [flights, setFlights] = useState([]);
+
   const isTablet = width >= 768;
 
   const getStatusStyle = (status: string) => {
@@ -190,6 +392,10 @@ export default function JobDetailsScreen() {
       }, 250);
     }
   }, [isModalVisible]);
+
+  useEffect(() => {
+    getTailFlightInfo();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -273,7 +479,6 @@ export default function JobDetailsScreen() {
   );
 
   const saveComment = async () => {
-    console.log("Saving comment:", newComment);
     if (!newComment.trim()) return;
 
     try {
@@ -298,6 +503,16 @@ export default function JobDetailsScreen() {
     }
   };
 
+  const getTailFlightInfo = async () => {
+    try {
+      const response = await httpService.get(`/jobs/flights/${jobId}/`);
+
+      setFlights(response?.data || response || []);
+    } catch (err) {
+      setFlights([]);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     setLoading(true);
@@ -305,6 +520,8 @@ export default function JobDetailsScreen() {
     try {
       const response = await httpService.get(`/jobs/${jobId}/`);
       setJob(response);
+
+      await getTailFlightInfo();
 
       const photosResponse = await httpService.get(`/job-photos/${jobId}/`);
       setPhotos(photosResponse.results || []);
@@ -1106,6 +1323,9 @@ export default function JobDetailsScreen() {
         <View style={styles.card}>
           <JobCommentsPreview jobId={job.id} refreshKey={commentsRefreshKey} />
         </View>
+
+        {/* Flight information */}
+        <FlightInfoSection flights={flights} isTablet={isTablet} />
 
         {/* Pictures */}
         <View style={styles.card}>
@@ -2356,6 +2576,175 @@ const styles = StyleSheet.create({
   // (optional) extra bottom padding so last item breathes
   listContent: {
     paddingBottom: 12,
+  },
+});
+
+const flightStyles = StyleSheet.create({
+  card: {
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  detailsGridTablet: {
+    flexDirection: "row",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    letterSpacing: 0.4,
+  },
+  subtitle: {
+    marginTop: 2,
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  countPill: {
+    minWidth: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  countText: {
+    color: "#374151",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  flightCard: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  routeLabel: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  routeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
+  airportCode: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#111827",
+    minWidth: 52,
+    textAlign: "center",
+  },
+  progressWrap: {
+    flex: 1,
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: "#E5E7EB",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: "#10B981",
+  },
+  progressText: {
+    marginTop: 5,
+    fontSize: 11,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  detailsGrid: {
+    gap: 10,
+  },
+  detailBox: {
+    flex: 1,
+    borderRadius: 10,
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+    padding: 12,
+  },
+  arrivalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  cityText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  timezoneText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    marginTop: 2,
+  },
+  timeRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 12,
+  },
+  timeCol: {
+    flex: 1,
+  },
+  timeLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginBottom: 3,
+  },
+  timeValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  delayPill: {
+    backgroundColor: "#FCA5A5",
+    borderRadius: 7,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  delayText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
 
