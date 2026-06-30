@@ -1025,9 +1025,11 @@ export default function JobDetailsScreen() {
                 </TouchableOpacity>
               )}
             </Text>
-            <Text style={styles.customerName}>
-              {cropTextForDevice(job.customer.name, 40)}
-            </Text>
+            {!currentUser.isExternalProjectManager && (
+              <Text style={styles.customerName}>
+                {cropTextForDevice(job.customer.name, 40)}
+              </Text>
+            )}
           </View>
 
           <Text style={[styles.statusPill, getStatusStyle(job.status)]}>

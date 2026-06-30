@@ -141,7 +141,7 @@ export default function JobsScreen() {
       return () => {
         didCancel = true;
       };
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -256,13 +256,15 @@ export default function JobsScreen() {
       <TouchableOpacity onPress={() => router.push(`/job-details/${item.id}/`)}>
         <View style={styles.card}>
           <View style={{ flexDirection: "row" }}>
-            <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: item.customer.logo }}
-                style={styles.logo}
-                resizeMode="cover"
-              />
-            </View>
+            {!currentUser.isExternalProjectManager && (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: item.customer.logo }}
+                  style={styles.logo}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
             <Text style={[styles.cardTitle, { marginHorizontal: 8 }]}>
               {item.tailNumber}
             </Text>
@@ -285,7 +287,7 @@ export default function JobsScreen() {
 
           <View style={{ paddingVertical: 6 }}></View>
 
-          {!currentUser.isCustomer && (
+          {!currentUser.isCustomer && !currentUser.isExternalProjectManager && (
             <View style={styles.section}>
               <Text style={styles.label}>Customer:</Text>
               <Text style={styles.dateText}>
@@ -419,7 +421,7 @@ export default function JobsScreen() {
         </View>
       </TouchableOpacity>
     ),
-    [router, activeTab, currentUser]
+    [router, activeTab, currentUser],
   );
 
   const totalPages = Math.ceil(totalJobs / pageSize);
