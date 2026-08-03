@@ -1437,14 +1437,21 @@ export default function JobDetailsScreen() {
           )}
         </View>
 
+        {/* {currentUser.canSeePrice &&
+          (!currentUser.isExternalProjectManager ||
+            (jobDetails.status !== "C" && jobDetails.status !== "I")) */}
+
         {/* Price Breakdown */}
-        {priceBreakdown && currentUser.canSeePrice && (
-          <PriceBreakdown
-            priceBreakdown={priceBreakdown}
-            jobDetails={job}
-            currentUser={currentUser}
-          />
-        )}
+        {priceBreakdown &&
+          currentUser.canSeePrice &&
+          (!currentUser.isExternalProjectManager ||
+            (job.status !== "C" && job.status !== "I")) && (
+            <PriceBreakdown
+              priceBreakdown={priceBreakdown}
+              jobDetails={job}
+              currentUser={currentUser}
+            />
+          )}
 
         {serviceActivities?.length > 0 && (
           <View style={styles.card}>

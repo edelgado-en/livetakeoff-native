@@ -161,8 +161,11 @@ export default function JobsScreen() {
     const currentPage = pageOverride || page;
 
     try {
+      const canAccessCompletedJobs =
+        !currentUser?.isProjectManager || currentUser?.isExternalProjectManager;
+
       const endpoint =
-        tab === "completed" && !currentUser?.isProjectManager
+        tab === "completed" && canAccessCompletedJobs
           ? `/jobs/completed?page=${currentPage}&size=${pageSize}`
           : `/jobs?page=${currentPage}&size=${pageSize}`;
 
@@ -383,11 +386,13 @@ export default function JobsScreen() {
             </>
           )}
 
-          {currentUser.canSeePrice && activeTab === "completed" && (
-            <View style={{ position: "absolute", right: 12, bottom: 20 }}>
-              <Text>${item.price?.toLocaleString()}</Text>
-            </View>
-          )}
+          {currentUser.canSeePrice &&
+            !currentUser.isExternalProjectManager &&
+            activeTab === "completed" && (
+              <View style={{ position: "absolute", right: 12, bottom: 20 }}>
+                <Text>${item.price?.toLocaleString()}</Text>
+              </View>
+            )}
 
           {(currentUser.isAdmin ||
             currentUser.isSuperUser ||
@@ -541,7 +546,8 @@ export default function JobsScreen() {
           currentUser?.isSuperUser ||
           currentUser?.isAccountManager ||
           currentUser?.isCustomer ||
-          currentUser?.isInternalCoordinator) && (
+          currentUser?.isInternalCoordinator ||
+          currentUser?.isExternalProjectManager) && (
           <View
             style={{
               flexDirection: "row",
