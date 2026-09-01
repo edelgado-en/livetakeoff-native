@@ -5,8 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
 import { TextInput } from "react-native-paper";
 import { useRouter } from "expo-router";

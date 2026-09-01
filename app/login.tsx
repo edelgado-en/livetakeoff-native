@@ -6,12 +6,14 @@ import {
   Image,
   Alert,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Linking,
 } from "react-native";
 import LottieView from "lottie-react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "../hooks/useAuth";
 import { TextInput } from "react-native-paper";

@@ -10,8 +10,8 @@ import {
   Alert,
   RefreshControl,
   Modal,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import LottieView from "lottie-react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";

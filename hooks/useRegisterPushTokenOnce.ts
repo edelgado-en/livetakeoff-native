@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 export const useRegisterPushTokenOnce = () => {
   const hasRegistered = useRef(false);
@@ -13,6 +15,13 @@ export const useRegisterPushTokenOnce = () => {
       try {
         const accessToken = await SecureStore.getItemAsync('accessToken');
         if (!accessToken) return;
+
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'Default',
+            importance: Notifications.AndroidImportance.MAX,
+          });
+        }
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
@@ -32,7 +41,17 @@ export const useRegisterPushTokenOnce = () => {
           return;
         }
 
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        const projectId =
+          Constants.expoConfig?.extra?.eas?.projectId ??
+          Constants.easConfig?.projectId;
+
+        if (!projectId) {
+          throw new Error('Expo project ID is missing from the app configuration');
+        }
+
+        const token = (
+          await Notifications.getExpoPushTokenAsync({ projectId })
+        ).data;
 
         if (token) {
           await fetch('https://api-livetakeoff.herokuapp.com/api/users/push-token', {

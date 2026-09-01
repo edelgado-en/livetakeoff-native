@@ -1,5 +1,21 @@
 const TZ = 'America/New_York';
 
+const pad = (value: number) => String(value).padStart(2, '0');
+
+export function formatJobLocalDateTime(date: Date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new Error('A valid job date is required');
+  }
+
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const year = pad(date.getFullYear() % 100);
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+
+  return `${month}/${day}/${year} ${hours}:${minutes} LT`;
+}
+
 // Parse New York wall time components reliably, even with limited ICU
 function getNYComponents(date: Date) {
   // "MM/DD/YYYY, HH:MM:SS"

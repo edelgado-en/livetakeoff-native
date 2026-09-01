@@ -5,12 +5,12 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Modal,
   TextInput as RNTextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Portal, TextInput } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 

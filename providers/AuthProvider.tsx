@@ -1,7 +1,23 @@
-import { createContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import * as SecureStore from "expo-secure-store";
 
-export const AuthContext = createContext({
+type User = Record<string, any>;
+
+type AuthContextValue = {
+  token: string | null;
+  currentUser: User | null;
+  authIsBootstrapping: boolean;
+  setCurrentUser: (user: User | null) => void;
+  login: (email: string, password: string) => Promise<User | null>;
+  logout: () => Promise<void>;
+};
+
+export const AuthContext = createContext<AuthContextValue>({
   token: null,
   currentUser: null,
   authIsBootstrapping: false,
@@ -9,31 +25,40 @@ export const AuthContext = createContext({
   login: async (_email: string, _password: string): Promise<any> => {
     return null;
   },
-  logout: () => {},
+  logout: async () => {},
 });
 
-export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [token, setToken] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authIsBootstrapping, setAuthIsBootstrapping] = useState(true);
 
   useEffect(() => {
     const loadToken = async () => {
-      const stored = await SecureStore.getItemAsync("accessToken");
-      if (stored) {
-        setToken(stored);
-        await fetchCurrentUser(stored);
+      try {
+        const stored = await SecureStore.getItemAsync("accessToken");
+        if (stored) {
+          setToken(stored);
+          await fetchCurrentUser(stored);
+        }
+      } catch (err) {
+        console.error("Error restoring session:", err);
+      } finally {
+        setAuthIsBootstrapping(false);
       }
-      setAuthIsBootstrapping(false);
     };
     loadToken();
   }, []);
 
-  const fetchCurrentUser = async (accessToken) => {
+  const fetchCurrentUser = async (accessToken: string): Promise<User | null> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
     try {
       const res = await fetch(
         "https://api-livetakeoff.herokuapp.com/api/users/me",
         {
+          signal: controller.signal,
           headers: {
             Authorization: `JWT ${accessToken}`,
           },
@@ -48,10 +73,12 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching user:", err);
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     const res = await fetch(
       "https://api-livetakeoff.herokuapp.com/api/token/",
       {

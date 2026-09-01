@@ -2,12 +2,20 @@
   "expo": {
     "name": "LiveTakeoff",
     "slug": "livetakeoff",
-    "version": "1.19.0",
+    "version": "1.20.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/livetakeoff_playstore_icon.png",
     "plugins": [
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "microphonePermission": false,
+          "photosPermission": "This app needs access to your photo library to select aircraft images."
+        }
+      ],
+      "expo-router"
     ],
     "userInterfaceStyle": "light",
     "splash": {
@@ -22,28 +30,29 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
-        "supportsTablet": true,
-        "bundleIdentifier": "com.livetakeoff.app",
-        "buildNumber": "1.19.0",
-        "infoPlist": {
-            "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
-            "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
-            "ITSAppUsesNonExemptEncryption": false,
-            "UIBackgroundModes": ["remote-notification"]
-        }
+      "supportsTablet": true,
+      "bundleIdentifier": "com.livetakeoff.app",
+      "buildNumber": "1.20.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "package": "com.livetakeoff.app",
-      "versionCode": 12,
+      "versionCode": 13,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/livetakeoff_playstore_icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "POST_NOTIFICATIONS" 
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {

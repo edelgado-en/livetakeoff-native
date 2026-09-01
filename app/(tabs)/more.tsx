@@ -4,8 +4,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useContext } from "react";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
@@ -97,7 +98,9 @@ export default function MoreScreen() {
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>
             Version {Constants.expoConfig?.version} (Build{" "}
-            {Constants.expoConfig?.ios?.buildNumber})
+            {Platform.OS === "android"
+              ? Constants.expoConfig?.android?.versionCode
+              : Constants.expoConfig?.ios?.buildNumber})
           </Text>
           <Text
             style={{

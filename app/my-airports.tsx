@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   TextInput,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useState, useContext, useCallback, use } from "react";
 import { useRouter } from "expo-router";

@@ -10,7 +10,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -22,7 +21,10 @@ import LottieView from "lottie-react-native";
 import { Link, useRouter } from "expo-router";
 import { Svg, Path } from "react-native-svg";
 import { TextInput, Snackbar, Portal } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import httpService from "../../services/httpService";
 import { AuthContext } from "../../providers/AuthProvider";
@@ -36,7 +38,10 @@ import ServicesSection from "../../components/ServicesSection";
 import ImagePickerSection from "../../components/ImagePickerSection";
 import PriorityRadioGroup from "../../components/PriorityRadioGroup";
 
-import { formatForDjangoNY } from "../../utils/datetime";
+import {
+  formatForDjangoNY,
+  formatJobLocalDateTime,
+} from "../../utils/datetime";
 
 const requestPriorities = [
   {
@@ -396,6 +401,10 @@ export default function CreateJobScreen() {
         "estimated_arrival_date",
         formatForDjangoNY(estimatedArrivalDate),
       );
+      formData.append(
+        "formatted_arrival_date",
+        formatJobLocalDateTime(estimatedArrivalDate),
+      );
     } else {
       formData.append("estimated_arrival_date", "null");
     }
@@ -405,12 +414,20 @@ export default function CreateJobScreen() {
         "estimated_departure_date",
         formatForDjangoNY(estimatedDepartureDate),
       );
+      formData.append(
+        "formatted_departure_date",
+        formatJobLocalDateTime(estimatedDepartureDate),
+      );
     } else {
       formData.append("estimated_departure_date", "null");
     }
 
     if (completeByDate instanceof Date) {
       formData.append("complete_by_date", formatForDjangoNY(completeByDate));
+      formData.append(
+        "formatted_complete_by_date",
+        formatJobLocalDateTime(completeByDate),
+      );
     } else {
       formData.append("complete_by_date", "null");
     }
