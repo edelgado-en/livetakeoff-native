@@ -71,6 +71,8 @@ const availableSteps = [
   },
 ];
 
+const normalizeTailNumber = (value: string) => value.trim().toUpperCase();
+
 export default function CreateJobScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -385,7 +387,7 @@ export default function CreateJobScreen() {
 
     const formData = new FormData();
 
-    formData.append("tail_number", tailNumber);
+    formData.append("tail_number", normalizeTailNumber(tailNumber));
     formData.append("customer_id", selectedCustomer.id);
     formData.append("aircraft_type_id", aircraftTypeSelected.id);
     formData.append("airport_id", airportSelected.id);
@@ -637,10 +639,12 @@ export default function CreateJobScreen() {
   };
 
   const getTailLookups = async () => {
-    if (tailNumber?.length > 2) {
+    const normalizedTailNumber = normalizeTailNumber(tailNumber);
+
+    if (normalizedTailNumber.length > 2) {
       try {
         const response = await httpService.get(
-          `/tail-aircraft-lookup/${tailNumber}/`,
+          `/tail-aircraft-lookup/${normalizedTailNumber}/`,
         );
 
         if (response) {
@@ -677,7 +681,7 @@ export default function CreateJobScreen() {
         }
 
         const response2 = await httpService.post("/tail-service-history", {
-          tail_number: tailNumber,
+          tail_number: normalizedTailNumber,
         });
 
         //iterate through response2.data.results and remove duplicates entry.
@@ -725,7 +729,7 @@ export default function CreateJobScreen() {
     }
 
     if (currentStep.id === 1) {
-      if (!tailNumber) {
+      if (!normalizeTailNumber(tailNumber)) {
         setShowSnackbar(true);
         setSnackbarMessage("Please enter a tail number.");
         return;
@@ -984,11 +988,18 @@ export default function CreateJobScreen() {
                   <TextInput
                     label="Tail Number"
                     value={tailNumber}
-                    onChangeText={(text) => setTailNumber(text.toUpperCase())}
+                    onChangeText={setTailNumber}
+                    onBlur={() =>
+                      setTailNumber((value) => normalizeTailNumber(value))
+                    }
                     mode="outlined"
                     activeOutlineColor="#3B82F6" // Tailwind blue-500
                     outlineColor="#D1D5DB" // Tailwind gray-300
-                    autoCapitalize="none"
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    autoComplete="off"
+                    importantForAutofill="no"
                     style={{ backgroundColor: "white" }}
                   />
 
