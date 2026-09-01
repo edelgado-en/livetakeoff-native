@@ -2,7 +2,7 @@
   "expo": {
     "name": "LiveTakeoff",
     "slug": "livetakeoff",
-    "version": "1.20.0",
+    "version": "1.21.0",
     "orientation": "portrait",
     "icon": "./assets/livetakeoff_playstore_icon.png",
     "plugins": [
@@ -32,7 +32,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.livetakeoff.app",
-      "buildNumber": "1.20.0",
+      "buildNumber": "1.21.0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to let users take photos of aircraft.",
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images.",
@@ -44,7 +44,7 @@
     },
     "android": {
       "package": "com.livetakeoff.app",
-      "versionCode": 13,
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/livetakeoff_playstore_icon.png",
         "backgroundColor": "#ffffff"
