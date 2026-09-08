@@ -4,7 +4,7 @@
     "slug": "livetakeoff",
     "version": "1.21.0",
     "orientation": "portrait",
-    "icon": "./assets/livetakeoff_playstore_icon.png",
+    "icon": "./assets/app_icon.png",
     "plugins": [
       "expo-font",
       "expo-notifications",
@@ -46,7 +46,7 @@
       "package": "com.livetakeoff.app",
       "versionCode": 14,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/livetakeoff_playstore_icon.png",
+        "foregroundImage": "./assets/adaptive_icon_foreground.png",
         "backgroundColor": "#ffffff"
       },
       "blockedPermissions": [
