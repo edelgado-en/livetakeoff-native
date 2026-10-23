@@ -5,15 +5,19 @@ import {
   type ReactNode,
 } from "react";
 import * as SecureStore from "expo-secure-store";
+import { requestLogin, type ReactivationNotice } from "../services/loginService";
 
 type User = Record<string, any>;
+type LoginResult =
+  | { kind: "authenticated"; user: User | null }
+  | { kind: "reactivation"; notice: ReactivationNotice };
 
 type AuthContextValue = {
   token: string | null;
   currentUser: User | null;
   authIsBootstrapping: boolean;
   setCurrentUser: (user: User | null) => void;
-  login: (email: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
 };
 
@@ -22,8 +26,8 @@ export const AuthContext = createContext<AuthContextValue>({
   currentUser: null,
   authIsBootstrapping: false,
   setCurrentUser: (_user: any) => {},
-  login: async (_email: string, _password: string): Promise<any> => {
-    return null;
+  login: async (_email: string, _password: string): Promise<LoginResult> => {
+    return { kind: "authenticated", user: null };
   },
   logout: async () => {},
 });
@@ -78,25 +82,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (email: string, password: string): Promise<User | null> => {
-    const res = await fetch(
-      "https://api-livetakeoff.herokuapp.com/api/token/",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password }),
-      }
-    );
-
-    if (!res.ok) throw new Error("Login failed");
-    const data = await res.json();
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    const data = await requestLogin(email, password);
+    // Inactive customers remain signed out until recovery and a new login.
+    if (data.kind === "reactivation") return data;
 
     await SecureStore.setItemAsync("accessToken", data.access);
     await SecureStore.setItemAsync("refreshToken", data.refresh);
     setToken(data.access);
 
     const user = await fetchCurrentUser(data.access); // ✅ now wait and return the result
-    return user;
+    return { kind: "authenticated", user };
   };
 
   const logout = async () => {

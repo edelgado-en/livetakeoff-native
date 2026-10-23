@@ -2,12 +2,15 @@
 
 ## Scope discipline
 
+- Standing user preference for every task: work only on the explicitly requested scope. Before making any change outside that scope—including safeguards, bug fixes, or business-rule adjustments—explain it and obtain the user’s approval. Do not treat related improvements as implicitly authorized.
+
 - Make only the requested mobile change. Do not combine it with unrelated formatting, package upgrades, version bumps, icon changes, or release configuration edits.
 - Preserve existing user changes in the working tree and inspect both platform-specific behavior and shared Expo code before editing.
 - Keep iOS and Android behavior aligned unless the fix is intentionally platform-specific. Explain any platform branch that is added.
 
 ## Application rules
 
+- All business logic must live in the Django API unless it is necessary to execute on the frontend. Reuse backend authorization, eligibility, business-rule validation, calculations, and workflow transitions so mobile and web share the same rules. Keep mobile code focused on presentation, device interactions, and input feedback; client-side validation never replaces API enforcement. Explain any necessary frontend exception; if its necessity is unclear, ask the user first.
 - Preserve existing role, status, job-editing, tail-alert, service-recommendation, assignment, upload, and notification behavior when redesigning a screen.
 - Internal coordinator takes priority when a user is also a project manager unless a narrower existing rule explicitly applies.
 - Operational datetimes are wall-clock values. Capture and send the formatted local-time string exactly as selected; do not round-trip it through timezone conversion. Calendar time controls use military time where required by the existing workflow.

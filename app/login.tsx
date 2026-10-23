@@ -17,6 +17,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth } from "../hooks/useAuth";
 import { TextInput } from "react-native-paper";
+import type { ReactivationNotice } from "../services/loginService";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -27,21 +28,24 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [secure, setSecure] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [reactivation, setReactivation] = useState<ReactivationNotice | null>(null);
 
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const user = await login(email, password);
-      if (user) {
-        setLoading(false);
-
+      const result = await login(email, password);
+      if (result.kind === "reactivation") {
+        setPassword("");
+        setReactivation(result.notice);
+      } else if (result.user) {
         router.replace("/jobs"); // only after currentUser is set
       } else {
         throw new Error("Could not fetch user");
       }
     } catch (err) {
-      setLoading(false);
       Alert.alert("Login Failed", "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,6 +59,32 @@ export default function LoginScreen() {
           style={{ width: 150, height: 150 }}
         />
       </View>
+    );
+  }
+
+  if (reactivation) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingVertical: 32, paddingBottom: insets.bottom + 32 }]}>
+          <Image source={require("../assets/logo_2618936_web.png")} style={styles.logo} resizeMode="contain" />
+          <View style={styles.form}>
+            <Text accessibilityRole="header" style={styles.noticeTitle}>{reactivation.title}</Text>
+            <Text accessibilityLiveRegion="polite" selectable style={styles.noticeMessage}>{reactivation.message}</Text>
+            {reactivation.delivery === "sent" && (
+              <Text style={styles.noticeMessage}>
+                After creating your new password on the website, return to this app and sign in with it.
+              </Text>
+            )}
+            <TouchableOpacity
+              accessibilityRole="button"
+              style={styles.button}
+              onPress={() => { setReactivation(null); setSecure(true); }}
+            >
+              <Text style={styles.buttonText}>Back to sign in</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
@@ -146,6 +176,18 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  noticeTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 16,
+  },
+  noticeMessage: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#4B5563",
+    marginBottom: 24,
+  },
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
