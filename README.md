@@ -30,6 +30,26 @@ npx expo start --clear
 
 ## Android release workflow
 
+### Launcher icon
+
+`expo.android.icon` selects `assets/app_icon_android.png` for the legacy icon.
+The adaptive icon uses `assets/app_icon_android_adaptive.png` over `#E52529`.
+The legacy icon is an opaque 1024 × 1024 PNG. The adaptive foreground is a
+1024 × 1024 transparent PNG using the supplied white LiveTakeoff emblem, with
+the same asset used as the monochrome layer for supported themed launchers.
+The adaptive foreground includes extra transparent padding so the emblem fits within the
+central 66 dp safe circle of Android's 108 dp layer. Android supplies the launcher
+mask; the image does not bake in rounded corners or an outer shadow.
+
+These assets require a new native build. Google Play's listing icon is separate,
+and an over-the-air JavaScript update does not replace the installed launcher icon.
+Before release, use the preview APK workflow below to verify circle, squircle,
+and rounded-square launcher masks on Android phones and tablets. Check the Home
+Screen, app drawer, Settings, and themed-icon behavior, then smoke-test cold
+launch, session restore, and sign-out/sign-in. Themed-icon appearance depends
+on the Android version and launcher.
+This artwork change does not change app versions or trigger a build or release.
+
 Expo Go is useful for day-to-day JavaScript work, but it is not the native app
 that is uploaded to Google Play. Before every Android release, install and test
 the `preview` APK on a physical Android phone, then promote a separately built
@@ -100,8 +120,8 @@ npx eas-cli@latest submit --platform android --latest
 iPad. It uses the enlarged white LiveTakeoff emblem on red, supplied as an opaque
 1024 × 1024 PNG with square corners; iOS applies its own icon mask.
 
-This is intentionally an Apple-platform change. The shared fallback icon,
-Android adaptive icon, splash screen, and in-app logos keep their existing assets.
+The shared fallback icon, splash screen, and in-app logos keep their existing assets.
+Android uses the separate launcher assets documented above.
 Expo generates the required iOS icon sizes during the native build.
 
 An installed app's icon changes only after a new native build is installed; an
