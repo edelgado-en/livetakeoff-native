@@ -94,6 +94,31 @@ npx eas-cli@latest submit --platform android --latest
 
 ## Building for production (iOS)
 
+### Home Screen icon
+
+`expo.ios.icon` in `app.json` selects `assets/app_icon_ios.png` for iPhone and
+iPad. It uses the enlarged white LiveTakeoff emblem on red, supplied as an opaque
+1024 × 1024 PNG with square corners; iOS applies its own icon mask.
+
+This is intentionally an Apple-platform change. The shared fallback icon,
+Android adaptive icon, splash screen, and in-app logos keep their existing assets.
+Expo generates the required iOS icon sizes during the native build.
+
+An installed app's icon changes only after a new native build is installed; an
+over-the-air JavaScript update does not apply it. For a future release, follow the
+existing EAS remote-version workflow and check the current remote build number
+before building. Do not withdraw or replace the pending 1.23.0 submission solely
+for this artwork change.
+
+Before release, verify the icon on iPhone and iPad using a TestFlight or internal
+native build: Home Screen at normal and large sizes, Spotlight, Settings, and
+light/dark/tinted appearances. Confirm the emblem remains legible and unclipped,
+then smoke-test cold launch, session restore, and sign-out/sign-in. Expo Go alone
+does not validate the installed icon. This configuration change does not itself
+build, submit, or release an app.
+
+See [Expo's app icon guidance](https://docs.expo.dev/develop/user-interface/splash-screen-and-app-icon/).
+
 ### 🛠️ Build iOS app with EAS
 ```bash
 npx eas-cli@latest build --platform ios --profile production

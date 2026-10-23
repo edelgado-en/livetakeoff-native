@@ -30,6 +30,7 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
+      "icon": "./assets/app_icon_ios.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.livetakeoff.app",
       "buildNumber": "1.23.0",
