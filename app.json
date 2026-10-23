@@ -30,6 +30,7 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
+      "icon": "./assets/app_icon_ios.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.livetakeoff.app",
       "buildNumber": "1.23.0",
@@ -43,11 +44,13 @@
       }
     },
     "android": {
+      "icon": "./assets/app_icon_android.png",
       "package": "com.livetakeoff.app",
       "versionCode": 15,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive_icon_foreground.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/app_icon_android_adaptive.png",
+        "monochromeImage": "./assets/app_icon_android_adaptive.png",
+        "backgroundColor": "#E52529"
       },
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
