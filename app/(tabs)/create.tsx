@@ -35,6 +35,7 @@ import FboFeesAlert from "../../components/FboFeesAlert";
 import HoursOfOperationAlert from "../../components/HoursOfOperationAlert";
 import ModalDropdown from "../../components/ModalDropdown";
 import ServicesSection from "../../components/ServicesSection";
+import { useExteriorServiceRecommendation } from "../../hooks/useExteriorServiceRecommendation";
 import ImagePickerSection from "../../components/ImagePickerSection";
 import PriorityRadioGroup from "../../components/PriorityRadioGroup";
 
@@ -145,10 +146,19 @@ export default function CreateJobScreen() {
   const [images, setImages] = useState<string[]>([]);
 
   const suppressSearchRef = useRef(false);
+  const exteriorRecommendation = useExteriorServiceRecommendation(
+    tailNumber,
+    currentUser?.customerId || (customerSelected as { id: number } | null)?.id,
+    () => {
+      setSnackbarMessage("Unable to check tail exterior level 2");
+      setShowSnackbar(true);
+    },
+  );
 
   useFocusEffect(
     useCallback(() => {
       return () => {
+        exteriorRecommendation.reset();
         // Reset local state here manually
         setTailNumber("");
         setCustomers([]);
@@ -764,6 +774,7 @@ export default function CreateJobScreen() {
         setSnackbarMessage("Enter your name and email in requested by.");
         return;
       }
+      void exteriorRecommendation.check();
     } else if (currentStep.id === 2) {
       let selectedServices = [];
 
@@ -1145,6 +1156,7 @@ export default function CreateJobScreen() {
                     onToggleService={handleServiceChange}
                     hideAddonsServices={hideAddonsServices}
                     currentUser={currentUser}
+                    exteriorRecommendation={exteriorRecommendation.recommendation}
                   />
 
                   <View style={styles.buttonRow}>

@@ -1,0 +1,46 @@
+Mobile exterior service recommendation acceptance — 2026-11-17
+
+Scope: mobile only; no web/API source changes. Package and Expo version 1.24.0.
+Existing EAS-managed store build numbers are unchanged.
+
+Contract checked against web CreateJob.jsx and Django tail_exterior_level_2_checker:
+- POST /api/tail-exterior-level-2-checker after valid Job Details, on transition to Services.
+- Same customer selection precedence; uppercase tail; ident is empty because the existing
+  mobile wizard has no call-sign input. The existing API falls back to the tail number.
+- Display the API decision and arrived flight count; no mobile threshold calculation.
+- Exact warning copy, colors, and recommendation label rules from web.
+- Basic Exterior remains selectable. Retainers and unrelated workflow stay unchanged.
+- Ignore stale responses after customer/tail changes or leaving the screen.
+
+Automated verification:
+- node --test tests/exterior-recommendation.test.cjs tests/customer-reactivation.test.cjs
+  PASS: 36 tests (19 recommendation tests + 17 existing tests), rerun after visual review.
+- LTO_EXTERIOR_QA_FILE=/private/tmp/lto-exterior-qa.json node --test tests/exterior-recommendation-api.test.cjs
+  PASS: 4 authenticated HTTP acceptance tests using the actual mobile HTTP service and
+  isolated localhost Django API/test database. Admin, internal coordinator, combined
+  internal coordinator/project manager, and customer roles. True/false decision,
+  disabled checker, provider failure, and service catalog metadata covered.
+  FlightAware responses mocked; no production request or job creation.
+- Android JavaScript/Hermes export: PASS (npm run check:android-bundle).
+- iOS JavaScript/Hermes export: PASS (expo export --platform ios).
+- Typecheck: 235 errors, versus 237 baseline; no newly introduced errors.
+  Existing unrelated typing backlog remains.
+- git diff --check: PASS.
+
+Visual verification:
+- Rendered actual ServicesSection and recommendation components with React Native Web,
+  sample services, 19 flights, and the Exterior accordion expanded.
+- Inspected 320px and 390px phones and 768px tablet. No horizontal overflow or visible
+  clipping/overlap in the warning and recommendation pills. Tablet uses two card columns.
+- Initial temporary preview had a bad placeholder/encoding. Corrected it to UTF-8 and
+  loaded the actual MaterialIcons font and glyph map; confirmed font loaded and icon visible.
+- Screenshots: /private/tmp/lto-native-rec-visual/phone-390.png and tablet-768.png.
+- Preview URL: http://127.0.0.1:3046/390.html (temporary local server).
+
+Limits:
+- Browser component preview is NOT a native device screenshot or end-to-end app run.
+- No connected Android device. iOS simulator runtime unavailable; system reported that
+  authorization was required to install simulator packages. No runtime installed.
+- Native device layout, cold launch/session restore, keyboard/safe area, TestFlight and
+  Android preview APK checks remain unverified. JS exports do not replace those checks.
+- No signed binaries, store submission, deployment, commit, or push performed.

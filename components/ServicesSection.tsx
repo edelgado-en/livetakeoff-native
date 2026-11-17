@@ -12,10 +12,19 @@ import {
 import { useWindowDimensions } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import type { ExteriorServiceRecommendation } from "../hooks/useExteriorServiceRecommendation";
+import {
+  ExteriorServiceRecommendationNotice,
+  ExteriorServiceRecommendationPills,
+} from "./ExteriorServiceRecommendation";
+
 interface ServiceItem {
   id: number;
   name: string;
   selected?: boolean;
+  short_name?: string;
+  short_description?: string;
+  is_exterior_detail_level_2?: boolean;
 }
 
 interface Props {
@@ -25,6 +34,7 @@ interface Props {
   onToggleService: (item: ServiceItem) => void;
   hideAddonsServices?: boolean;
   currentUser: any;
+  exteriorRecommendation?: ExteriorServiceRecommendation | null;
 }
 
 if (
@@ -41,6 +51,7 @@ const ServicesSection: React.FC<Props> = ({
   onToggleService,
   hideAddonsServices = false,
   currentUser,
+  exteriorRecommendation,
 }) => {
   const { width } = useWindowDimensions();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -82,6 +93,9 @@ const ServicesSection: React.FC<Props> = ({
           >
             {item.short_name?.trim() || item.name}
           </Text>
+          {exteriorRecommendation?.show_recommendation && (
+            <ExteriorServiceRecommendationPills service={item} />
+          )}
           <Text style={styles.cardSubtitle}>{item.short_description}</Text>
         </View>
 
@@ -148,9 +162,14 @@ const ServicesSection: React.FC<Props> = ({
         </Animated.View>
       </TouchableOpacity>
       {expandedSection === "exterior" && (
-        <View style={styles.cardContainer}>
-          {exteriorServices.map((item) => renderServiceCard(item, "exterior"))}
-        </View>
+        <>
+          {exteriorServices.length > 0 && exteriorRecommendation?.show_recommendation && (
+            <ExteriorServiceRecommendationNotice flightCount={exteriorRecommendation.arrived_flights_count} />
+          )}
+          <View style={styles.cardContainer}>
+            {exteriorServices.map((item) => renderServiceCard(item, "exterior"))}
+          </View>
+        </>
       )}
 
       {/* Add-ons */}
